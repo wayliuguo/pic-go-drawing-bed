@@ -10,3 +10,7 @@
 	url  = https://gitee.com/wayliuhaha/react_todo-list
 	path = source/react_study/react_todo-list
 
+[submodule "source/react_study/react-router-study"]
+	url  = https://gitee.com/wayliuhaha/react-router-study
+	path = source/react_study/react-router-study
+
