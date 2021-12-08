@@ -18,3 +18,7 @@
 	url  = https://gitee.com/wayliuhaha/typescript-study
 	path = source/typescript_study/typescript_study
 
+[submodule "source/react_study/redux_study"]
+	url  = https://gitee.com/wayliuhaha/redux_study
+	path = source/react_study/redux_study
+
