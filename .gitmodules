@@ -14,3 +14,7 @@
 	url  = https://gitee.com/wayliuhaha/react-router-study
 	path = source/react_study/react-router-study
 
+[submodule "source/typescript_study/typescript_study"]
+	url  = https://gitee.com/wayliuhaha/typescript-study
+	path = source/typescript_study/typescript_study
+
