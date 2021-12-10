@@ -867,11 +867,11 @@ export default withRouter(Header)
 
 
 
-### 7.2 redux 工作流程
+#### 7.2 redux 工作流程
 
 ![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/redux%E5%8E%9F%E7%90%86%E5%9B%BE.png)
 
-#### 7.2.1 action
+##### 7.2.1 action
 
 1. 动作的对象
 2. 包含2个属性
@@ -879,12 +879,12 @@ export default withRouter(Header)
    - data：数据属性，值类型任意，可选属性
 3. 例子：{type:'ADD_STUDENT',DATA:{name:'tom',age:18}}
 
-#### 7.2.2 reducer
+##### 7.2.2 reducer
 
 1. 用于初始化状态，加工状态
 2. 加工时，根据旧的state 和 action，产生新的 state 的纯函数
 
-#### 7.2.3 store
+##### 7.2.3 store
 
 1. 将 state、action、reducer联系在一起的对象
 2. 如何得到此对象？
@@ -896,9 +896,9 @@ export default withRouter(Header)
    - dispatch(action)：分发action，触发reducer调用，产生新的state
    - subscribe(listener):注册监听，当产生新的state时，自动调用
 
-### 7.3 求和案例(精简版)
+#### 7.3 求和案例(精简版)
 
-#### 7.3.1 关键代码
+##### 7.3.1 关键代码
 
 ```
 npm i redux
@@ -1006,7 +1006,7 @@ export default class Count extends Component {
 
 为了方便，可以在src/index.js下利用store.subscribe()监听更新。
 
-#### 7.3.2总结笔记
+##### 7.3.2总结笔记
 
 - store.js
   - 引入redux中的createStore函数,创建一个store
@@ -1019,7 +1019,7 @@ export default class Count extends Component {
 - 在index.js中检测store状态的改变，一旦发生改变重新渲染<App/>
   - redux只负责管理状态，至于状态的改变驱动着页面的展示，要靠我们自己写
 
-### 7.4 求和案例（完整版）
+#### 7.4 求和案例（完整版）
 
 ```
 // src/redux/count_action.js
@@ -1098,7 +1098,7 @@ export default class Count extends Component {
 - 使用count_action.js作为action Creator 生产actions
 - 在组件中使用生成的action
 
-### 7.5 求和案例（异步action版）
+#### 7.5 求和案例（异步action版）
 
 ```
 npm i redux-thunk
@@ -1148,7 +1148,7 @@ export default createStore(countReducer, applyMiddleware(thunk))
 - 在异步action返回的函数体中进行异步操作，异步操作后调用对应的同步操作
 - 异步action需要配合redux-thunk使用：applyMiddleWare(thunk)作为createStore的第二个参数
 
-### 7.6 react-redux
+#### 7.6 react-redux
 
 ![react-redux模型图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/react-redux%E6%A8%A1%E5%9E%8B%E5%9B%BE.png)
 
@@ -1157,6 +1157,295 @@ npm i react-redux
 ```
 
 ```
-// 
+// src/containers/Count/index.jsx
+
+// 引入Count的UI组件
+import CountUI from '../../components/Count'
+// 引入connect用于连接UI组件与redux
+import { connect } from 'react-redux'
+
+// 使用connect()()创建并暴露一个Count的容器组件
+export default connect()(CountUI)
+
+//src/App.jsx 
+
+import React, { Component } from 'react'
+import Count from './containers/Count' // 容器组件
+import store from './redux/store' // 引入store
+
+export default class App extends Component {
+	render() {
+		return (
+			<div>
+				<Count store={store}/>
+			</div>
+		)
+	}
+}
+
 ```
+
+```
+// src/Containers/Count/index.jsx（容器组件）
+// 引入Count的UI组件
+import CountUI from '../../components/Count'
+// 引入connect用于连接UI组件与redux
+import { connect } from 'react-redux'
+// 引入 action
+import {
+    createIncrementAction,
+    createDecementAction,
+    createIncrementAsyncAction
+} from '../../redux/count_action'
+
+
+// mapStateToProps 函数返回的是一个对象
+// 返回的对象中的key就作为传递给UI组件props的key，value就作为传递给UI组件的props的value
+// mapStateToProps 用于传递状态
+function mapStateToProps(state) {
+    return {
+        count: state
+    }
+}
+
+// mapDispatchToProps 函数返回的是一个对象
+// 返回的对象中的key就作为传递给UI组件props的key，value就作为传递给UI组件的props的value
+// mapStateToProps 用于传递操作状态的方法
+function mapDispatchToProps(dispatch) {
+    return {
+        jia:number =>  dispatch(createIncrementAction(number)),
+        jian: number => dispatch(createDecementAction(number*1)),
+        jiaAsync: (number, timer) => dispatch(createIncrementAsyncAction(number*1, timer))
+    }
+}
+
+
+// 使用connect()()创建并暴露一个Count的容器组件
+export default connect(mapStateToProps, mapDispatchToProps)(CountUI)
+```
+
+```
+// src/components/Count/index.jsx （UI组件）
+import React, { Component } from 'react'
+
+export default class Count extends Component {
+
+	//加法
+	increment = ()=>{
+		const {value} = this.selectNumber
+		this.props.jia(value*1)
+	}
+	//减法
+	decrement = ()=>{
+		const {value} = this.selectNumber
+		this.props.jian(value*1)
+	}
+	//奇数再加
+	incrementIfOdd = ()=>{
+		const {value} = this.selectNumber
+		if(this.props.count %2 !== 0) {
+			this.props.jia(value*1)
+		}
+	}
+	//异步加
+	incrementAsync = ()=>{
+		const {value} = this.selectNumber
+		this.props.jiaAsync(value*1, 500)
+	}
+
+	render() {
+		return (
+			<div>
+				<h1>当前求和为：{this.props.count}</h1>
+				<select ref={c => this.selectNumber = c}>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+				</select>&nbsp;
+				<button onClick={this.increment}>+</button>&nbsp;
+				<button onClick={this.decrement}>-</button>&nbsp;
+				<button onClick={this.incrementIfOdd}>当前求和为奇数再加</button>&nbsp;
+				<button onClick={this.incrementAsync}>异步加</button>&nbsp;
+			</div>
+		)
+	}
+}
+```
+
+- 明确两个概念：
+  - UI组件：不能使用任何redux的api，只负责页面的呈现、交互等
+  - 容器组件：负责和redux通信，将结果交给UI组件
+- 如何创建一个容器组件——靠react-redux的connect函数
+  - connect(mapStateToProps, mapDispatchToProps)（UI组件）
+  - mapStateToProps: 映射状态，返回的是一个对象
+  - mapDispatchToProps: 映射操作状态的方法，返回值是一个对象
+- 备注：容器组件中的store是靠props传进去的，而不是容器组件中直接引入
+
+#### 7.7 react-redux 优化
+
+##### 7.7.1 优化容器组件connect传值
+
+```
+// src/Containers/Count/index.jsx（容器组件）
+
+// 引入Count的UI组件
+import CountUI from '../../components/Count'
+// 引入connect用于连接UI组件与redux
+import { connect } from 'react-redux'
+// 引入 action
+import {
+    createIncrementAction,
+    createDecementAction,
+    createIncrementAsyncAction
+} from '../../redux/count_action'
+
+
+// 使用connect()()创建并暴露一个Count的容器组件
+export default connect(
+    state => (
+        {
+            count: state
+        }
+    ),
+    {
+        jia: createIncrementAction,
+        jian: createDecementAction,
+        jiaAsync: createIncrementAsyncAction
+    }
+    )(CountUI)
+```
+
+- 
+
+##### 7.7.2 优化index.js与App.jsx
+
+```
+// src/index.js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { Provider } from 'react-redux'
+import App from './App'
+import store from './redux/store'
+
+ReactDOM.render(
+	<Provider store={store}>
+		<App/>
+	</Provider>,
+	document.getElementById('root')
+)
+```
+
+- 可以去除手动监测更新，容器组件会完成这部分工作， 即
+
+  ```
+  // src/index.js
+  ...
+  // 监测redux中状态的改变，如果redux状态发生了改变，那么重新渲染App组件
+  store.subscribe(() => {
+  ReactDOM.render(<App />, document.getElementById('root'))
+  })
+  ```
+
+- 在App.jsx中可以使用 Provider组件统一给容器组件传 store
+
+```
+// src/App.jsx
+import React, { Component } from 'react'
+import Count from './containers/Count'
+
+export default class App extends Component {
+	render() {
+		return (
+			<div>
+				<Count/>
+			</div>
+		)
+	}
+}
+```
+
+- 去除了手动向每一个容器组件传 store，即
+
+  ```
+  import store from './redux/store'
+  ...
+  <Count store={store}/>
+  ```
+
+##### 7.3 优化——把UI组件与容器组件放在同一个文件中
+
+```
+// containers/Count/index.jsx
+
+// 引入connect用于连接UI组件与redux
+import { connect } from 'react-redux'
+// 引入 action
+import {
+    createIncrementAction,
+    createDecementAction,
+    createIncrementAsyncAction
+} from '../../redux/count_action'
+import React, { Component } from 'react'
+
+// UI 组件
+class Count extends Component {
+
+	//加法
+	increment = ()=>{
+		const {value} = this.selectNumber
+		this.props.jia(value*1)
+	}
+	//减法
+	decrement = ()=>{
+		const {value} = this.selectNumber
+		this.props.jian(value*1)
+	}
+	//奇数再加
+	incrementIfOdd = ()=>{
+		const {value} = this.selectNumber
+		if(this.props.count %2 !== 0) {
+			this.props.jia(value*1)
+		}
+	}
+	//异步加
+	incrementAsync = ()=>{
+		const {value} = this.selectNumber
+		this.props.jiaAsync(value*1, 500)
+	}
+
+	render() {
+		return (
+			<div>
+				<h1>当前求和为：{this.props.count}</h1>
+				<select ref={c => this.selectNumber = c}>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+				</select>&nbsp;
+				<button onClick={this.increment}>+</button>&nbsp;
+				<button onClick={this.decrement}>-</button>&nbsp;
+				<button onClick={this.incrementIfOdd}>当前求和为奇数再加</button>&nbsp;
+				<button onClick={this.incrementAsync}>异步加</button>&nbsp;
+			</div>
+		)
+	}
+}
+
+
+// 使用connect()()创建并暴露一个Count的容器组件
+export default connect(
+    state => (
+        {
+            count: state
+        }
+    ),
+    {
+        jia: createIncrementAction,
+        jian: createDecementAction,
+        jiaAsync: createIncrementAsyncAction
+    }
+    )(Count)
+```
+
+#### 7.8 Person 组件
 
