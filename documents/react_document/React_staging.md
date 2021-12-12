@@ -1449,3 +1449,133 @@ export default connect(
 
 #### 7.8 Person 组件
 
+```
+// /src/components/Person/index.jsx
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
+import { createAddPersonAction } from '../../redux/actions/person'
+import { nanoid } from 'nanoid'
+
+class Person extends Component {
+    addPerson = () => {
+		const { addPerson } = this.props
+        const name = this.nameNode.value
+        const age = this.ageNode.value
+		const personObj = {
+			id: nanoid(),
+			name,
+			age
+		}
+		addPerson(personObj)
+		this.nameNode = ''
+		this.ageNode = ''
+    }
+    render() {
+		const { allPerson } = this.props
+        return (
+            <div>
+                <h2>我是Person组件</h2>
+                <input type="text" ref={c=>this.nameNode =c} placeholder='输入名字' />
+                <input type="text" ref={c=>this.ageNode =c} placeholder='输入年龄' />
+                <button onClick={this.addPerson}>添加</button>
+                <ul>
+                    {
+						allPerson.map((person) => {
+							return <li key={person.id}>{person.name}-{person.age}</li>
+						})
+					}
+                </ul>
+            </div>
+        )
+    }
+}
+
+export default connect(
+	state => (
+		{
+			allPerson: state.person
+		}
+	),
+	{
+		addPerson: createAddPersonAction
+	}
+)(Person)
+```
+
+```
+// /src/redux/actions/person.js
+import { ADD_PERSON } from "../constant"
+
+export const createAddPersonAction = personObj => ({type: ADD_PERSON, data: personObj})
+```
+
+```
+// /src/redux/reducers/person.js
+
+import { ADD_PERSON } from "../constant"
+
+//初始化人的列表
+const initState = [
+    {
+        id:'001',
+        name:'tom',
+        age:18
+    }
+]
+
+export default function personReducer(preState=initState, action) {
+    const { type, data} = action
+    switch (type) {
+        case ADD_PERSON:
+            return [data, ...preState]
+        default:
+            return preState
+    }
+}
+```
+
+```
+// redux/store.js
+/**
+ * 该文件用于暴露一个store对象，整个应用只用一个store对象
+ */
+
+// 引入createStore 用于创建redux最为核心的store对象
+import { createStore, applyMiddleware, combineReducers } from "redux"
+// 引入为count组件服务的reducer
+import countReducer from './reducers/count'
+// 引入person组件服务的reducer
+import personReducer from './reducers/person'
+// 引入redux-thunk，用于支持异步action
+import thunk from "redux-thunk"
+// 引入redux-devtools-extension
+import { composeWithDevTools } from 'redux-devtools-extension'
+
+//汇总所有的reducer变为一个总的reducer
+const allReducer = combineReducers({
+    count: countReducer,
+    person: personReducer
+})
+
+export default createStore(allReducer, composeWithDevTools(applyMiddleware(thunk)))
+```
+
+- 从redux中引入combineReducers 组合多组件的reducers
+
+- 汇总reducer
+
+  ```
+  const allReducer = combineReducers({
+      count: countReducer,
+      person: personReducer
+  })
+  // 所以，在Person的容器组件中取此状态:state.person
+  ```
+
+- 引入redux开发者工具
+
+  ```
+  npm i redux-devtools-extension
+  
+  import { composeWithDevTools } from 'redux-devtools-extension'
+  ```
