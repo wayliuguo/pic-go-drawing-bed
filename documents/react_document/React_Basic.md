@@ -834,7 +834,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-16.回调ref的执行次数
+### 16.回调ref的执行次数
 
 ```
 <!DOCTYPE html>
@@ -893,7 +893,7 @@ talk: () => { console.log(this) }
 
 - 点击切换天气更新的时候，回调函数（内联）会打印两次
 
-### 16.React.createRef()的使用
+### 17.React.createRef()的使用
 
 ```
 <!DOCTYPE html>
@@ -941,7 +941,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 17.React中的事件处理
+### 18.React中的事件处理
 
 ```
 <!DOCTYPE html>
@@ -998,7 +998,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 18.非受控组件
+### 19.非受控组件
 
 ```
 <!DOCTYPE html>
@@ -1042,7 +1042,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 19.受控组件
+### 20.受控组件
 
 ```
 <!DOCTYPE html>
@@ -1101,7 +1101,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 20.高阶函数-函数柯里化
+### 21.高阶函数-函数柯里化
 
 ```
 <!DOCTYPE html>
@@ -1162,7 +1162,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 21.不用柯里化的写法
+### 22.不用柯里化的写法
 
 ```
 <!DOCTYPE html>
@@ -1214,7 +1214,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 22.引出生命周期
+### 23.引出生命周期
 
 ```
 <!DOCTYPE html>
@@ -1273,7 +1273,7 @@ talk: () => { console.log(this) }
 </html>
 ```
 
-### 23.生命周期(旧)—组件挂载流程
+### 24.生命周期(旧)—组件挂载流程
 
 ```
 <!DOCTYPE html>
@@ -1347,7 +1347,7 @@ talk: () => { console.log(this) }
 - componentDidMount
 - 点击关闭 ==> componentWillUnmount
 
-### 24.生命周期(旧)—setState流程
+### 25.生命周期(旧)—setState流程
 
 ```
 <!DOCTYPE html>
@@ -1444,7 +1444,7 @@ talk: () => { console.log(this) }
 
 -  componentDidUpdate
 
-### 25.生命周期(旧)—forceUpdate流程
+### 26.生命周期(旧)—forceUpdate流程
 
 ```
 <!DOCTYPE html>
@@ -1542,7 +1542,7 @@ talk: () => { console.log(this) }
 
    componentDidUpdate
 
-### 26.生命周期(旧)—父组件render流程
+### 27.生命周期(旧)—父组件render流程
 
 ```
 <!DOCTYPE html>
@@ -1602,7 +1602,7 @@ talk: () => { console.log(this) }
 - 点击换车
 - componentWillReceiveProps
 
-### 27.生命周期(旧)总结
+### 28.生命周期(旧)总结
 
 1. 初始化阶段
 
@@ -1622,13 +1622,13 @@ talk: () => { console.log(this) }
 
 - componentWillUnmount() ==>一般在这个钩子中做一些收尾的事，如关闭定时器、取消订阅消息
 
-### 28.新旧生命周期对比
+### 29.新旧生命周期对比
 
 - componentWillMount ==>UNSAFE_componentWillMount 
 - componentWillUpdate ==>UNSAFE_componentWillUpdate
 - componentWillReceiveProps ==>UNSAFE_componentWillReceiveProps
 
-### 29.新生命周期getDerivedStateFromProps()
+### 30.新生命周期getDerivedStateFromProps()
 
 - 直译：从props得到一个派生的状态
 - 新生命周期：去掉三个钩子：componentWillMount 、componentWillUpdate 、componentWillReceiveProps 
@@ -1725,7 +1725,7 @@ talk: () => { console.log(this) }
   -  render
   - componentDidMount
 
-### 30.新生命周期getSnapshotBeforeUpdate()
+### 31.新生命周期getSnapshotBeforeUpdate()
 
 - 直译：在更新之前获取快照
 
