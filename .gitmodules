@@ -26,3 +26,7 @@
 	url  = https://gitee.com/wayliuhaha/react_extention
 	path = source/react_study/react_extention
 
+[submodule "source/vue_study/vue_basic"]
+	url  = https://gitee.com/wayliuhaha/vue_study
+	path = source/vue_study/vue_basic
+
