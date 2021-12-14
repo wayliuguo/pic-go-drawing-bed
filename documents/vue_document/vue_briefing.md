@@ -1,4 +1,4 @@
-### vue模板语法
+### 1.vue模板语法
 
 1. 插值语法：
    - 功能：用于解析标签体内容。
@@ -7,7 +7,7 @@
    - 功能：用于解析标签（包括：标签属性、标签体内容、绑定事件.....）。
    - 举例：v-bind:href="xxx" 或  简写为 :href="xxx"，xxx同样要写js表达式，且可以直接读取到data中的所有属性。
 
-### 事件处理
+### 2.事件处理
 
 1. 基本语法
 
@@ -25,7 +25,7 @@
    - self：只有event.target是当前操作的元素时才触发事件
    - passive：事件的默认行为立即执行，无需等待事件回调执行完毕
 
-### 计算属性computed:{}
+### 3.计算属性computed:{}
 
 1. 定义：要用的属性不存在，要通过已有属性计算得来。
 2. 原理：底层借助了Objcet.defineproperty方法提供的getter和setter。
@@ -65,13 +65,15 @@ fullName() {
 }
 ```
 
-### 监视属性watch:{}
+### 4.监视属性watch:{}
 
 1. 当被监视的属性变化时, 回调函数自动调用, 进行相关操作
 2. 监视的属性必须存在，才能进行监视！
 3. 监视的两种写法：
    - new Vue时传入watch配置
    - 通过vm.$watch监视
+   - deep: boolean : 深度监听，Vue中的watch默认不监测对象内部值的改变（一层）
+   - immediate: boolean 初始化是否调用
 
 ```
 // 两种形式：
@@ -91,6 +93,173 @@ vm.$watch('isHot',{
     	console.log('isHot被修改了',newValue,oldValue)
     }
 })
-// 
+
+// 监听多级结构中某个属性的变化
+...
+data: {
+	numbers: {
+		a: 1,
+		b: 2
+		c: {
+			d: {
+				e: 100
+			}
+		}
+	}
+}
+...
+'numbers.a':{
+	handler(){
+		console.log('a被改变了')
+    }
+}
 ```
 
+### 5.数据监听
+
+#### 5.1 更新时的一个问题
+
+```
+...
+data: {
+	persons:[
+        {id:'001',name:'马冬梅',age:30,sex:'女'},
+        {id:'002',name:'周冬雨',age:31,sex:'女'},
+        {id:'003',name:'周杰伦',age:18,sex:'男'},
+        {id:'004',name:'温兆伦',age:19,sex:'男'}
+    ]
+}
+
+methods: {
+	updateMei() {
+		// this.persons[0].name = '马老师' //奏效
+        // this.persons[0].age = 50 //奏效
+        // this.persons[0].sex = '男' //奏效
+        // this.persons[0] = {id:'001',name:'马老师',age:50,sex:'男'} //不奏效
+        // this.persons.splice(0,1,{id:'001',name:'马老师',age:50,sex:'男'}) // 奏效
+        this.$set(this.persons, 0, {id:'001',name:'马老师',age:50,sex:'男'}) // 奏效
+	}
+}
+```
+
+如果使用的是不奏效的，则
+
+```
+this.persons[0] = {id:'001',name:'马老师',age:50,sex:'男'} 
+```
+
+在开发者工具上可以观察，vm._data.persons[0]/ vm.persons[0]的数据虽然更新了，但页面没有更新。
+
+![image-20211215002458078](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215002458078.png)
+
+#### 5.2vue.set的使用
+
+```
+data:{
+	school:{
+        name:'尚硅谷',
+        address:'北京',
+	},
+	student:{
+	name:'tom',
+	age:{
+        rAge:40,
+        sAge:29,
+    },
+	friends:[
+        {name:'jerry',age:35},
+        {name:'tony',age:36}
+	]
+	}
+}
+```
+
+在控制台输入vm查看数据
+
+![image-20211215010047890](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215010047890.png)
+
+可以看到，vue的初始化时每个属性都会被加上setter和getter。现在如果我们需要往student对象上增加一个sex属性，在控制台中输入
+
+vm._data.student.sex="男"，视图将不会得到更新，重新查看vm发现新增的属性sex没有getter和setter。
+
+**使用vue.set()更新**
+
+在控制台中输入 Vue.set(vm._data.student, 'sex', '男'),视图将会更新，sex属性也有自己的getter和seeter。
+
+**不能往实例上添加属性，即不能往data身上添加新属性**
+
+如果我们想往data身上添加新的属性leader
+
+![image-20211215011159883](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215011159883.png)
+
+#### 5.3数据监听总结
+
+1.  vue会监视data中所有层次的数据。
+
+2.  如何监测对象中的数据？
+
+   - 通过setter实现监视，且要在new Vue时就传入要监测的数据。
+
+   - 对象中后追加的属性，Vue默认不做响应式处理
+
+   - 如需给后添加的属性做响应式，请使用如下API
+
+     ```
+     Vue.set(target，propertyName/index，value) 
+     vm.$set(target，propertyName/index，value)
+     ```
+
+3. 如何监测数组中的数据？
+
+   - 通过包裹数组更新元素的方法实现，本质就是做了两件事：
+   - 调用原生对应的方法对数组进行更新。
+   - 重新解析模板，进而更新页面。
+
+4. 在Vue修改数组中的某个元素一定要用如下方法：
+
+   - 使用这些API:push()、pop()、shift()、unshift()、splice()、sort()、reverse()
+   - Vue.set() 或 vm.$set()
+
+5. 特别注意：Vue.set() 和 vm.$set() 不能给vm 或 vm的根数据对象 添加属性！！！
+
+### 6.过滤器
+
+1. 定义：对要显示的数据进行特定格式化后再显示（适用于一些简单逻辑的处理）,如果是复杂的，可以使用methods或者computed。
+2. 语法：
+   - 1.注册过滤器：Vue.filter(name,callback) 或 new Vue{filters:{}}
+   - 2.使用过滤器：{{ xxx | 过滤器名}}  或  v-bind:属性 = "xxx | 过滤器名"
+3. 备注
+   - 过滤器也可以接收额外参数、多个过滤器也可以串联
+   - 并没有改变原本的数据, 是产生新的对应的数据
+
+```
+//全局过滤器
+Vue.filter('mySlice',function(value){
+	return value.slice(0,4)
+})
+
+// 局部注册
+new Vue({
+	filters: {
+		timeFormater(value,str='YYYY年MM月DD日 HH:mm:ss'){
+			return dayjs(value).format(str)
+		}
+	}
+})
+```
+
+### 7.内置指令
+
+#### 7.1 v-text
+
+- 作用：向其所在的节点中渲染文本内容。
+- 与插值语法的区别：v-text会替换掉节点中的内容，{{xx}}则不会。
+
+```
+<div id="root">
+	<div>你好，{{name}}</div>
+	<div v-text="name">你好</div>
+</div>
+```
+
+v-text渲染出来的dom内容就只有name对应的内容，“你好”会被去掉。
