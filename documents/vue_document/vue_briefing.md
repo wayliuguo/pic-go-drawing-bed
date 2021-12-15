@@ -309,6 +309,8 @@ v-text渲染出来的dom内容就只有name对应的内容，“你好”会被�
 
 ### 8.生命周期
 
+![生命周期](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/生命周期.png)
+
 ```
 const vm = new Vue({
 	el:'#root',
