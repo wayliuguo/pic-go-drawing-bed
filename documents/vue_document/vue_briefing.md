@@ -365,3 +365,241 @@ const vm = new Vue({
 })
 ```
 
+### 9. 单文件组件与非单文件组件
+
+- 非单文件组件：一个文件中包含有n个组件（.html）
+
+- 单文件组件：一个文件中包含1个组件(.vue)
+
+**vue.extend**
+
+```
+//定义hello组件
+const hello = Vue.extend({
+	template:`
+    	<div>
+    		<h2>{{msg}}</h2>
+    		<test></test>	
+   		</div>
+		`,
+	data(){
+		return {
+			msg:'你好啊！'
+		}
+	},
+	components:{test}
+})
+
+// 全局注册
+Vue.component('hello',hello)
+// 全局注册
+Vue.component('button-counter', {
+  data: function () {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+})
+
+
+//创建vm
+new Vue({
+	el:'#root',
+data:{
+	msg:'你好啊！'
+},
+// 局部注册
+components:{
+	student
+	}
+})
+```
+
+### 10.props
+
+```
+props: {
+  title: String,
+  likes: Number,
+  isPublished: Boolean,
+  commentIds: Array,
+  author: Object,
+  callback: Function,
+  contactsPromise: Promise // or any other constructor
+}
+
+propC: {
+    type: String,
+    required: true
+},
+propC: {
+    type: String,
+    defalut: string
+}
+
+// 简单声明接收
+props:['name','age','sex']
+```
+
+- type
+- required
+- default
+
+### 11. mixins
+
+- 局部 
+- 全局
+
+```
+// mixin.js(混合)
+export const hunhe = {
+	methods: {
+		showName(){
+			alert(this.name)
+		}
+	},
+	mounted() {
+		console.log('你好啊！')
+	},
+}
+export const hunhe2 = {
+	data() {
+		return {
+			x:100,
+			y:200
+		}
+	}
+}
+```
+
+```
+// Shcool.vue
+<template>
+	<div>
+		<h2 @click="showName">学校名称：{{name}}</h2>
+		<h2>学校地址：{{address}}</h2>
+	</div>
+</template>
+
+<script>
+	//引入一个hunhe
+	import {hunhe,hunhe2} from '../mixin'
+
+	export default {
+		name:'School',
+		data() {
+			return {
+				name:'尚硅谷',
+				address:'北京',
+				x:666
+			}
+		},
+		mixins:[hunhe,hunhe2],
+	}
+</script>
+
+// Student.vue
+<template>
+	<div>
+		<h2 @click="showName">学校名称：{{name}}</h2>
+		<h2>学校地址：{{address}}</h2>
+	</div>
+</template>
+
+<script>
+	//引入一个hunhe
+	import {hunhe,hunhe2} from '../mixin'
+
+	export default {
+		name:'School',
+		data() {
+			return {
+				name:'尚硅谷',
+				address:'北京',
+				x:666
+			}
+		},
+		mixins:[hunhe,hunhe2],
+	}
+</script>
+```
+
+- 局部混合，在组件实例上mixins的数组上添加
+- 权重规则
+  - data、showName里的属性，组件的优先，即组件如果声明了则用组件的
+  - 生命周期钩子是两个都要
+
+**全局**
+
+```
+// main.vue
+
+//引入Vue
+import Vue from 'vue'
+//引入App
+import App from './App.vue'
+import {hunhe,hunhe2} from './mixin'
+
+Vue.mixin(hunhe)
+Vue.mixin(hunhe2)
+
+
+//创建vm
+new Vue({
+	el:'#app',
+	render: h => h(App)
+})
+```
+
+- 通过Vue.mixin()全局声明
+
+### 12. 插件
+
+- 暴露一个install方法
+- Vue.use(plugins,option1,option2...)
+
+```
+// plugins
+export default {
+	install(Vue,x,y,z){
+		console.log(x,y,z)
+		//全局过滤器
+		Vue.filter('mySlice',function(value){
+			return value.slice(0,4)
+		})
+
+		//定义全局指令
+		Vue.directive('fbind',{
+			//指令与元素成功绑定时（一上来）
+			bind(element,binding){
+				element.value = binding.value
+			},
+			//指令所在元素被插入页面时
+			inserted(element,binding){
+				element.focus()
+			},
+			//指令所在的模板被重新解析时
+			update(element,binding){
+				element.value = binding.value
+			}
+		})
+
+		//定义混入
+		Vue.mixin({
+			data() {
+				return {
+					x:100,
+					y:200
+				}
+			},
+		})
+
+		//给Vue原型上添加一个方法（vm和vc就都能用了）
+		Vue.prototype.hello = ()=>{alert('你好啊')}
+	}
+}
+```
+
+
+
