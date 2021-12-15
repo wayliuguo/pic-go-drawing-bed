@@ -263,3 +263,103 @@ new Vue({
 ```
 
 v-text渲染出来的dom内容就只有name对应的内容，“你好”会被去掉。
+
+#### 7.2 v-cloak
+
+```
+<div id="root">
+	<h2 v-cloak>{{name}}</h2>
+</div>
+
+<style>
+	[v-cloak] {
+		display:none;
+	}
+</style>
+```
+
+- 本质是一个特殊属性，Vue实例创建完毕并接管容器后，会删掉v-cloak属性。
+- 使用css配合v-cloak可以解决网速慢时页面展示出{{xxx}}的问题。
+
+#### 7.3 v-once
+
+```
+<div id="root">
+	<h2 v-once>初始化的n值是:{{n}}</h2>
+    <h2>当前的n值是:{{n}}</h2>
+    <button @click="n++">点我n+1</button>
+</div>
+```
+
+- v-once所在节点在初次动态渲染后，就视为静态内容了。
+- 以后数据的改变不会引起v-once所在结构的更新，可以用于优化性能。
+
+#### 7.4 v-pre
+
+```
+<div id="root">
+    <h2 v-pre>Vue其实很简单</h2>
+    <h2 >当前的n值是:{{n}}</h2>
+    <button @click="n++">点我n+1</button>
+</div>
+```
+
+- 跳过其所在节点的编译过程。
+- 可利用它跳过：没有使用指令语法、没有使用插值语法的节点，会加快编译。
+
+### 8.生命周期
+
+```
+const vm = new Vue({
+	el:'#root',
+    data:{
+    	n:1
+    },
+    methods: {
+    	add(){
+    		console.log('add')
+    	this.n++
+    	},
+    bye(){
+        console.log('bye')
+        this.$destroy()
+    	}
+    },
+    watch:{
+        n(){
+        console.log('n变了')
+    	}
+    },
+    beforeCreate() {
+        console.log('beforeCreate')
+        console.log(this._data) // undefined
+        console.log(this.add) // undefined
+    },
+    created() {
+        console.log('created') 
+        console.log(this._data) // {__ob__: Observer}
+        console.log(this.add) // ƒ add(){...}
+    },
+    beforeMount() {
+    	console.log('beforeMount')
+    },
+    mounted() {
+    	console.log('mounted')
+    },
+    beforeUpdate() {
+    	// 点击add
+    	console.log('beforeUpdate')
+    	console.log(this._data.n) // 2 数据更新，视图未更新
+    },
+    updated() {
+    	console.log('updated')
+    },
+    beforeDestroy() {
+    	console.log('beforeDestroy')
+    },
+    destroyed() {
+    	console.log('destroyed')
+    },
+})
+```
+
