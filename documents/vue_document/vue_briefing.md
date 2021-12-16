@@ -373,6 +373,16 @@ const vm = new Vue({
 
 **vue.extend**
 
+- 每次调用Vue.extend，返回的都是一个全新的VueComponent
+
+- 我们只需要写<school/>或<school></school>，Vue解析时会帮我们创建school组件的实例对象，
+
+   即Vue帮我们执行的：new VueComponent(options)。
+
+- VueComponent的实例对象，以后简称vc（也可称之为：组件实例对象）。
+
+- Vue的实例对象，以后简称vm。
+
 ```
 //定义hello组件
 const hello = Vue.extend({
@@ -601,5 +611,83 @@ export default {
 }
 ```
 
+### 13.子组件给父组件传值
 
+- 父组件给子组件传递函数类型的props
 
+  ```
+  // 父组件
+  <School :getSchoolName="getSchoolName"/>
+  ...
+  methods: {
+  	getSchoolName() {}
+  }
+  // 子组件 School.vue
+  ...
+  props:['getSchoolName']
+  ```
+
+- 自定义事件
+
+  ```
+  // 监听自定义事件（父组件）
+  <Student @atguigu="getStudentName"/> 
+  methods: {
+  	getStudentName(name,...params){
+      	console.log('App收到了学生名：',name,params)
+      }
+  }
+  
+  // 触发自定义事件（子组件）
+  this.$emit('atguigu',this.name,666,888,900)
+  
+  // 解绑自定义事件
+  this.$off('atguigu')
+  ```
+
+- 自定义事件+refs
+
+  ```
+  // 父组件
+  <Student ref="student"/>
+  ...
+  mounted() {
+  	this.$refs.student.$on('atguigu',this.getStudentName) //绑定自定义事件
+  	// this.$refs.student.$once('atguigu',this.getStudentName) //绑定自定义事件（一次性）
+  }
+  
+  // 子组件
+  this.$emit('atguigu',this.name,666,888,900)
+  ```
+
+### 14. 事件总线
+
+```
+const vm = new Vue({
+	el:'#app',
+	render: h => h(App),
+	beforeCreate() {
+		Vue.prototype.$bus = this //安装全局事件总线
+	}
+})
+console.log(vm)
+
+// 使用
+// 监听
+this.$bus.$on('checkTodo',callback)
+// 触发
+this.$emit('addTodo',1,2,3)
+// 解绑
+this.$off('addTodo')
+```
+
+- vm上有$on、$off、$emit,可以把Vue的原型对象上添加属性指向Vue的实例
+- 由于在new Vue 后模板已经解析，所以得在beforeCreate()上没有解析和没有数据监测数据代理时实现。
+
+### 15. nextTick()
+
+1. 语法：```this.$nextTick(回调函数)```
+
+2. 作用：在下一次 DOM 更新结束后执行其指定的回调。
+
+3. 什么时候用：当改变数据后，要基于更新后的新DOM进行某些操作时，要在nextTick所指定的回调函数中执行。
