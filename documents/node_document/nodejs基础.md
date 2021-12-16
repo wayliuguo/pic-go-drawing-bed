@@ -122,7 +122,9 @@ server.listen(port, () => {
 })
 ```
 
-## 5. 文件属性
+## 5. 文件
+
+### 5.1 文件属性
 
 - 每个文件都带有一组详细信息，可以使用 Node.js 进行检查。
 - 具体地说，使用 `fs 模块提供的 `stat()` 方法。
@@ -145,7 +147,169 @@ fs.stat('./index.txt', (err, stats) => {
 })
 ```
 
-## 6.文件路径
+### 5.2 读取文件
+
+- 同步： fs.readFile()
+- 异步：fs.readFileSync()
+
+```
+// file/index.txt
+123456789
+// app.js
+const path = require('path')
+const fs = require('fs')
+
+const file = path.resolve('file', 'index.txt')
+fs.readFile(file, 'utf-8',(err, data) => {
+    if(err) {
+        console.log(err)
+        return
+    }
+    console.log(data) // 123456789
+})
+
+try {
+    const data = fs.readFileSync('./file/index.txt', 'utf-8')
+    console.log(data) // 123456789
+} catch (error) {
+    console.log(error)
+}
+```
+
+- `fs.readFile()` 和 `fs.readFileSync()` 都会在返回数据之前将文件的全部内容读取到内存中。
+- 大文件会对内存的消耗和程序执行的速度产生重大的影响，更好使用流来读取文件的内容。
+
+### 5.3 写入文件
+
+- fs.writeFile(fileName, content, callBack): 异步
+- fs.writeFileSync(filePath, content, {flag}): 同步
+- 默认是覆盖掉之前的内容然后重新写入，可以通过指定标志来修改默认的行为
+  - r+: 打开文件用来读写
+  - w+:  打开文件用于读写，将流定位到文件的开头。如果文件不存在则创建文件
+  - a:打开文件用于写入，将流定位到文件的末尾。如果文件不存在则创建文件。
+  - a+: 打开文件用于读写，将流定位到文件的末尾。如果文件不存在则创建文件。
+- 区分：
+  - 只有a才会追加，其余的都会重写，w:不存在会创建文件
+  - +：不只是读，而且写
+  - 将内容追加到末尾的便捷方法：
+    - fs.appendFile()
+    - fs.appendFileSync()
+
+```
+const path = require('path')
+const fs = require('fs')
+
+const file = path.resolve('file', 'index.txt')
+const content = '一些内容'
+fs.writeFile(file, content, err => {
+    if (err) {
+        console.error(err)
+        return
+    }
+    fs.readFile(file, 'utf-8', (err,data) => {
+        if(err) {
+            console.log(err)
+            return
+        }
+        console.log(data) // 一些内容
+    })
+})
+```
+
+```
+const path = require('path')
+const fs = require('fs')
+
+const file = path.resolve('file', 'index.txt')
+const content = '一些内容'
+
+try {
+    const data = fs.writeFileSync(file, content)
+    fs.readFile(file, 'utf-8', (err, data) => {
+        if(err) {
+            console.error(err)
+            return
+        }
+        console.log(data) // 一些内容
+    })
+} catch (error) {
+    console.error(error) 
+}
+```
+
+### 5.4 使用文件夹
+
+- fs.access(): 检查文件夹是否存在与node.js是否具有访问权限
+- fs.mkdir()、fs.mkdirSync(): 创建新的文件夹
+- fs.readdir()、fs.readdirSync(): 读取目录的内容
+- fs.rename、fs.renameSync():重命名文件夹
+- fs.rmdir()、fs.rmdirSync()：删除文件夹
+  - fs-extra模块
+    - remove()
+
+```
+/* 
+    创建文件夹
+    注意：只能建一层，即如果要新建 __dirname/abc1/abc2 的文件夹,而abc1不存在则报错
+*/
+const fs = require('fs')
+const folderName = __dirname + '/newFolder'
+try {
+    if (!fs.existsSync(folderName)) {
+        fs.mkdirSync(folderName)
+    }
+} catch (err) {
+    console.error(err)
+}
+```
+
+```
+/* 
+    读取文件目录
+*/
+const fs = require('fs')
+const path = require('path')
+
+const folderPath = __dirname
+console.log(fs.readdirSync(folderPath)) // [ 'app.js', 'commonjs.js', 'file', 'newFolder' ]
+```
+
+- 当前命令存在file、newFolder、app.js、commonjs.js文件夹与文件
+
+```
+/* 
+    重命名文件夹
+*/
+const fs = require('fs')
+const path = require('path')
+
+const folderPath = path.join(__dirname, 'newFolder')
+const renameFolder = path.join(__dirname, 'renameFolder')
+
+fs.rename(folderPath, renameFolder, err => {
+    if (err) {
+        console.error(err)
+        return
+    }
+})
+```
+
+```
+// 删除文件夹
+const fs = require('fs')
+const path = require('path')
+
+const folder = path.resolve('renameFolder')
+fs.rmdir(folder, err => {
+    if(err) {
+        console.log(err)
+    }
+})
+```
+
+
+
+## 6.路径
 
 ### 6.1 获取当前路径的三种方法
 
@@ -162,4 +326,35 @@ console.log('cwd:', process.cwd()) // cwd: D:\liuguowei\node_basic
 ```
 
 ### 6.2 从路径获取信息
+
+- `dirname`: 获取文件的父文件夹。
+- `basename`: 获取文件名部分。
+- `extname`: 获取文件的扩展名。
+
+```
+const path = require('path')
+
+const file = '/file/index.txt'
+console.log(path.dirname(file)) // file
+console.log(path.basename(file)) // index.txt
+console.log(path.extname(file)) // .txt
+```
+
+### 6.3 使用路径
+
+- path.join(): 连接路径的两个或多个片段
+- path.resolve():  获得相对路径的绝对路径计算
+- path.normalize:当包含诸如 `.`、`..` 或双斜杠之类的相对说明符时，其会尝试计算实际的路径：
+
+```
+const path = require('path')
+
+const name = 'jerry'
+console.log(path.join('/', 'users', name, 'index.txt')) // \users\jerry\index.txt
+
+console.log(path.join(__dirname, 'file', 'index.txt')) // D:\liuguowei\node_basic\file\index.txt
+console.log(path.resolve('file','index.txt')) // D:\liuguowei\node_basic\file\index.txt
+
+console.log(path.normalize('/users/joe/..//text.txt')) // \users\text.txt
+```
 
