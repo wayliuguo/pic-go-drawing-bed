@@ -879,3 +879,9 @@ this.$off('addTodo')
 ```
 
 - 父组件通过template + scope 接收子组件传过来的内容，传过来内容的名字变量不需要对应
+
+### 17.vuex
+
+#### 17.1 原理图
+
+![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/vuex.png)
