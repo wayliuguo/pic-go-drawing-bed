@@ -687,7 +687,195 @@ this.$off('addTodo')
 ### 15. nextTick()
 
 1. 语法：```this.$nextTick(回调函数)```
-
 2. 作用：在下一次 DOM 更新结束后执行其指定的回调。
-
 3. 什么时候用：当改变数据后，要基于更新后的新DOM进行某些操作时，要在nextTick所指定的回调函数中执行。
+
+### 16. 插槽
+
+#### 16.1 默认插槽
+
+```
+// category.vue
+<template>
+	<div class="category">
+		<h3>{{title}}分类</h3>
+		<!-- 定义一个插槽（挖个坑，等着组件的使用者进行填充） -->
+		<slot>我是一些默认值，当使用者没有传递具体结构时，我会出现</slot>
+	</div>
+</template>
+
+// App.vue
+<template>
+	<div class="container">
+		<Category title="美食" >
+			<img src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" alt="">
+		</Category>
+
+		<Category title="游戏" >
+			<ul>
+				<li v-for="(g,index) in games" :key="index">{{g}}</li>
+			</ul>
+		</Category>
+
+		<Category title="电影">
+			<video controls src="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"></video>
+		</Category>
+	</div>
+</template>
+```
+
+**如果父组件很多不同的逻辑，为了避免子组件做过多的条件渲染，可以在子组件使用一个插槽占位，在父组件中传入结构**
+
+#### 16.2 具名插槽
+
+```
+<template>
+	<div class="category">
+		<h3>{{title}}分类</h3>
+		<!-- 定义一个插槽（挖个坑，等着组件的使用者进行填充） -->
+		<slot name="center">我是一些默认值，当使用者没有传递具体结构时，我会出现1</slot>
+		<div>我是category组件</div>
+		<slot name="footer">我是一些默认值，当使用者没有传递具体结构时，我会出现2</slot>
+	</div>
+</template>
+
+<template>
+	<div class="container">
+		<Category title="美食" >
+			<img slot="center" src="https://s3.ax1x.com/2021/01/16/srJlq0.jpg" alt="">
+			<a slot="footer" href="http://www.atguigu.com">更多美食</a>
+		</Category>
+
+		<Category title="游戏" >
+			<ul slot="center">
+				<li v-for="(g,index) in games" :key="index">{{g}}</li>
+			</ul>
+			<div class="foot" slot="footer">
+				<a href="http://www.atguigu.com">单机游戏</a>
+				<a href="http://www.atguigu.com">网络游戏</a>
+			</div>
+		</Category>
+
+		<Category title="电影">
+			<video slot="center" controls src="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"></video>
+			<template v-slot:footer>
+				<div class="foot">
+					<a href="http://www.atguigu.com">经典</a>
+					<a href="http://www.atguigu.com">热门</a>
+					<a href="http://www.atguigu.com">推荐</a>
+				</div>
+				<h4>欢迎前来观影</h4>
+			</template>
+		</Category>
+	</div>
+</template>
+```
+
+- 名称对应
+
+- v-slot
+
+  ```
+  <template v-slot:footer>
+  	<div class="foot">
+          <a href="http://www.atguigu.com">经典</a>
+          <a href="http://www.atguigu.com">热门</a>
+          <a href="http://www.atguigu.com">推荐</a>
+  	</div>
+  	<h4>欢迎前来观影</h4>
+  </template>
+  ```
+
+  - 可以保留结构，如果用普通的写法，则如下面，在外层再加一层div，留好结构
+
+  ```
+  <div slot="footer">
+  	<div class="foot">
+          <a href="http://www.atguigu.com">经典</a>
+          <a href="http://www.atguigu.com">热门</a>
+          <a href="http://www.atguigu.com">推荐</a>
+  	</div>
+  	<h4>欢迎前来观影</h4>
+  </div>
+  ```
+
+#### 16.3 作用域插槽
+
+```
+// category.vue
+<template>
+	<div class="category">
+		<h3>{{title}}分类</h3>
+		<slot :games="games" msg="hello">我是默认的一些内容</slot>
+	</div>
+</template>
+
+<script>
+	export default {
+		name:'Category',
+		props:['title'],
+		data() {
+			return {
+				games:['红色警戒','穿越火线','劲舞团','超级玛丽'],
+			}
+		},
+	}
+</script>
+
+// App.vue
+<template>
+	<div class="container">
+
+		<Category title="游戏">
+			<template scope="atguigu">
+				<ul>
+					<li v-for="(g,index) in atguigu.games" :key="index">{{g}}</li>
+				</ul>
+			</template>
+		</Category>
+
+		<Category title="游戏">
+			<template scope="{games}">
+				<ol>
+					<li style="color:red" v-for="(g,index) in games" :key="index">{{g}}</li>
+				</ol>
+			</template>
+		</Category>
+
+		<Category title="游戏">
+			<template slot-scope="{games}">
+				<h4 v-for="(g,index) in games" :key="index">{{g}}</h4>
+			</template>
+		</Category>
+
+	</div>
+</template>
+
+<script>
+	import Category from './components/Category'
+	export default {
+		name:'App',
+		components:{Category},
+	}
+</script>
+```
+
+- 使用场景：数据在子组件中，但是结构由父组件生成传入子组件
+
+```
+<slot :games="games" msg="hello">我是默认的一些内容</slot>
+```
+
+- 子组件向父组件传入内容 games
+
+```
+<Category title="游戏">
+			<template scope="atguigu">
+				<ul>
+					<li v-for="(g,index) in atguigu.games" :key="index">{{g}}</li>
+				</ul>
+			</template>
+		</Category>
+```
+
+- 父组件通过template + scope 接收子组件传过来的内容，传过来内容的名字变量不需要对应
