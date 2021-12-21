@@ -885,3 +885,182 @@ this.$off('addTodo')
 #### 17.1 原理图
 
 ![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/vuex.png)
+
+- action: 响应组件中用户的动作,相当于redux中的异步action
+- mutations： 修改state中的数据，相当于redux中的同步action
+- state： 公共状态，只能通过mutations修改
+
+#### 17.2 搭建开发环境
+
+1. 创建文件：```src/store/index.js```
+
+```
+//引入Vue核心库
+
+  import Vue from 'vue'
+
+  //引入Vuex
+
+  import Vuex from 'vuex'
+
+  //应用Vuex插件
+
+  Vue.use(Vuex)
+
+  
+
+  //准备actions对象——响应组件中用户的动作
+
+  const actions = {}
+
+  //准备mutations对象——修改state中的数据
+
+  const mutations = {}
+
+  //准备state对象——保存具体的数据
+
+  const state = {}
+
+  
+
+  //创建并暴露store
+
+  export default new Vuex.Store({
+
+   actions,
+
+   mutations,
+
+   state
+
+  })
+```
+
+2. 在```main.js```中创建vm时传入```store```配置项
+
+```
+  ......
+
+  //引入store
+
+  import store from './store'
+
+  ......
+
+  
+
+  //创建vm
+
+  new Vue({
+
+   el:'#app',
+
+   render: h => h(App),
+
+   store
+
+  })
+```
+
+#### 17.3 基本使用
+
+```
+// store/index.js
+
+import Vue from 'vue'
+import Vuex from 'vuex'
+Vue.use(Vuex)
+
+//准备actions——用于响应组件中的动作
+const actions = {
+	jiaOdd(context,value){
+		if(context.state.sum % 2){
+			context.commit('JIA',value)
+		}
+	},
+	jiaWait(context,value){
+		setTimeout(()=>{
+			context.commit('JIA',value)
+		},500)
+	}
+}
+
+//准备mutations——用于操作数据（state）
+const mutations = {
+	JIA(state,value){
+		console.log('mutations中的JIA被调用了')
+		state.sum += value
+	},
+	JIAN(state,value){
+		console.log('mutations中的JIAN被调用了')
+		state.sum -= value
+	}
+}
+//准备state——用于存储数据
+const state = {
+	sum:0, //当前的和
+	school:'尚硅谷',
+	subject:'前端'
+}
+//准备getters——用于将state中的数据进行加工
+const getters = {
+	bigSum(state){
+		return state.sum*10
+	}
+}
+
+//创建并暴露store
+export default new Vuex.Store({
+	actions,
+	mutations,
+	state,
+	getters
+})
+```
+
+- mutations: 操作数据
+- actions：进行其他操作或异步请求再调用mutations
+- getters： vuex 中的计算属性，第二个参数可以是其他getters
+- 获取state: this.$store.state.sum
+- commit：this.$store.commit('JIAN',this.n)
+- dispatch: this.$store.dispatch('jiaWait',this.n)
+
+#### 17.4 辅助函数
+
+- mapState: 从state中读取数据,帮助我们生成计算属性
+- mapGetters:  store 中的 getter 映射到局部计算属性
+- mapMutations: 将组件中的 methods 映射为 `store.commit` 调用
+- mapActions: 将组件的 methods 映射为 `store.dispatch` 调用
+
+#### 17.5 modules
+
+```
+// store/index.js
+export default new Vuex.Store({
+	modules:{
+		countAbout:countOptions,
+		personAbout:personOptions
+	}
+})
+```
+
+```
+computed:{
+    //借助mapState生成计算属性，从state中读取数据。（数组写法）
+    ...mapState('countAbout',['sum','school','subject']),
+    ...mapState('personAbout',['personList']),
+    //借助mapGetters生成计算属性，从getters中读取数据。（数组写法）
+    ...mapGetters('countAbout',['bigSum'])
+},
+methods: {
+	//借助mapMutations生成对应的方法，方法中会调用commit去联系mutations(对象写法)
+    ...mapMutations('countAbout',{increment:'JIA',decrement:'JIAN'}),
+    //借助mapActions生成对应的方法，方法中会调用dispatch去联系actions(对象写法)
+    ...mapActions('countAbout',{incrementOdd:'jiaOdd',incrementWait:'jiaWait'})
+}
+```
+
+```
+this.$store.state.personAbout.personList
+```
+
