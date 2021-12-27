@@ -30,3 +30,7 @@
 	url  = https://gitee.com/wayliuhaha/vue_study
 	path = source/vue_study/vue_basic
 
+[submodule "source/vue_study/vue3"]
+	url  = https://gitee.com/wayliuhaha/vue3
+	path = source/vue_study/vue3
+
