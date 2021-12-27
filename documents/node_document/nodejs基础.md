@@ -92,6 +92,67 @@ console.log(common) // {} // exports输出
 
 ## 2.JavaScript执行机制
 
+### 2.1 同步任务-异步任务
+
+![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/同步异步任务.png)
+
+- 同步进入主线程，异步进入Event Table并注册函数
+- 当指定的事情完成时，Event Table会将这个函数移入任务队列(Event Queue)
+- 主线程内的任务执行完毕为空，就去任务队列（Event Queue）读取对应的函数，进入主线程执行
+
+### 2.2 宏任务-微任务
+
+![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/宏任务微任务.png)
+
+- 所有的同步任务都在主线程上执行，行成一个执行栈。
+- 除了主线程之外，还存在一个任务列队，只要异步任务有了运行结果，就在任务列队中植入一个时间标记。
+- 主线程完成所有任务(执行栈清空），就会读取任务列队，先执行微任务队列在执行宏任务队列。
+- 重复上面三步。
+
+### 2.3 代码
+
+```
+console.log("同步任务1");
+
+function asyn(mac) {
+    console.log("同步任务2");
+    if (mac) {
+        console.log(mac);
+
+    }
+    return new Promise((resolve, reject) => {
+        console.log("Promise中的同步任务");
+        resolve("Promise中回调的异步微任务")
+    })
+}
+setTimeout(() => {
+    console.log("异步任务中的宏任务");
+    setTimeout(() => {
+        console.log("定时器中的定时器（宏任务）");
+
+    }, 0)
+    asyn("定时器传递任务").then(res => {
+        console.log('定时器中的:', res);
+    })
+}, 0)
+asyn().then(res => {
+    console.log(res);
+})
+console.log("同步任务3")
+```
+
+- 同步任务1
+- 同步任务2
+- Promise中的同步任务
+- 同步任务3
+- Promise中回调的异步微任务
+- 异步任务中的宏任务
+- 同步任务2
+- 定时器传递任务
+- Promise中的同步任务
+- 定时器中的: Promise中回调的异步微任务
+- 定时器中的定时器（宏任务）
+
 ## 3.事件触发器
 
 ```
@@ -388,4 +449,229 @@ console.log(path.normalize('/users/joe/..//text.txt')) // \users\text.txt
 - path.isAbsolute(): 如果是绝对路径，返回true
 - path.relative():接受 2 个路径作为参数。 基于当前工作目录，返回从第一个路径到第二个路径的相对路径。
 - path.parse(): 解析对象的路径为组成其的片段
-  - 
+  - `root`: 根路径。
+  - `dir`: 从根路径开始的文件夹路径。
+  - `base`: 文件名 + 扩展名
+  - `name`: 文件名
+  - `ext`: 文件扩展名
+
+```
+const obj = require('path').parse('/users/test.txt')
+console.log(obj)
+
+/* 
+{ root: '/',       
+  dir: '/users',   
+  base: 'test.txt',
+  ext: '.txt',     
+  name: 'test' } 
+*/
+```
+
+## 7. 系统模块
+
+```
+//arch: 返回标识底层架构的字符串
+const os = require('os')
+console.log(os.arch()) // x64
+
+// cpus: 系统上cpu可用信息
+console.log(os.cpus())
+
+// 返回代表系统中可用内存的字节数
+console.log(os.freemem()) //9648234496
+
+// 返回到当前用户的主目录的路径
+console.log(os.homedir()) // C:\Users\QSKJ
+
+// 返回主机名
+console.log(os.hostname()) // DESKTOP-PGMK1AK
+
+// 返回操作系统对平均负载的计算
+console.log(os.loadavg()) // [ 0, 0, 0 ]
+
+// 返回系统上可用的网络接口的详细信息
+console.log(os.networkInterfaces())
+
+// 返回为 Node.js 编译的平台
+console.log(os.platform()) // win32
+
+// 返回标识操作系统版本号的字符串
+console.log(os.release()) // 10.0.19043
+
+// 返回指定的临时文件夹的路径
+console.log(os.tmpdir()) // C:\Users\QSKJ\AppData\Local\Temp
+
+// 返回表示系统中可用的总内存的字节数
+console.log(os.totalmem()) // 17087356928
+
+// 标识操作系统
+console.log(os.type()) // Windows_NT
+
+// 返回自上次重新启动以来计算机持续运行的秒数
+console.log(os.uptime()) // 599158
+
+// 返回包含当前 username、uid、gid、shell 和 homedir 的对象
+console.log(os.userInfo())
+/* 
+{ uid: -1,
+  gid: -1,
+  username: 'QSKJ',
+  homedir: 'C:\\Users\\QSKJ',
+  shell: null }
+*/
+```
+
+## 8. 事件模块
+
+```
+const EventEmitter = require('events')
+const door = new EventEmitter()
+
+const doSomething = () => {
+    console.log('doSomething')
+}
+// 监听事件（addListener（）别名）
+door.on('open', doSomething) 
+
+// 在当前 EventEmitter 对象上注册的事件）数组
+console.log(door.eventNames()) // [ 'open' ]
+// 获取可以添加到 EventEmitter 对象的监听器的最大数量（默认为 10，但可以使用 setMaxListeners() 进行增加或减少）
+console.log(door.getMaxListeners()) // 10
+// 作为参数传入的事件监听器的数组
+console.log(door.listenerCount('open')) // 1
+// 触发事件
+door.emit('open') // doSomething
+// 移除事件（removeListener()的别名）
+door.removeListener('open', doSomething)
+```
+
+## 9.http模块
+
+### 9.1 属性
+
+```
+const http = require('http')
+
+console.log(http.METHODS)
+/**
+ * 此属性列出了所有支持的HTTP方法
+ * [ 'ACL',     
+  'BIND',    
+  'CHECKOUT',
+  'CONNECT', 
+  'COPY',    
+  'DELETE',  
+  'GET',     
+  'HEAD',    
+  'LINK',    
+  'LOCK',    
+  'M-SEARCH',
+  'MERGE',   
+  'MKACTIVITY',
+  'MKCALENDAR',
+  'MKCOL',
+  'MOVE',
+  'NOTIFY',
+  'OPTIONS',
+  'PATCH',
+  'POST',
+  'PROPFIND',
+  'PROPPATCH',
+  'PURGE',
+  'PUT',
+  'REBIND',
+  'REPORT',
+  'SEARCH',
+  'SOURCE',
+  'SUBSCRIBE',
+  'TRACE',
+  'UNBIND',
+  'UNLINK',
+  'UNLOCK',
+  'UNSUBSCRIBE' ]
+ */
+
+console.log(http.STATUS_CODES)
+/**
+ * 此属性列出了所有的 HTTP 状态代码及其描述
+ * { '100': 'Continue',
+  '101': 'Switching Protocols',
+  '102': 'Processing',
+  '103': 'Early Hints',
+  '200': 'OK',
+  '201': 'Created',
+  '202': 'Accepted',
+  '203': 'Non-Authoritative Information',
+  '204': 'No Content',
+  '205': 'Reset Content',
+  '206': 'Partial Content',
+  '207': 'Multi-Status',
+  '208': 'Already Reported',
+  '226': 'IM Used',
+  '300': 'Multiple Choices',
+  '301': 'Moved Permanently',
+  '302': 'Found',
+  '303': 'See Other',
+  '304': 'Not Modified',
+  '305': 'Use Proxy',
+  '307': 'Temporary Redirect',
+  '308': 'Permanent Redirect',
+  '400': 'Bad Request',
+  '401': 'Unauthorized',
+  '402': 'Payment Required',
+  '403': 'Forbidden',
+  '404': 'Not Found',
+  '405': 'Method Not Allowed',
+  '406': 'Not Acceptable',
+  '407': 'Proxy Authentication Required',
+  '408': 'Request Timeout',
+  '409': 'Conflict',
+  '410': 'Gone',
+  '411': 'Length Required',
+  '412': 'Precondition Failed',
+  '413': 'Payload Too Large',
+  '414': 'URI Too Long',
+  '415': 'Unsupported Media Type',
+  '416': 'Range Not Satisfiable',
+  '417': 'Expectation Failed',
+  '418': 'I\'m a Teapot',
+  '421': 'Misdirected Request',
+  '422': 'Unprocessable Entity',
+  '423': 'Locked',
+  '424': 'Failed Dependency',
+  '425': 'Unordered Collection',
+  '426': 'Upgrade Required',
+  '428': 'Precondition Required',
+  '429': 'Too Many Requests',
+  '431': 'Request Header Fields Too Large',
+  '451': 'Unavailable For Legal Reasons',
+  '500': 'Internal Server Error',
+  '501': 'Not Implemented',
+  '502': 'Bad Gateway',
+  '503': 'Service Unavailable',
+  '504': 'Gateway Timeout',
+  '505': 'HTTP Version Not Supported',
+  '506': 'Variant Also Negotiates',
+  '507': 'Insufficient Storage',
+  '508': 'Loop Detected',
+  '509': 'Bandwidth Limit Exceeded',
+  '510': 'Not Extended',
+  '511': 'Network Authentication Required' }
+ */
+```
+
+### 9.2 方法
+
+- http.createServer()  返回 `http.Server` 类的新实例。
+- http.request() 发送 HTTP 请求到服务器，并创建 `http.ClientRequest` 类的实例。
+- http.get() 类似于 `http.request()`，但会自动地设置 HTTP 方法为 GET，并自动地调用 `req.end()`。
+
+### 9.3 类
+
+- http.Agent
+- http.ClientRequest
+- http.Server
+- http.ServerResponse
+- http.IncomingMessage
+

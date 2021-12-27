@@ -869,7 +869,7 @@ export default withRouter(Header)
 
 #### 7.2 redux 工作流程
 
-![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/redux%E5%8E%9F%E7%90%86%E5%9B%BE.png)
+![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/同步异步任务.png)
 
 ##### 7.2.1 action
 
