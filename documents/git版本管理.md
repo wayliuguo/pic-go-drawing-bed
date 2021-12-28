@@ -165,3 +165,15 @@ git status
 - git show HEAD~2
 - gitk
   - 显示git提交图
+
+### 4.2 查找提交
+
+- git blame 
+
+  - 一个文件中的每一行最后是谁修改的和做了什么变更
+
+  ```
+  git blame -L 1, src/components/goods/goodsItem.vue
+  ```
+
+  
