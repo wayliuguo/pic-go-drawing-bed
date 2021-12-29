@@ -176,4 +176,100 @@ git status
   git blame -L 1, src/components/goods/goodsItem.vue
   ```
 
-  
+
+## 5. 分支
+
+### 5.1 创建分支
+
+- git branch branchName [starting-commit]
+
+  - 如果没有指定的starting-commit ，就默认为当前分支上的最近提交
+
+  ```
+  git branch second 26ad3d1497ba11072a598797acb57468371a3d2f
+  ```
+
+### 5.2 查看/列出分支名
+
+- git branch
+- git branch -r: 显示远程追踪分支
+- git branch -a: 显示所有分支
+- git show-branch commitID
+
+### 5.3 检出分支
+
+- git checkout branchName
+- git checkout -m branchName: 合并变更到不同分支
+- git checkout -b branchName:  创建并检出新分支
+- git branch -d branchName: 删除分支
+- git merge branchName: 合并分支，把branchName合入本分支
+
+## 6. diff
+
+### 6.1 git diff命令的格式
+
+**三个可供树或类树对象使用git diff命令的基本来源：**
+
+- 整个提交图中的任意树对象；
+- 工作目录； 
+- 索引
+
+**四种基本比较**
+
+- git diff
+
+  - 显示工作目录和索引之间的差异
+
+  ![image-20211229221619961](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229221619961.png)
+
+- git diff commit
+
+  - 显示工作目录和给定提交间的差异
+
+  - 常见的一种用法是用HEAD或者一个特定的分支名作为commit
+
+    ![image-20211229221826654](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229221826654.png)
+
+    - hello world 提交了一次
+    - 跟上次提交进行diff
+
+    ![image-20211229222036086](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229222036086.png)
+
+    - 跟 dev 分支进行diff
+
+  - git diff commit1 commit2
+
+## 7.  合并
+
+- git merge 是区分上下文的
+- 当前分支始终是目标分支
+- 其他一个或多个分支始终合并到当前分支
+
+### 7.1 有冲突的合并
+
+```
+// hello.txt(master提交)
+hello world master
+
+// hello.txt(dev提交)
+hello world dev
+
+... 
+// git合并(在master合并dev)
+git merge dev
+// 使用git diff 查看冲突（索引与工作目录冲突）
+git diff
+git status
+```
+
+### 7.2 中止或重新启动合并
+
+- git reset --hard HEAD 
+
+  - 已经执行了git merge，但是合并后的文件还没有commit
+
+- git reset --hard HEAD ORIG_HEAD
+
+  - 在开始合并操作前，Git把原始分支的HEAD保存在 ORIG_HEAD
+
+  - 已经执行了git merge，合并的文件也commit了
