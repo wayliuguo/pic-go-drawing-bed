@@ -1,4 +1,4 @@
-## 1. 起步
+## e572364 (HEAD -> master) 第一次提交1. 起步
 
 ```
 git
@@ -70,7 +70,7 @@ git diff id \ id
 #### 2.2.2 文件和树
 
 - Git通过另一种叫做目录树（tree）的对象来跟踪文件的路径名
-- 使用git add命令时，Git会给添加的每个文件的内容创建一个对象，但它并不会马上为树创建一个对象，而是更新索引
+- **使用git add命令时，Git会给添加的每个文件的内容创建一个对象，但它并不会马上为树创建一个对象，而是更新索引**
 - 每 次执行命令（比如，git add、git rm或者git mv）的时候，Git会用新的 路径名和blob信息来更新索引
 
 ```
@@ -126,7 +126,7 @@ git rm hello.txt -f
 ### 3.2 git 中的文件分类
 
 - 已追踪的（Tracked）
-  - 已经在版本库中的文件，或者是已暂存到索引 中的文件
+  - 已经在版本库中的文件，或者是已暂存到索引中的文件
 - 被忽略（Ignored）
   - 明确声明为不可见或被忽略
 - 未追踪的（Untracked）
@@ -267,9 +267,109 @@ git status
 - git reset --hard HEAD 
 
   - 已经执行了git merge，但是合并后的文件还没有commit
-
 - git reset --hard HEAD ORIG_HEAD
 
   - 在开始合并操作前，Git把原始分支的HEAD保存在 ORIG_HEAD
+- 已经执行了git merge，合并的文件也commit了
 
-  - 已经执行了git merge，合并的文件也commit了
+## 8.  更改提交
+
+### 8.1 使用 git reset
+
+- git reset命令会把版本库和工作目录改变为已知状态
+- git reset调整HEAD引用指向给定的提交
+- 默认情况下还会更新索引以匹配该提交
+- 令也可以修改工作目录以呈 现给定提交代表的项目修订版本
+
+**重点：**
+
+- HEAD
+- 索引
+- 工作目录建立
+- 恢复已知状态
+
+**三个主要选项：**
+
+- --soft
+- --mixed
+- --hard
+
+#### 8.1.1.1 git reset --soft
+
+- --soft会将HEAD引用指向给定提交
+- 索引和工作目录的内容保持不变
+- 这个版本的命令有“最小”影响，只改变一个符号引用的状态使 其指向一个新提交
+
+```
+// 修改world.txt
+git add world.txt
+git status
+git reset HEAD world.txt
+```
+
+- 最终结果-world.txt从暂存区撤回了工作区
+
+#### 8.1.1.2 git reset --mixed
+
+- --mixed会将HEAD指向给定提交
+- 索引内容也跟着改变以符合给 定提交的树结构，但是工作目录中的内容保持不变
+- 将索引变成你刚刚暂存该提交全部变化时的状态，它会显示工作目录 中还有什么修改
+- --mixed是git reset的默认模式
+
+```
+// world.txt 第一次提交 -- 123456789git -m:第一次提交
+// world.txt 第一次提交 -- 123456789git -m:第二次提交
+git reset HEAD^
+git log --oneline
+e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
+```
+
+![image-20211231004939656](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231004939656.png)
+
+如果不需要改变索引（因为一切都正确存储了），可以使用--soft参数
+
+```
+// world.txt 第一次提交 -- 123456789git -m:第一次提交
+// world.txt 第一次提交 -- 123456789git -m:第二次提交
+git reset HEAD^
+git log --oneline
+e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
+```
+
+![image-20211231010243387](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231010243387.png)
+
+**通过图片即可对比--soft 与 --mixed**
+
+- --soft:撤回到上次commit,而且把被撤掉的commit 内容加入到了暂存区(索引没变)
+- --mixed:撤回到上次commit,没把commit内容加入暂存区(索引变化了)
+
+#### 8.1.1.3 git reset--hard提交
+
+- 将HEAD引用指向给定提交
+- 索引的内容也跟着改变以 符合给定提交的树结构
+- 工作目录的内容也随之改变以反映给 定提交表示的树的状态
+
+```
+// world.txt 第一次提交 -- 123456789git -m:第一次提交
+// world.txt 第一次提交 -- 123456789git -m:第二次提交
+git reset --hard HEAD^
+git log --oneline
+e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
+```
+
+![image-20211231011235515](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231011235515.png)
+
+- 彻彻底底回到了第一次提交，就像没有发生过第二次提交一样
+
+#### 8.1.1.4 三种模式总结
+
+![image-20211230234340180](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211230234340180.png)
+
+- 还把原始HEAD值存在ORIG_HEAD
+- HEAD^ = HEAD ~1
+- git reset commitId
+
+### 8.2 使用git cherry-pick
+
+
+
