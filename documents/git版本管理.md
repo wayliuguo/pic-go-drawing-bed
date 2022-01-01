@@ -165,6 +165,9 @@ git status
 - git show HEAD~2
 - gitk
   - 显示git提交图
+- git log branchName
+  - 显示某个分支的日志
+- 
 
 ### 4.2 查找提交
 
@@ -371,5 +374,35 @@ e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引
 
 ### 8.2 使用git cherry-pick
 
+```
+// dev分支 -m feat:cherry-pick.txt
+// cherry-pick.txt
+123456789
 
+// dev分支 -m feat: cherry-pick
+//cherry-pick.txt
+123456789为哦哦撒打发
 
+// master 分支
+git cherry-pick dev~1 // 挑选dev倒数第二个提交
+// master 新增 cherry-pick.txt
+//cherry-pick.txt 内容： 123456789
+```
+
+- git cherry-pick  --continue 继续挑选
+- git cherry-pick  --abort 终止git cherry-pick
+
+### 8.3 git revert
+
+!['image-20220101104330400'](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220101104330400.png)
+
+```
+// 撤销提交消息为'第一次提交' 的commit
+git revert master~2 #commit 去除第一次提交
+```
+
+![image-20220101104525865](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220101104525865.png)
+
+- 解决冲突即可
+- revert命令不修改版本库的现存历史记录
+- 它往历史记录中添加新提交
