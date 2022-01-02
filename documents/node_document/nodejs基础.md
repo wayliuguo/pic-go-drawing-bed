@@ -675,3 +675,176 @@ console.log(http.STATUS_CODES)
 - http.ServerResponse
 - http.IncomingMessage
 
+## 10. Buffer
+
+- Buffer 是内存区域
+- 它表示在 V8 JavaScript 引擎外部分配的固定大小的内存块（无法调整大小）。
+- 可以将 buffer 视为整数数组，每个整数代表一个数据字节。
+
+### 10.1 为什么需要 buffer？
+
+- Buffer 被引进用以帮助开发者处理二进制数据
+- Buffer 与流紧密相连。 当流处理器接收数据的速度快于其消化的速度时，则会将数据放入 buffer 中
+
+### 10.2 如何创建 buffer
+
+- Buffer.from()
+- Buffer.alloc()
+- Buffer.allocUnsafe()
+
+```
+const buf = Buffer.from('Hey!')
+console.log(buf) // <Buffer 48 65 79 21>
+
+const buf1 = Buffer.alloc(1024)
+console.log(buf1)
+const buf2 = Buffer.allocUnsafe(1024)
+console.log(buf2)
+const buf = Buffer.from('Hey!')
+console.log(buf) // <Buffer 48 65 79 21>
+
+const buf1 = Buffer.alloc(1024)
+const buf2 = Buffer.allocUnsafe(1024)
+console.log(buf2)
+/**
+ * buf1 和 buf2一样
+ * <Buffer 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... 974 more bytes>       
+ */
+```
+
+- alloc 和 `allocUnsafe` 均分配指定大小的 `Buffer`（以字节为单位）
+- `alloc` 创建的 `Buffer` 会被使用零进行初始化，而 `allocUnsafe` 创建的 `Buffer` 不会被初始化
+
+### 10.3 使用 buffer
+
+#### 10.3.1 访问 buffer 的内容
+
+```
+const buf = Buffer.from('Hey!')
+console.log(buf[0]) //72
+console.log(buf[1]) //101
+console.log(buf[2]) //121
+console.log(buf.toString()) // Hey!
+```
+
+#### 10.3.2 获取 buffer 的长度
+
+```
+const buf = Buffer.from('Hey!')
+console.log(buf.length) // 4
+
+for(const item of buf) {
+    console.log(item) // 74 101 121 33
+}
+```
+
+#### 10.3.3 更改 buffer 的内容
+
+```
+const buf = Buffer.alloc(4)
+buf.write('Hey!')
+console.log(buf) // <Buffer 48 65 79 21>
+
+const buf2 = Buffer.from('Hey!')
+buf2[1] = 111 // 0
+console.log(buf2.toString()) // Hoy!
+```
+
+#### 10.3.4 复制 buffer
+
+```
+const buf = Buffer.from('Hey!')
+let bufcopy = Buffer.alloc(4) //分配 4 个字节。
+buf.copy(bufcopy)
+console.log(buf) // <Buffer 48 65 79 21>
+
+const buf2 = Buffer.from('Hey!')
+let bufcopy2 = Buffer.alloc(2) // 分配2个字节
+buf2.copy(bufcopy2,0,0,2)
+console.log(bufcopy2.toString()) // He
+```
+
+- buffer.copy(target, startIndex, endIndex, length)
+
+#### 10.3.4 切片 buffer
+
+切片不是副本：原始 buffer 仍然是真正的来源。 如果那改变了，则切片也会改变。
+
+```
+const buf = Buffer.from('Hey!')
+buf.slice(0).toString() //Hey!
+const slice = buf.slice(0, 2)
+console.log(slice.toString()) //He
+buf[1] = 111 //o
+console.log(slice.toString()) //Ho
+```
+
+## 11. 流
+
+- 是一种以高效的方式处理读/写文件、网络通信、或任何类型的端到端的信息交换
+- 在传统的方式中，当告诉程序读取文件时，这会将文件从头到尾读入内存，然后进行处理
+- 使用流，则可以逐个片段地读取并处理（而无需全部保存在内存中）
+
+### 11.1 为什么是流
+
+- 内存效率：无需加载大量的数据到内存中即可进行处理
+- 时间效率：当获得数据之后即可立即开始处理数据，这样所需的时间更少，而不必等到整个数据有效负载可用才开始
+
+### 11.2 流的例子
+
+```
+const http = require('http')
+const fs = require('fs')
+
+const server = http.createServer(function(req, res) {
+    fs.readFile(__dirname + '/data.txt', (err, data) => {
+        res.end(data)
+    })
+})
+server.listen(3000)
+```
+
+```
+const http = require('http')
+const fs = require('fs')
+
+const server = http.createServer((req, res) => {
+  const stream = fs.createReadStream(__dirname + '/data.txt')
+  stream.pipe(res)
+})
+server.listen(3000)
+```
+
+### 11.3 pipe()
+
+- 作用：获取来源流，并将其通过管道传输到目标流
+- 返回值：目标流，可链式调用
+
+```
+src.pipe(dest1).pipe(dest2)
+```
+
+### 11.4 流驱动的 API
+
+- `process.stdin` 返回连接到 stdin 的流。
+- `process.stdout` 返回连接到 stdout 的流。
+- `process.stderr` 返回连接到 stderr 的流。
+- `fs.createReadStream()` 创建文件的可读流。
+- `fs.createWriteStream()` 创建到文件的可写流。
+- `net.connect()` 启动基于流的连接。
+- `http.request()` 返回 http.ClientRequest 类的实例，该实例是可写流。
+- `zlib.createGzip()` 使用 gzip（压缩算法）将数据压缩到流中。
+- `zlib.createGunzip()` 解压缩 gzip 流。
+- `zlib.createDeflate()` 使用 deflate（压缩算法）将数据压缩到流中。
+- `zlib.createInflate()` 解压缩 deflate 流。
+
+### 11.4 不同类型的流
+
+- `Readable`: 可以通过管道读取、但不能通过管道写入的流（可以接收数据，但不能向其发送数据）。 当推送数据到可读流中时，会对其进行缓冲，直到使用者开始读取数据为止。
+- `Writable`: 可以通过管道写入、但不能通过管道读取的流（可以发送数据，但不能从中接收数据）。
+- `Duplex`: 可以通过管道写入和读取的流，基本上相对于是可读流和可写流的组合。
+- `Transform`: 类似于双工流、但其输出是其输入的转换的转换流。
+
+### 11.5 如何创建可读流
+
