@@ -406,3 +406,74 @@ git revert master~2 #commit 去除第一次提交
 - 解决冲突即可
 - revert命令不修改版本库的现存历史记录
 - 它往历史记录中添加新提交
+
+### 8.4 修改最新提交
+
+```
+git commit --amend
+```
+
+- 作用：修改提交信息
+- E：修改-进入vm命令编辑
+- i: 插入
+- esc ==> : ==> wq 写入保存退出
+
+### 8.5 变基提交
+
+- git rebase: 用来改变一串提交以什么为基础的
+- 至少需要提交将迁往的分支名
+- 默认情况：不在目标分支中的当前分支提交会变基
+
+**常见用途：保持你正在开发的一系列提交相对于另一个分支是最新的**
+
+![image-20220102122742919](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102122742919.png)
+
+- topic 分支从master分支的提交B处开始的
+- 可以改写提交让他们基于提交E而不是提交B
+- 这样提交就相对于master分支是最新的了
+
+![image-20220102124656075](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102124656075.png)
+
+```
+// hello.txt second 分支
+hello world
+测试git rebase(添加的内容在这行)
+```
+
+在commit后，使用命令
+
+```
+git rebase master
+```
+
+![image-20220102123952988](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102123952988.png)
+
+second的提交相对于master即是最新的了
+
+```
+git rebase --continue 继续变基
+git rebase --abort 终止变基
+```
+
+## 9. 储藏和引用日志
+
+```
+// 存储
+git stash save 'message'
+// 存储列表
+git stash list
+//stash@{0}: On master: stash
+//stash@{1}: On master: kaiku
+
+// 查看某个存储
+git stash show stash@{1}
+
+// 弹出存储
+git stash pop // 弹出且出栈
+git stash apply // 弹出不出栈
+
+// 弹出特定存储
+git stash apply n
+git stash pop stash@{1}
+```
+
