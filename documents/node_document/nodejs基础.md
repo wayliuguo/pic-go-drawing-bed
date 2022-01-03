@@ -848,3 +848,90 @@ src.pipe(dest1).pipe(dest2)
 
 ### 11.5 如何创建可读流
 
+```
+const Stream = require('stream')
+// 创建流对象
+const readableStream = new Stream.Readable()
+// 实现_read
+readableStream._read = () => {}
+// 发送数据
+readableStream.push('hi!')
+readableStream.push('ho!')
+```
+
+### 11.6 如何创建可写流
+
+```
+const Stream = require('stream')
+// 创建流对象
+const writableStream = new Stream.Writable()
+// 实现_write
+writableStream._write = (chunk, encoding, next) => {
+  console.log(chunk.toString())
+  next()
+}
+// 传输可读流
+process.stdin.pipe(writableStream)
+```
+
+## 12.开发环境与生产环境的区别】
+
+```
+// main.js
+console.log(process.env.NODE_ENV); // production
+```
+
+```
+// 在 shell 命令行
+ NODE_ENV=production node main.js
+```
+
+或
+
+```
+npm i cross-env -S
+// package.josn
+"scripts": {
+    "start": "cross-env NODE_ENV=production node main.js"
+  }
+  
+ npm start
+```
+
+## 13. 错误处理
+
+### 13.1 创建异常
+
+```
+throw value
+```
+
+### 13.2 错误对象
+
+```
+throw new Error('错误消息')
+```
+
+### 13.3 处理异常
+
+```
+try {
+  //代码行
+} catch (e) {}
+
+...
+doSomething1()
+  .then(doSomething2)
+  .then(doSomething3)
+  .catch(err => console.error(err))
+```
+
+### 13.4 处理未捕获的异常
+
+```
+process.on('uncaughtException', err => {
+  console.error('有一个未捕获的错误', err)
+  process.exit(1) //强制性的（根据 Node.js 文档）
+})
+```
+
