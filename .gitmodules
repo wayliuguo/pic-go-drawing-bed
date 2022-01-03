@@ -34,3 +34,7 @@
 	url  = https://gitee.com/wayliuhaha/vue3
 	path = source/vue_study/vue3
 
+[submodule "source/node_study/node_study"]
+	url  = https://gitee.com/wayliuhaha/node_study
+	path = source/node_study/node_study
+
