@@ -320,3 +320,45 @@ process.exit()
 - 运行环境
 - 运行状态
 - 事件
+
+## 8. 核心模块-path
+
+- path.basename():获取路径中的基础名称
+- path.dirname(): 获取路径目录名（路径）
+- path.extname(): 获取路径的扩展名
+
+```
+const path = require('path')
+
+// 1. 获取路径中的基础名称
+/**
+ * 返回的是接收路径的最后一部分：可能是文件或目录
+ * 第二个参数标识扩展名，如果没有设置或者没有匹配上则返回完整的文件名称带后缀
+ * 处理目录路径如果结尾处有路径分隔符，则会被忽略
+ */
+
+console.log(path.basename(__filename)) // path.js
+console.log(path.basename(__filename, '.js'))
+console.log(path.basename(__filename, '.css')) // path
+console.log(path.basename('/a/b/c')) // c
+console.log(path.basename('/a/b/c/')) // c
+
+
+// 2. 获取路径目录名（路径）
+/**
+ * 返回路径中最后一个部分的上一次目录所在路径
+ */
+console.log(path.dirname(__filename)) // D:\学习资料\学习笔记\node_study\1_node高级编程\8_path模块
+console.log(path.dirname('/a/b/c')) // /a/b
+console.log(path.dirname('/a/b/c/')) // /a/b
+
+// 3. 获取路径的扩展名
+/**
+ * 返回相应文件名最后一个 . 后面的部分（后缀）
+ * 
+ */
+console.log(path.extname(__filename)) // .js
+console.log(path.extname('/a/b/index.html.css')) // .css
+console.log(path.extname('/a/b/index.css.')) // .
+```
+
