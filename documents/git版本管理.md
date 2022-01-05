@@ -477,3 +477,18 @@ git stash apply n
 git stash pop stash@{1}
 ```
 
+## 10. 其他
+
+- 误删分支
+
+```
+1. 找到有该分子的commitid
+2.git branch recover_branch commitid
+```
+
+- 查看某个commitid属于哪个分支
+
+```
+git branch --contains commitid
+```
+
