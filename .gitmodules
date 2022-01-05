@@ -38,3 +38,7 @@
 	url  = https://gitee.com/wayliuhaha/node_study
 	path = source/node_study/node_study
 
+[submodule "source/algorithm/algorithm"]
+	url  = https://gitee.com/wayliuhaha/alg_code
+	path = source/algorithm/algorithm
+
