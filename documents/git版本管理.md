@@ -492,3 +492,6 @@ git stash pop stash@{1}
 git branch --contains commitid
 ```
 
+- git fetch [alias/branch]: 拉取远程分子
+- git pull = git fetch + git pull
+- git pull --rebase = git ftech + git rebase
