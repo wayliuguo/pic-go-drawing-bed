@@ -326,6 +326,12 @@ process.exit()
 - path.basename():获取路径中的基础名称
 - path.dirname(): 获取路径目录名（路径）
 - path.extname(): 获取路径的扩展名
+- path.parse(): 解析路径
+- path.format(): 序列化路径
+- path.isAbsolute(): 判断参数是否为绝对路径
+- path.join(): 拼接路径
+- path.normalize(): 规范化路径
+- path.resolve(): 获取绝对路径
 
 ```
 const path = require('path')
@@ -360,5 +366,45 @@ console.log(path.dirname('/a/b/c/')) // /a/b
 console.log(path.extname(__filename)) // .js
 console.log(path.extname('/a/b/index.html.css')) // .css
 console.log(path.extname('/a/b/index.css.')) // .
+
+// 4.解析路径
+const obj = path.parse('/a/b/c/index.html')
+console.log(obj)
+/**
+ * {
+  root: '/',
+  dir: '/a/b/c',
+  base: 'index.html',
+  ext: '.html',
+  name: 'index'
+}
+ */
+ 
+// 5.序列化路径
+console.log(path.format(obj)) // /a/b/c\index.html
+
+// 6.判断当前路径是否为绝对路径
+console.log(path.isAbsolute('foo')) // false
+console.log(path.isAbsolute('/foo')) // true
+
+// 7.拼接路径
+console.log(path.join('a/b', 'c', 'index.html')) // a\b\c\index.html
+console.log(path.join('a/b', 'c', '../','index.html')) // a\b\index.html
+
+// 8. 规范化路径
+console.log(path.normalize('a/b/c/d')) // a\b\c\d
+console.log(path.normalize('a///b/c../d')) // a\b\c..\d
+console.log(path.normalize('a//\b/c\\/d'))  // a\c\d(有转义字符的情况)
+
+// 9. 获取绝对路径
+/**
+ * resolve([from], to)
+ * 即把to拼接在from后面
+ */
+console.log(path.resolve()) // D:\学习资料\学习笔记\node_study\1_node高级编程\8_path模块
+console.log(path.resolve('a', 'b')) // D:\学习资料\学习笔记\node_study\1_node高级编程\8_path模块\a\b(这里的两个参数都属于to)
+console.log(path.resolve('/a', 'b')) // D:\a\b （a:from, b:to）
+console.log(path.resolve('a', '/b')) // D:\b ('/b': from, a：不要)
+console.log(path.resolve('/a', '/b')) // D:\b ('/b': from, /a：不要)
 ```
 
