@@ -408,3 +408,179 @@ console.log(path.resolve('a', '/b')) // D:\b ('/b': from, a：不要)
 console.log(path.resolve('/a', '/b')) // D:\b ('/b': from, /a：不要)
 ```
 
+## 9. 全局变量Buffer（缓冲区）
+
+### 9.1 什么是Buffer
+
+- Nodejs平台下JavaScript可实现IO
+- IO 行为操作的就是二进制数据
+- Stream 流操作配合管道实现数据分段传输
+- 数据的端到端传输会有生产者和消费者，如果生产者和消费者速率不匹配，就会产生等待
+- 产生等待时数据存放在哪？——Buffer
+
+
+
+**总结**
+
+- 无需require的一个全局变量
+- 实现nodejs平台下的二进制数据操作
+- 不占据V8堆内存大小的内存空间
+- 内存的使用由node控制，由v8的GC来回收
+- 一般配合Stream流使用，充当数据缓冲区
+
+![image-20220107220840356](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220107220840356.png)
+
+### 9.2 创建Buffer
+
+- alloc：创建指定字节大小的buffer
+- allocUnsafe: 创建指定大小的buffer（不安全）
+- from： 接收数据，创建buffer
+
+**创建时即指定了长度，后续不能改变空间大小，这是和js数组不同的**
+
+```
+// alloc()
+const b1 = Buffer.alloc(10)
+console.log(b1) // <Buffer 00 00 00 00 00 00 00 00 00 00>
+
+// allocUnsafe()
+const b2 = Buffer.allocUnsafe(10)
+console.log(b2) // <Buffer 00 00 00 00 00 00 00 00 90 33>
+
+// from
+const b3 = Buffer.from('1')
+const b4 = Buffer.from('中')
+const b5 = Buffer.from('中', 'utf-8')
+console.log(b3) // <Buffer 31>
+console.log(b4) // <Buffer e4 b8 ad>
+console.log(b5) // <Buffer e4 b8 ad>
+// 16进制，默认第二个参数编码格式utf-8,中文占3个字节
+const b6 = Buffer.from([1, 2, '中'])
+console.log(b6) // <Buffer 01 02 00> (数组中不能直接传入中文，需传入进制)
+const b7 = Buffer.from([0xe4, 0xb8, 0xad]) // 0x: 16进制
+console.log(b7.toString()) // 中
+
+// 内存是否共享(创建了新的空间，不共享)
+const b8 = Buffer.alloc(3)
+const b9 = Buffer.from(b8)
+b8[0] = 1
+console.log(b8) // <Buffer 01 00 00>
+console.log(b9) // <Buffer 01 00 00>
+```
+
+### 9.3 Buffer 实例方法
+
+- fill： 使用数据填充 buffer
+- write：向buffer中写入数据
+- toString: 从buffer中提取数据
+- slice：截取 buffer
+- indexOf: 在buffer 中查找数据
+- copy：拷贝 buffer 中的数据
+
+```
+// fill
+let buf1 = Buffer.alloc(6)
+let buf2 = Buffer.alloc(6)
+let buf3 = Buffer.alloc(6)
+buf1.fill('1234')
+console.log(buf1) // <Buffer 31 32 33 34 31 32> 会重复写入
+buf2.fill('123', 1)
+console.log(buf2)  // <Buffer 00 31 32 33 31 32>
+console.log(buf2.toString()) // 12312 从下标1开始
+buf3.fill('123',1,2)
+console.log(buf3) // <Buffer 00 31 00 00 00 00>
+console.log(buf3.toString()) // 1 从下标1开始到下标2结束
+/**
+ * 1. 会重复写入
+ * 2. startIndx
+ * 3. endIndex
+ */
+console.log('----------write-------')
+// write
+let buf4 = Buffer.alloc(6)
+let buf5 = Buffer.alloc(6)
+let buf6 = Buffer.alloc(6)
+buf4.write('123') // <Buffer 31 32 33 00 00 00> 不重复写入
+console.log(buf4)
+buf5.write('123', 1)
+console.log(buf5) // <Buffer 00 31 32 33 00 00> 从下标1开始
+buf6.write('123', 1, 2)
+console.log(buf6) // <Buffer 00 31 32 00 00 00> 从下标1开始长度为2
+/**
+ * 1. 不重复写入
+ * 2. startIndex
+ * 3. length
+ */
+
+console.log('---------toString---------')
+
+// toString
+const buf7 = Buffer.from('abcdefg')
+console.log(buf7) // <Buffer 61 62 63 64 65 66 67>
+console.log(buf7.toString('utf-8', 4, 6)) // ef
+
+console.log('----------slice----------')
+
+// slice
+const buf8 = Buffer.from('刘国威呀')
+console.log(buf8) // <Buffer e5 88 98 e5 9b bd e5 a8 81 e5 91 80> 一个中文三字节
+let result = buf8.slice(3,9) // 下标3开始9结束
+console.log(result.toString())  // 国威
+
+console.log('------indexOf---------')
+buf9 = Buffer.from('weiwellweiweiweiwei')
+console.log(buf9.indexOf('wei')) // 0
+console.log(buf9.indexOf('wei', 1)) // 偏移量为1, 即从下标1开始匹配
+console.log(buf9.indexOf('sdfas')) // -1
+
+console.log('---------copy-------')
+// copy
+let buf10 = Buffer.alloc(6)
+let buf11 = Buffer.from('国威')
+let buf12 = Buffer.alloc(6)
+let buf13 = Buffer.alloc(6)
+let buf14 = Buffer.alloc(6)
+buf11.copy(buf10) // 把buf11拷贝到buf10 (from copy to)
+buf11.copy(buf12, 3)
+buf11.copy(buf13, 3, 3)
+buf11.copy(buf14, 0, 0, 6)
+console.log(buf10.toString()) // 国威
+console.log(buf11.toString()) // 国威
+console.log(buf12.toString()) // 国
+console.log(buf13.toString()) // 威
+console.log(buf14.toString()) // 国威
+/**
+ * 1. from copy to
+ * 2. from startIndex
+ * 3. to startIndex
+ * 4. to endIndex
+ */
+
+```
+
+### 9.4 Buffer 静态方法
+
+- concat：将多个buffer拼接成一个新的buffer
+- isBuffer：判断当前数据是否为buffer
+
+```
+// concat
+let b1 = Buffer.from('独孤')
+let b2 = Buffer.from('国威')
+
+let b3 = Buffer.concat([b1, b2])
+let b4 = Buffer.concat([b1, b2], 9)
+console.log(b3.toString()) // 独孤国威
+console.log(b4.toString()) // 独孤国
+/**
+ * 1.buffer数组
+ * 2. maxLength
+ */
+
+console.log('------isBuffer------')
+console.log(Buffer.isBuffer(b1)) // true
+console.log(Buffer.isBuffer('ABC')) // false
+```
+
+### 9.5 实现buffer-split操作
+
