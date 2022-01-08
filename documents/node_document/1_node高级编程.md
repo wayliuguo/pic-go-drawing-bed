@@ -582,5 +582,82 @@ console.log(Buffer.isBuffer(b1)) // true
 console.log(Buffer.isBuffer('ABC')) // false
 ```
 
-### 9.5 实现buffer-split操作
+### 9.5 实现Buffer-split操作
+
+```
+ArrayBuffer.prototype.split = function (sep) {
+    let len = Buffer.from(sep).length
+    let ret = []
+    let start = 0
+    let offSet = 0
+    while(offSet = this.indexOf(sep) !== -1) {
+        ret.push(this.slice(start, offSet))
+        start = offset + len // 长度加上偏移量即是下一个开始位置
+    } 
+    ret.push(this.slice(start)) // 处理关键字在数组的最后一个
+    return ret
+}
+
+let buf = 'lgw 吃馒头，吃面条，我吃所有'
+let bufArr = buf.split('吃')
+console.log(bufArr) // [ 'lgw ', '馒头，', '面条，我', '所有' ]
+```
+
+## 10. 核心模块-FS
+
+### 10.1 FS基础
+
+- FS 基本操作类
+
+- FS 常用API
+
+- 前置知识
+
+  - 权限位：用户对于文件所具备的操作权限
+
+    - r：读-八进制:4
+    - w：写-八进制:2
+    - x：执行-八进制:1
+    - 0：不具备该权限
+
+  - 操作系统用户分类
+
+    - 文件的所有者
+    - 文件的所属组
+    - 其他用户
+
+    ![image-20220108231353905](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220108231353905.png)
+
+    ```
+    -rw-r--r-- 1 way liu 197121       3336 12月 16  2019  unintall.log
+    drwxr-xr-x 1 way liu 197121          0 12月 23 23:06  Users/
+    ```
+
+    - 以第二行为例：
+      - 第一个d代表是文件夹，第一行的-代表是文件
+      - 然后每三个代表权限：所有者：rwx、所属组：-xr、其他用户：r-x
+
+  - 标识符：nodejs 中 flag表示对文件操作方式
+
+    - r：表示可读
+    - w：表示可写
+    - s：表示同步
+    - +：表示执行相反操作
+    - x：表示排他操作
+    - a：表示追加操作
+
+  - 文件描述符
+
+    - fd 就是被操作系统分配给被打开文件的标识
+    - fs.open 打开就可以得到fd
+    - fd是从3开始的，0、1、2已被占用
+
+
+### 10.2 文件操作 API
+
+- readFile：从指定文件中读取数据
+- writeFile：向指定文件中写入数据
+- appendFile：追加的方式向指定文件中写入数据
+- copyFile：将某个文件中的数据拷贝至另一文件
+- watchFile：对指定文件进行监控
 
