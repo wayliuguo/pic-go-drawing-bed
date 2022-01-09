@@ -661,3 +661,392 @@ console.log(bufArr) // [ 'lgw ', '馒头，', '面条，我', '所有' ]
 - copyFile：将某个文件中的数据拷贝至另一文件
 - watchFile：对指定文件进行监控
 
+```
+const fs = require('fs')
+const path = require('path')
+
+// readFile
+fs.readFile(path.resolve('data.txt'), 'utf-8', (err, data) => {
+    console.log(err) // null
+    if(!null) {
+        console.log(data) // hello node.js
+    }
+})
+
+// writeFile
+/* fs.writeFile('data.txt', 'hello node.js', (err) => {
+    if(!err) {
+        fs.readFile('data.txt', 'utf-8', (err,data) => {
+            console.log(data) // hello node.js
+        })
+    }
+}) */
+fs.writeFile('data.txt', '123', {
+    mode: 438,
+    flag: 'r+',
+    encoding: 'utf-8'
+}, (err) => {
+    if(!err) {
+        fs.readFile('data.txt', 'utf-8', (err,data) => {
+            console.log(data) //123lo node.js
+        })
+    }
+})
+/**
+ * w+: 清空再写入
+ */
+
+// appendFile 追加写入
+fs.appendFile('data.txt', '刘国威', (err) => {
+    console.log('写入成功')
+})
+
+// copyFile
+fs.copyFile('data.txt', 'test.txt', () => [
+    console.log('拷贝成功')
+])
+
+// watchFile
+fs.watchFile('data.txt', {interval: 20}, (curr, prev) => {
+    console.log(curr)
+    console.log(prev)
+    /**
+     * Stats {
+            dev: 917648021,
+            mode: 33206,
+            nlink: 1,
+            uid: 0,
+            gid: 0,
+            rdev: 0,
+            blksize: 4096,
+            ino: 1970324837166384,
+            size: 67,
+            blocks: 0,
+            atimeMs: 1641732905251.5007,    
+            mtimeMs: 1641732905244.5203,    
+            ctimeMs: 1641732905244.5203,    
+            birthtimeMs: 1641723746551.9575,
+            atime: 2022-01-09T12:55:05.252Z,
+            mtime: 2022-01-09T12:55:05.245Z,
+            ctime: 2022-01-09T12:55:05.245Z,
+            birthtime: 2022-01-09T10:22:26.552Z
+        }
+     */
+    // 如果文件发生了更改
+    if(curr.mtime !== prev.mtime) {
+        console.log('文件被修改了')
+        fs.unwatchFile('data.txt')
+    }
+})
+```
+
+### 10.3 md转html实现
+
+```
+npm i marked -S
+npm i browser-sync -S
+```
+
+```
+// 2.md转html.JS
+const fs = require('fs')
+const path = require('path')
+const marked = require('marked')
+const browserSync = require('browser-sync')
+
+/**
+ * 01 读取 md 和 css 内容
+ * 02 将上述读取出来的内容替换占位符，生成一个最终需要展的 Html 字符串 
+ * 03 将上述的 Html 字符写入到指定的 Html 文件中
+ * 04 监听 md 文档内容的变经，然后更新 html 内容 
+ * 05 使用 browser-sync 来实时显示 Html 内容
+ */
+
+let mdPath = path.join(__dirname, process.argv[2])
+let cssPath = path.resolve('github.css')
+let htmlPath = mdPath.replace(path.extname(mdPath), '.html')
+
+fs.watchFile(mdPath, (curr, prev) => {
+  if (curr.mtime !== prev.mtime) {
+    fs.readFile(mdPath, 'utf-8', (err, data) => {
+      // 将 md--》html
+      let htmlStr = marked(data)
+      fs.readFile(cssPath, 'utf-8', (err, data) => {
+        let retHtml = temp.replace('{{content}}', htmlStr).replace('{{style}}', data)
+        // 将上述的内容写入到指定的 html 文件中，用于在浏览器里进行展示
+        fs.writeFile(htmlPath, retHtml, (err) => {
+          console.log('html 生成成功了')
+        })
+      })
+    })
+  }
+})
+
+browserSync.init({
+  browser: '',
+  server: __dirname,
+  watch: true,
+  index: path.basename(htmlPath)
+})
+
+const temp = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+        <style>
+            .markdown-body {
+                box-sizing: border-box;
+                min-width: 200px;
+                max-width: 1000px;
+                margin: 0 auto;
+                padding: 45px;
+            }
+            @media (max-width: 750px) {
+                .markdown-body {
+                    padding: 15px;
+                }
+            }
+            {{style}}
+        </style>
+    </head>
+    <body>
+        <div class="markdown-body">
+            {{content}}
+        </div>
+    </body>
+    </html>
+`
+```
+
+```
+node .\2.md转html.js index.md 
+```
+
+- process.argv[2] ==> index.md
+
+### 10.4 文件打开与关闭
+
+- fs.open()
+- fs.close()
+
+```
+const fs = require('fs')
+const path = require('path')
+
+fs.open(path.resolve('data.txt'), 'r', (err, fd) => {
+    console.log(fd) // 3
+    fs.close(fd,  err => {
+        console.log('关闭成功')
+    })
+})
+```
+
+### 10.5 大文件读写操作
+
+![image-20220109222126097](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220109222126097.png)
+
+- readFile、writeFile适合小文件的操作
+- read、write、open、close配合Buffer适合于大文件的操作
+- 使用内存的方式可能导致内存的溢出，故大文件用Buffer作为中转
+
+```
+// data.txt
+1234567890
+```
+
+```
+const fs = require('fs')
+
+// read: 所谓的读操作就是将数据从磁盘文件中写入到 buffer 中
+let buf = Buffer.alloc(10)
+
+fs.open('data.txt', 'r', (err, fd) => {
+    console.log(fd) // 3
+    fs.read(fd, buf, 1, 4, 1, (err, readBytes, data) => {
+        console.log(readBytes) // 4
+        console.log(data)
+        console.log(data.toString())
+    })
+})
+/**
+ * fd 定位当前被打开的文件
+ * buf 用于表示当前缓冲区
+ * offset 表示从 buf 的哪个位置开始执行写入
+ * length 表示当前写入的长度
+ * position 表示当前从文件的哪个位置开始读取
+ */
+
+buf2 = Buffer.from('1234567890')
+fs.open('b.txt', 'w', (err, fd) => {
+    fs.write(fd, buf2, 2, 4, 0, (err, written, buffer) => {
+        console.log('written:  ', written) // 4
+        fs.close(fd)
+    })
+})
+// b.txt 3456
+```
+
+### 10.6 文件拷贝自定义实现
+
+```
+const fs = require('fs')
+
+/**
+ * 1. 打开 a 文件， 利用 read 将数据保存到 buffer 暂存起来
+ * 2. 打开 b 文件， 利用write 将 buffer 中数据写入到 b 文件
+ */
+
+let buf = Buffer.alloc(10)
+const BUFFER_SIZE = buf.length
+let readOffset = 0
+
+fs.open('a.txt', 'r', (err, rfd) => {
+    fs.open('b.txt', 'w', (err, wfd) => {
+        function next() {
+            fs.read(rfd, buf, 0, BUFFER_SIZE, readOffset, (err, readBytes) => {
+                // 如果条件成立则已经读取完毕
+                if(!readBytes) {
+                    fs.close(rfd, () => {})
+                    fs.close(wfd, () => {})
+                    console.log('拷贝完成')
+                    return
+                }
+                readOffset += readBytes
+                fs.write(wfd, buf, 0, readBytes, (err, written) => {
+                    next()
+                })
+            })
+        }
+        next()
+    })
+})
+```
+
+### 10.7 目录操作API
+
+- access：判断文件或目录是否具有操作权限
+- stat：获取目录及文件信息
+- mkdir：创建目录
+- rmdir：删除目录
+- readdir：读取目录中内容
+- unlink：删除指定文件
+
+```
+const fs = require('fs')
+
+// access
+fs.access('a.txt', (err) => {
+    if(err) {
+        console.log(err)
+    } else {
+        console.log('有操作权限')
+    }
+})
+
+// stat
+fs.stat('a.txt', (err, statObj) => {
+    console.log(statObj)
+    console.log(statObj.isFile())
+    console.log(statObj.isDirectory())
+})
+/**
+     * Stats {
+        dev: 917648021,
+        mode: 33206,
+        nlink: 1,
+        uid: 0,
+        gid: 0,
+        rdev: 0,
+        blksize: 4096,
+        ino: 2251799813930871,
+        size: 16,
+        blocks: 0,
+        atimeMs: 1641742731245.7615,    
+        mtimeMs: 1641742727141.708,     
+        ctimeMs: 1641742727141.708,     
+        birthtimeMs: 1641742720466.0496,
+        atime: 2022-01-09T15:38:51.246Z,
+        mtime: 2022-01-09T15:38:47.142Z,
+        ctime: 2022-01-09T15:38:47.142Z,
+        birthtime: 2022-01-09T15:38:40.466Z
+    }
+ */
+
+// mkdir
+const path = require('path')
+fs.mkdir('newDir', (err) => {
+    if(!err) {
+        console.log('创建成功')
+    } else {
+        console.log(err)
+    }
+})
+// 实现递归创建
+fs.mkdir('a/b/c', {recursive: true},(err) => {
+    if(!err) {
+        console.log('创建成功')
+    } else {
+        console.log(err)
+    }
+})
+/**
+ * 需要保证父级目录是存在的，即只会创建basename
+ * {recursive: true} 递归创建不需要保证父级存在
+ */
+
+// rmdir
+fs.rmdir('a/b/c', (err) => {
+    if(!err) {
+        console.log('删除成功')
+    } else {
+        console.log(err)
+    }
+})
+// 递归删除
+fs.rmdir('a/b/c', {recursive: true}, (err) => {
+    if(!err) {
+        console.log('删除成功')
+    } else {
+        console.log(err)
+    }
+})
+/**
+ * 只会删除basename部分，即c
+ * {recursive: true} 递归删除
+ */
+
+// readdir
+fs.readdir(__dirname, (err, files) => {
+    console.log(files)
+})
+/**
+ * [
+    '1.文件操作api.js',
+    '2.md转html.js',
+    '3.文件打开与关闭.js',
+    '4.大文件操作.js',
+    '5.文件拷贝自定义实现.js',
+    '6.目录操作API.js',
+    'a',
+    'a.txt',
+    'b.txt',
+    'data.txt',
+    'github.css',
+    'index.md',
+    'newDir',
+    'package-lock.json',
+    'test.txt'
+    ]
+ */
+
+// unlink
+fs.unlink(path.resolve('unlink.txt'), (err) => {
+    if(!err) {
+        console.log('unlink删除成功')
+    }
+})
+```
+
+### 10.8 目录创建之同步实现
