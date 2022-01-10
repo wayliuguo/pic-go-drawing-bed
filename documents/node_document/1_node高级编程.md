@@ -1049,4 +1049,152 @@ fs.unlink(path.resolve('unlink.txt'), (err) => {
 })
 ```
 
-### 10.8 目录创建之同步实现
+### 10.8 目录递归创建之同步实现
+
+- path.sep 文件分隔符
+
+```
+const path = require('path')
+const fs = require('fs')
+
+function makeDirSync (dirPath) {
+    console.log(path.sep) // \
+    let items = dirPath.split(path.sep)
+    console.log(items) // [ 'a', 'b', 'c' ]
+    for(let i=1; i<= items.length; i++) {
+        let dir = items.slice(0, i).join(path.sep)
+        try {
+            fs.accessSync(dir)
+        } catch (err) {
+            fs.mkdirSync(dir)
+        }
+    }
+}
+
+
+makeDirSync('a\\b\\c')
+```
+
+### 10.9 目录递归创建之异步实现
+
+```
+const fs = require('fs')
+const path = require('path')
+
+// function mkDir (dirPath, cb) {
+//     let parts = dirPath.split('/')
+//     let index = 1
+//     function next () {
+//         if(index > parts.length) return cb && cb()
+
+//         let current = parts.slice(0, index++).join('/')
+//         fs.access(current, (err) => {
+//             if (err) {
+//                 fs.mkdir(current, next)
+//             } else {
+//                 next()
+//             }
+//         })
+//     }
+//     next()
+// }
+
+const { promisify } = require('util')
+
+const access = promisify(fs.access)
+const mkdir = promisify(fs.mkdir)
+
+async function mkDir(dirPath, cb) {
+    let parts = dirPath.split('/')
+    for(let index = 1; index <= parts.length; index++) {
+        let current = parts.slice(0, index).join('/')
+        try {
+            await access(current)
+        } catch (error) {
+            await mkdir(current)
+        }
+    }
+    cb && cb()
+}
+
+// mkDir('a/b/c')
+mkDir('a/b/c', () => {
+    console.log('创建成功')
+})
+```
+
+### 10.10 目录递归删除异步实现
+
+```
+/**
+ * 1. 判断当前传入的路径是否为一个文件，直接删除当前文件即可
+ * 2.如果传入的是一个目录，则继续读取目录中的内容，然后再执行删除操作
+ */
+
+const fs = require('fs')
+const path  = require('path')
+
+function rmdir(dirPath, cb) {
+    // 判断当前 dirpath 的类型
+    fs.stat(dirPath, (err, statObj) => {
+        if (statObj.isDirectory()) {
+            // 目录 ==> 继续读取
+            fs.readdir(dirPath, (err, files) => {
+                let dirs = files.map(item => {
+                    return path.join(dirPath, item) // 要删除文件夹拼接上子文件夹
+                })
+                let index = 0
+                function next() {
+                    // 如果没有子文件夹的话则直接删除
+                    if(index == dirs.length) return fs.rmdir(dirPath, cb)
+                    
+                    let current = dirs[index++]
+                    rmdir(current, next)
+                }
+                next()
+            })
+        } else {
+            // 文件 ==> 直接删除
+            fs.unlink(dirPath, cb)
+        }
+    })    
+}
+
+
+rmdir('newDir', () => {
+    console.log('删除成功')
+})
+```
+
+![image-20220110234949031](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220110234949031.png)
+
+## 11. 模块化
+
+### 11.1 模块化发展历程
+
+**传统开发常见问题**
+
+- 命名冲突和污染
+
+- 代码冗余，无效请求多
+- 文件间的依赖关系复杂
+- 早期 javas 语言层面没有模块化规范
+- 早期：利用函数、对象、自执行函数实现
+
+**常见模块化规范**
+
+- Commonjs 规范
+  - 加载同步执行，不适合在浏览器使用
+
+- AMD 规范
+- CMD 规范
+- ES modules 规范
+
+### 11.4 CommonJS 规范
+
+- 模块引用
+- 模块定义
+- 模块标识
+
+**Nodejs 与 CommonJS**
+
