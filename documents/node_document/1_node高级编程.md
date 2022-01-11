@@ -1190,7 +1190,7 @@ rmdir('newDir', () => {
 - CMD 规范
 - ES modules 规范
 
-### 11.4 CommonJS 规范
+### 11.2 CommonJS 规范
 
 - 模块引用
 - 模块定义
@@ -1198,3 +1198,251 @@ rmdir('newDir', () => {
 
 **Nodejs 与 CommonJS**
 
+- 任意一个文件就是一模块，具有独立作用域
+- 使用 requrie 导入其他模块
+- 将模块 ID 传入 require 实现目标模块定位
+
+**module 属性**
+
+- 任意 js 文件就是一个模块，可以直接使用module属性
+- id：返回模块标识符，一般是一个绝对路径
+- filename：返回文件模块的绝对路径
+- loaded：返回布尔值，标识模块是否完成加载
+- parent：返回对象存放调用当前模块的模块
+- children：返回数组，存放当前模块调用的其它模块
+- exports：返回当前模块需要暴露的内容
+- paths：返回数组，存放不同目录下的 node_modules 位置
+
+**module.exports 与 exports**
+
+![image-20220111223200300](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220111223200300.png)
+
+- 不可以直接给exports赋值，因为会切断其与module.exports的引用
+
+**require**
+
+- 基本功能是读入并且执行一个模块文件
+- resolve：返回模块文件绝对路径
+- extensions：依据不同后缀名执行解析操作
+- main：返回住模块对象
+
+**总结**
+
+- CommonJS 规范起初为了弥补 JS 语言模块化缺陷
+- CommonJS 规范是语言层面的规范，当前主要用于 nodejs
+- CommonJS 规范规定模块化分为引入、定义、标识符三个部分
+- Module 在任意模块中可直接使用包含模块信息
+- Require 接收标识符，加载目标模块
+- Exports 与 module.exports 都能导出模块数据
+- CommonJS 规范定义模块的加载是同步完成的
+
+### 11.3 Node.js 与 CommonJS
+
+- 使用 module.exports 与 require 实现模块导入与导出
+- module 属性及其常见信息获取
+- exports 导出数据及其与 module.exports 区别
+- CommonJS 规范下的模块同步加载
+
+```
+// m.js
+//  一、 模块的导入与导出
+/* const age = 18
+const addFun = (x, y) => {
+    return x+y
+}
+
+module.exports = {
+    age: age,
+    addFun: addFun
+} */
+
+// 二、 module
+
+// console.log(module)
+
+/* <ref *1> Module {
+  id: 'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\m.js',
+  path: 'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化',
+  exports: {},
+  parent: Module {
+    id: '.',
+    path: 'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化',
+    exports: {},
+    parent: null,
+    filename: 'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\1.commonjs_node.js',
+    loaded: false,
+    children: [ [Circular *1] ],
+    paths: [
+      'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\node_modules',
+      'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\node_modules',
+      'D:\\学习资料\\学习笔记\\node_study\\node_modules',
+      'D:\\学习资料\\学习笔记\\node_modules',
+      'D:\\学习资料\\node_modules',
+      'D:\\node_modules'
+    ]
+  },
+  filename: 'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\m.js',
+  loaded: false,
+  children: [],
+  paths: [
+    'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_study\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_modules',
+    'D:\\学习资料\\node_modules',
+    'D:\\node_modules'
+  ]
+} */
+
+// 三、 exports
+// exports.name = 'liuguowei'
+
+// 四、同步加载
+/* let name = 'liuguowei'
+let iTime = new Date()
+while(new Date() - iTime < 4000) {} // 延时四秒
+module.exports = name
+console.log('m.js 被加载导入了') */
+
+// 五、require.main
+console.log(require.main === module)
+```
+
+```
+// 1.1.commonjs_node.js
+
+// 一、导入
+/* let obj = require('./m')
+
+console.log(obj) // { age: 18, addFun: [Function: addFun] } */
+
+// 二、module
+// let obj = require('./m')
+
+// 三、exports
+/* let obj = require('./m')
+console.log(obj) // { name: 'liuguowei' } */
+
+// 四、同步加载
+/* require('./m')
+
+console.log('hello world') */
+
+/**
+ * 打印：
+ * m.js 被加载导入了
+ * hello world
+ */
+
+// 五、 require.main
+require('./m')
+console.log(require.main === module)
+
+/**
+ * false
+ * true
+ * 解析：m.js 中require.main 执行 其parent，即 1.commonjs_node.js，所以非主模块
+ * 
+ */
+```
+
+### 11.4 模块分类及加载流程
+
+#### 11.4.1 模块分类
+
+- 内置模块
+- 文件模块
+
+#### 11.4.2  模块加载速度
+
+- 核心模块：Node 源码编译时写入到二进制文件中
+- 文件模块：代码运行时，动态加载
+
+#### 11.4.3 加载流程
+
+- 路径分析：依据标识符确定模块位置
+  - 将当前标识符转为绝对路径找到目标模块
+- 文件定位：确定目标模块中具体的文件及文件类型
+- 编译执行：采用对应的方式完成文件的编译执行
+  - 按照路径找到具体的文件后按文件类型选择对应的处理方式，完成编译执行，返回一个可用的exports对象
+
+##### 11.4.3.1 路径分析
+
+- 路径标识符
+- 非路径标识符
+  - 常见于核心模块或第三方模块
+
+**模块路径**
+
+```
+console.log(module.paths)
+
+/**
+ * [    
+    'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_study\\node_modules',
+    'D:\\学习资料\\学习笔记\\node_modules',
+    'D:\\学习资料\\node_modules',
+    'D:\\node_modules'
+    ]
+ */
+```
+
+- 从当前文件父级到项目所在盘符根结束
+- 使用 require 加载目标模块时会遍历数组中目录
+- 如果没有找到目标模块时会抛出错误
+
+##### 11.4.3.2 文件定位
+
+- 项目下存在 m1.js 模块， 导入时使用 require('m1')
+
+- m1.js => m1.json => m1.node
+
+- 如果没有找到则任务自己拿到一个目录，把目录作为一个包来处理
+
+- 查找 package.json文件，使用JSON.parse()解析
+
+  ```
+  {
+    "name": "Desktop",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC"
+  }
+  ```
+
+- main.js => main.json => main.node
+
+- 将 index 作为目标模块中的具体文件名称
+
+- 遍历模块目录重复以上步骤
+
+##### 11.4.3.3 编译执行
+
+- 将某个具体类型的文件按照相应的方式进行编译和执行
+- 创建新对象，按路径载入，完成编译执行
+- js 文件的编译执行
+  - 使用 fs 模块同步读入目标文件内容
+  - 对内容进行语法包装，生成可执行 js 函数
+  - 调用函数时传入 exports、module、require 等属性值
+- json 文件编译执行
+  - 将读取到的内容通过JSON.parse()进行解析
+
+#### 11.4.4 缓存优先原则
+
+- 提高模块加载速度
+- 当前模块不存在，则经历一次完整加载流程
+- 模块加载完成后，使用路径作为索引进行缓存
+
+#### 11.4.5 小结
+
+- 路径分析：确定目标模块位置
+- 文件定位i：确定目标模块中的具体文件
+- 编译执行：对模块内容进行编译，返回可用 exports 对象
