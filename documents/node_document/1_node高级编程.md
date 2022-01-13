@@ -1446,3 +1446,154 @@ console.log(module.paths)
 - 路径分析：确定目标模块位置
 - 文件定位i：确定目标模块中的具体文件
 - 编译执行：对模块内容进行编译，返回可用 exports 对象
+
+### 11.5 模块加载源码分析
+
+```
+// launch.json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                
+            ],
+            "program": "${workspaceFolder}\\11_模块化\\2.require-load.js"
+        }
+    ]
+}
+```
+
+- 去除 skipFile 即可调试源码
+
+```
+// 02m.js
+module.exports = 'liuguowei'
+
+// 2.require-load.js
+
+const obj = require('./02m')
+```
+
+#### 11.5.1 mod.require
+
+![image-20220113231158645](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113231158645.png)
+
+- mod.require中mod
+
+```
+filename: 'd:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\2.require-load.js
+```
+
+- path参数：./02m
+
+![image-20220113231714089](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113231714089.png)
+
+- Module.prototype.require
+- 调用 Module._load( )
+- id: './02m' 
+- this
+
+```
+paths:(6) ['d:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\node_modules', 'd:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\node_modules', 'd:\\学习资料\\学习笔记\\node_study\\node_modules', 'd:\\学习资料\\学习笔记\\node_modules', 'd:\\学习资料\\node_modules', 'd:\\node_modules']
+path:'d:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化'
+parent:null
+loaded:false
+id:'.'
+filename:'d:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_模块化\\2.require-load.js'
+exports:{}
+children:(0) []
+```
+
+#### 11.5.2 Module._load
+
+![image-20220113232728480](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113232728480.png)
+
+- 调用Module._resolveFilename()
+
+- request: 同上id
+
+- parent：同上 this，即执行的 2.require-load.js 的module
+
+- 得到的filename ==》 绝对路径
+
+  ![image-20220113233547120](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113233547120.png)
+
+-  new Module
+
+  ```
+  const module = cachedModule || new Module(filename, parent);
+  
+  function Module(id = '', parent) {
+    this.id = id;
+    this.path = path.dirname(id);
+    this.exports = {};
+    this.parent = parent;
+    updateChildren(parent, this, false);
+    this.filename = null;
+    this.loaded = false;
+    this.children = [];
+  }
+  ```
+
+  ![image-20220113234344905](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113234344905.png)
+
+​        module 内容入上图
+
+- 调用 module.load(filename) ==> 上面已经有module与filename内容
+
+#### 11.5.3 Module.prototype.load
+
+```
+...
+Module._extensions[extension](this, filename); 
+```
+
+- 此时 extension 恰好是 .js
+
+```
+// Module._extensions['.js']
+Module._extensions['.js'] = function(module, filename) {
+  ...
+  const cached = cjsParseCache.get(module);
+  let content;
+  // 如果缓存了则取缓存的
+  if (cached && cached.source) {
+    content = cached.source;
+    cached.source = undefined;
+  } else {
+   // 没有缓存则通过readFileSync 读取此文件
+    content = fs.readFileSync(filename, 'utf8');
+  }
+  module._compile(content, filename);
+};
+```
+
+![image-20220113235503196](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113235503196.png)
+
+- 上图即为content 内容
+- 调用 module._compile(content, filename); 
+
+#### 11.5.4 Module.prototype._compile
+
+- 作业： 把 content 包装成可执行的 js
+
+```
+Module.prototype._compile = function(content, filename) {
+...
+const compiledWrapper = wrapSafe(filename, content, this);
+```
+
+- compiledWrapper
+
+  ```
+  ƒ (exports, require, module, __filename, __dirname) {\nmodule.exports = 'liuguowei'\n}
+  ```
+
+### 11.6 内置模块之 vm
+
+- 作用： 创建独立运行的沙箱模块
+
