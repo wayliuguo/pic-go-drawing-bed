@@ -1597,3 +1597,206 @@ const compiledWrapper = wrapSafe(filename, content, this);
 
 - 作用： 创建独立运行的沙箱模块
 
+```
+const fs = require('fs')
+const vm = require('vm')
+
+let content = fs.readFileSync('test.txt', 'utf-8')
+// let age = 24
+// eval
+/**
+ * 和外部同名变量会冲突
+ */
+// eval(content)
+
+// new Function
+// let fn = new Function('age', "return age + 1")
+// console.log(fn(age))
+
+/**
+ * 优先本模块的，如果没有的化则是引入的
+ */
+vm.runInThisContext(content)
+console.log(age) 
+```
+
+### 11.7 模块加载模拟实现
+
+**核心逻辑**
+
+- 路径分析
+- 缓存优化
+- 文件定位
+- 编译执行
+
+```
+const fs = require('fs')
+const path = require('path')
+const vm = require('vm')
+
+function Module(id) {
+    this.id = id
+    this.exports = {}
+}
+Module.wrapper = [
+    "(function(exports, require, module, __filename, __dirname) {",
+    "})"
+]
+Module._extensions = {
+    '.js'(module) {
+        // 读取
+        let content = fs.readFileSync(module.id, 'utf-8')
+        // 包装
+        content = Module.wrapper[0] + content + Module.wrapper[1]
+        // VM
+        let compileFn = vm.runInThisContext(content)
+        // 准备参数的值
+        let exports = module.exports
+        let dirname = path.dirname(module.id)
+        let filename = module.id
+        // 调用
+        compileFn.call(exports, exports, myRequire, module, filename, dirname)
+    },
+    '.json'(module) {
+        // 读取
+        let content = JSON.parse(fs.readFileSync(module.id, 'utf-8'))
+        module.exports = content
+    }
+}
+Module._resolveFilename = function(filename) {
+    // 利用 path 将 filename 转为绝对路径
+    let absPath = path.resolve(__dirname, filename)
+    // 判断当前路径对应的内容是否存在
+    if(fs.existsSync(absPath)) {
+        // 如果条件成立则说明 absPath 对应的内容是存在的
+        return absPath
+    } else {
+        // 文件定位
+        let suffix = Object.keys(Module._extensions)
+        for(let i=0; i<suffix.length; i++) {
+            let newPath = absPath + suffix[i]
+            if(fs.existsSync(newPath)) {
+                return newPath
+            }
+        }
+    }
+    throw new Error(`${filename} is not exist`)
+}
+Module._cache = {}
+
+Module.prototype.load = function() {
+    let extname = path.extname(this.id)
+    Module._extensions[extname](this)
+}
+
+function myRequire(filename) {
+    // 1.绝对路径
+    let mPath = Module._resolveFilename(filename)
+    
+    // 2.缓存优先
+    let cacheModule = Module._cache[mPath]
+    if (cacheModule) return cacheModule.exports
+
+    // 3. 创建空对象加载模块
+    let module = new Module(mPath)
+
+    //4. 缓存已加载过的模块
+    Module._cache[mPath] = module
+
+    // 5. 执行加载（编译执行）
+    module.load()
+
+    // 6. 返回数据
+    return module.exports
+}
+
+let obj = myRequire('v')
+console.log(obj) // 周杰伦
+```
+
+## 12. 事件模块
+
+### 12.1 事件模块基础
+
+#### 12.1.1 events 与 EventEmitter
+
+- nodejs 是基于事件驱动的异步操作架构，内置 events 模块
+- events 模块提供了 EventEmitter 类
+- nodejs 中很多内置核心模块继承了 EventEmitter
+
+#### 12.1.2 EventEmitter 常见API
+
+- on: 添加当事件被触发时调用的回调函数
+- emit：c触发事件，按照注册的顺序同步调用每个事件监听器
+- once：添加当事件在注册之后首次被触发时调用的回调函数
+- off：移除特定的监听器
+
+```
+const EventEmitter = require('events')
+
+const ev = new EventEmitter()
+
+/* // on
+ev.on('事件1', () => {
+    console.log('事件1执行了')
+})
+ev.on('事件1', () => {
+    console.log('事件1执行了')
+})
+// emit
+ev.emit('事件1')
+ev.emit('事件1') */
+/* 
+每一次都会触发这个监听事件的全部监听
+事件1执行了
+事件1执行了
+事件1执行了
+事件1执行了
+*/
+
+
+// once
+/* ev.once('事件1', () => {
+    console.log('事件1执行了')
+})
+ev.once('事件1', () => {
+    console.log('事件1执行了---2')
+})
+ev.emit('事件1')
+ev.emit('事件1') */
+/**
+只会执行一次
+事件1执行了
+事件1执行了---2
+*/
+
+// off
+/* let cbFn = (a,b) => {
+	console.log(a)
+	console.log(b)
+}
+ev.on('事件1', cbFn)
+ev.emit('事件1',1,2,3)
+ev.off('事件1', cbFn)
+ev.emit('事件1',1,2,3) */
+
+ev.on('事件1', function() {
+	console.log(this)
+})
+ev.emit('事件1')
+```
+
+### 12.2 发布订阅
+
+![image-20220117001902994](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220117001902994.png)
+
+**发布订阅要素**
+
+- 缓存队列，存放订阅者信息
+- 具有增加、删除订阅的能力
+- 状态改变时通知所有订阅者的执行监听
+
+**与观察者模式的区别**
+
+- 发布订阅存在调度中心
+- 状态发生改变时，发布订阅无需主动通知
