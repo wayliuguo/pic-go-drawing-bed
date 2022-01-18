@@ -866,8 +866,8 @@ fs.open('data.txt', 'r', (err, fd) => {
     console.log(fd) // 3
     fs.read(fd, buf, 1, 4, 1, (err, readBytes, data) => {
         console.log(readBytes) // 4
-        console.log(data)
-        console.log(data.toString())
+        console.log(data) // <Buffer 00 32 33 34 35 00 00 00 00 00>
+        console.log(data.toString()) // 2345
     })
 })
 /**
@@ -1800,3 +1800,160 @@ ev.emit('事件1')
 
 - 发布订阅存在调度中心
 - 状态发生改变时，发布订阅无需主动通知
+
+```
+class PubSub {
+    constructor() {
+        // 缓存队列
+        this._events = {}
+    }
+    // 注册
+    subscribe(event, callback) {
+        if (this._events[event]) {
+            // 如果当前event存在，所以我们只需要往后添加当前次监听操作
+            this._events[event].push(callback)
+        } else {
+            // 之前没有订阅过此事件
+            this._events[event] = [callback]
+        }
+    }
+    // 发布
+    public(event, ...args) {
+        const items = this._events[event]
+        if(items && items.length) {
+            items.forEach(function(callback) {
+                callback.call(this,...args)
+            })
+        }
+    }
+}
+/**
+ * 注册：每个事件的回调函数放在一个数组中
+ * 发布：拿到对象中对应的事件，执行他们的事件
+ */
+
+let ps = new PubSub()
+ps.subscribe('事件1', () => {
+    console.log('事件1执行了')
+})
+ps.subscribe('事件1', () => {
+    console.log('事件1执行了----2')
+})
+ps.public('事件1')
+ps.public('事件1')
+/**
+ * 事件1执行了
+    事件1执行了----2
+    事件1执行了     
+    事件1执行了----2
+ */
+
+```
+
+### 12.3 EventEmitter 源码调试
+
+```
+const EventEmitter = require('events')
+
+const ev = new EventEmitter()
+console.log(ev)
+
+ev.on('事件1', () => {
+    console.log('事件1执行了-----1')
+})
+console.log(ev)
+ev.on('事件1', () => {
+    console.log('事件1执行了-----2')
+})
+
+ev.emit('事件1')
+```
+
+```
+// launch.json
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch Program",
+            "skipFiles": [
+                
+            ],
+            "program": "${workspaceFolder}\\12_事件模块\\3.EventEmitter-source-code.js"
+        }
+    ]
+}
+```
+
+- const ev = new EventEmitter()
+  - 创建一个空对象，对象里的events属性维护了事件队列
+- ev.on
+  - 往事件队列中缓存事件名和相应回调方法
+- ev.emit
+  - 取出事件队列中对应时间名的回调函数执行
+
+### 12.4 模拟 EventEmitter
+
+```
+function MyEvent() {
+    // 准备一个数据结构用于缓存订阅者信息
+    this._events = Object.create(null)
+}
+
+MyEvent.prototype.on = function(type, callback) {
+    // 判断当前次事件是否已经存在，然后再决定如何做缓存
+    if(this._events[type]) {
+        this._events[type].push(callback)
+    } else {
+        this._events[type] = [callback]
+    }
+}
+
+MyEvent.prototype.emit = function(type, ...args) {
+    if(this._events && this._events[type].length) {
+        this._events[type].forEach(callback => {
+            callback.call(this, ...args)
+        });
+    }
+}
+
+MyEvent.prototype.off = function(type, callback) {
+    // 判断当前 type 事件监听是否存在，如果存在则取消指定的监听
+    if(this._events && this._events[type]) {
+        this._events[type] = this._events[type].filter(item => {
+            return item !== callback && item.link !== callback
+        })
+    }
+}
+
+MyEvent.prototype.once = function(type, callback) {
+    let foo = function(...args) {
+        callback.call(this, ...args)
+        this.off(type, foo)
+    }
+    foo.link = callback
+    this.on(type, foo)
+}
+
+
+let ev = new MyEvent()
+let fn = function(...data) {
+    console.log('事件1执行了', data)
+}
+/* ev.on('事件1', fn)
+ev.on('事件1', fn)
+ev.emit('事件1', 1 ,2 ,3)
+ev.off('事件1', fn)
+ev.emit('事件1') */
+
+ev.once('事件1', fn)
+ev.off('事件1', fn)
+ev.emit('事件1', '前')
+ev.emit('事件1', '后')
+```
+
