@@ -1957,3 +1957,223 @@ ev.emit('事件1', '前')
 ev.emit('事件1', '后')
 ```
 
+## 13.事件循环
+
+### 13.1 浏览器中的事件循环
+
+#### 13.1.1 完整事件循环执行顺序
+
+1. 从上至下执行所有的同步代码
+2. 执行代码过程中将遇到的宏任务与微任务添加只相应的任务队列中
+3. 同步代码执行完毕后，执行满足条件的微任务回调
+4. 微任务队列执行完毕后执行所有满足需求的宏任务回调
+5. 每执行一个宏任务之后就会立刻检查微任务队列，并执行微任务队列中所有的微任务
+
+#### 13.1.2 宏任务与微任务
+
+- 宏任务  
+  - script(整体代码)
+  - setTimeout
+  - setInterval
+  - I/O
+  - UI交互事件
+  - postMessage
+  - MessageChannel
+  - setImmediate(Node.js 环境)
+- 微任务
+  - Promise.then
+  - Object.observe
+  - MutationObserver
+  - process.nextTick(Node.js 环境)
+
+```
+setTimeout(() => {
+    console.log('s1')
+    Promise.resolve().then(() => {
+        console.log('p2')
+    })
+    Promise.resolve().then(() => {
+        console.log('p3')
+    })
+})
+
+Promise.resolve().then(() => {
+    console.log('p1')
+    setTimeout(() => {
+        console.log('s2')
+    })
+    setTimeout(() => {
+        console.log('s3')
+    })
+})
+```
+
+![image-20220119225744546](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220119225744546.png)
+
+- script 是一个宏任务，执行完毕，清理其微任务，打印p1
+- 第一个定时器是一个宏任务，同步执行打印s1,清理其微任务打印p2、p3
+- 第二个定时器是一个宏任务，同步执行打印s2
+- 第三个定时器是一个宏任务，同步执行打印s3
+
+### 13.2 nodejs下的事件循环
+
+![image-20220119230348567](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220119230348567.png)
+
+nodejs 中不止是宏任务队列与微任务队列，其分为上图六个任务队列，每一个队列里存放的都是回调函数。
+
+#### 13.2.1 队列说明
+
+- timers：执行setTimeout 与 setInterval 回调
+- pending callbacks：执行系统操作的回调，例如tcp、udp
+- idle，prepare：只在系统内部进行使用
+- poll：执行与I/O相关的回调，例如读取文件
+- check: 执行setImmediate中的回调
+- close callbacks：执行 close 事件的回调
+
+**nodejs 完整事件事件循环**
+
+- 执行同步代码，将不同的任务添加至相应的队列
+- 所有同步代码执行后会取执行满足条件微任务
+- 所有微任务代码执行后会执行timer队列中满足的宏任务
+- timer 中的所有宏任务执行完成后才会依次切换队列(**旧版本**)
+- 注意：在完成队列切换之前会先清空微任务代码
+
+```
+Promise.resolve().then(() => {
+    console.log('p1')
+})
+
+console.log('start')
+
+process.nextTick(() => {
+    console.log('tick')
+})
+
+setImmediate(() => {
+    console.log('setImmediate')
+})
+
+setTimeout(() => {
+    console.log('s1')
+})
+
+/* 
+console.log('end')
+start
+end 
+tick
+p1  
+s1  
+setImmediate 
+*/
+```
+
+- 执行同步任务，打印 start、end
+- 同步任务执行完毕，执行满足条件的微任务队列：promise.then与process.nextTick
+  - process.nextTick优先级高于promise.then
+  - 打印 tick、p1
+- 微任务执行完毕，执行timer的队列的宏任务setTimeout，打印s1
+- 然后就是 setImmediate
+
+#### 13.2.2 Nodejs 事件循环梳理
+
+```
+setTimeout(() => {
+    console.log('s1')
+    Promise.resolve().then(() => {
+        console.log('p1')
+    })
+    process.nextTick(() => {
+        console.log('t1')
+    })
+})
+
+Promise.resolve().then(() => {
+    console.log('p2')
+})
+
+console.log('start')
+
+setTimeout(() => {
+    console.log('s2')
+    Promise.resolve().then(() => {
+        console.log('p3')
+    })
+    process.nextTick(() => {
+        console.log('t2')
+    })
+})
+
+console.log('end')
+/**
+    start
+    end
+    p2 
+    s1 
+    t1 
+    p1 
+    s2 
+    t2 
+    p3 
+*/
+```
+
+- 执行同步代码，打印start、end
+- 同步代码执行完毕，执行微任务队列,打印 p2
+- 微任务队列执行完毕，执行宏任务队列
+  - 第一个setTimeout打印 s1
+  - 同步代码执行完毕，执行微任务队列，process.nextTick优先级高于promise.then，打印 t1、p1
+  - 第二个setTimeout打印 s2
+  - 同步代码执行完毕，执行微任务队列，process.nextTick优先级高于promise.then，打印 t2、p2
+- 旧版本的输出：start、end、p2、s1、s2、t1、t2、p1、p2
+  - 原因：旧版本规则：timer 中的所有宏任务执行完成后才会依次切换队列
+
+#### 13.2.3 nodejs 与 浏览器事件循环区别
+
+- 微任务队列不同
+  - 浏览器只有二个任务队列
+  - nodejs 中有6个事件队列
+- 微任务执行时机
+  - 二者都会在同步代码执行完毕后执行微任务
+  - 浏览器平台下每当一个宏任务执行完毕后就会清空微任务
+  - nodejs平台在事件队列切换时才去清空微任务（旧版本）
+- 微任务优先级
+  - 浏览器事件循环中，微任务存放于事件队列中，先进先出
+  - nodejs中process.nextTick 先于 promise.then
+
+#### 13.2.4 nodejs 事件循环中的常见问题
+
+```
+/* setTimeout(() => {
+    console.log('timeout')
+})
+
+setImmediate(() => {
+    console.log('immediate')
+}) */
+
+/**
+ * 有时候 immediate 先于 timeout，有时候又不是
+ * setTimeout默认延时为0，延时不稳定，如果延时了 immediate 先进入宏任务队列，则先打印 immediate
+ * 否则，先打印timeout
+ */
+
+
+const fs = require('fs')
+fs.readFile('./index.html', () => {
+    setTimeout(() => {
+        console.log('timeout')
+    })
+    setImmediate(() => {
+        console.log('immdieate')
+    })
+})
+
+/**
+ * readFile 属于io，其队列在poll，其回调执行完后进行队列切换到 check
+ * immdieate 在 check队列，打印 immdieate
+ * timeout 在 timer 队列，打印 timeout
+ * 以上顺序是稳定的
+ */
+```
+
