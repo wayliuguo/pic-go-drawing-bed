@@ -2177,3 +2177,52 @@ fs.readFile('./index.html', () => {
  */
 ```
 
+## 14. 核心模块-stream
+
+### 14.1 stream 基础
+
+- 文件操作系统和网络模块实现了流接口
+- 流就是处理流式数据的抽象接口
+
+![image-20220120235010768](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235010768.png)
+
+#### 14.1.1 常见问题
+
+- 同步读取资源文件，用户需要等待数据读取完成
+- 资源文件最终一次性加载至内存，开销较大
+
+![image-20220120235222765](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235222765.png)
+
+![image-20220120235249799](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235249799.png)
+
+#### 14.1.2 流处理的优势
+
+- 时间效率：流的分段处理可以同时操作多个数据 chunk
+- 空间效率：同一时间流无须占据大内存空间
+- 使用方便：流配合管理，扩展程序变得简单
+
+#### 14.1.3 Node.js 中流的分类
+
+- Readable: 可读流，能够实现数据的读取
+- Writeable: 可写流，能够实现数据的写操作
+- Duplex: 双工流，既可读又可写
+- Transform: 转换流，可读可写，还能实现数据转换
+
+#### 14.1.4 Node.js 流特点
+
+- Stream 模块实现了四个具体的抽象
+- 所有流都继承自 EventEmitter
+
+```
+const fs = require('fs')
+
+let rs = fs.createReadStream('./test.txt')
+let ws = fs.createWriteStream('./test1.txt')
+
+rs.pipe(ws)
+```
+
+### 14.2 stream 之可读流
+
+- 生产供程序消费数据的流
+- 在nodejs中最常见的方式是读取其它文件或读取网络请求内容
