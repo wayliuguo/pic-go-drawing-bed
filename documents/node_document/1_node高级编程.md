@@ -2226,3 +2226,114 @@ rs.pipe(ws)
 
 - 生产供程序消费数据的流
 - 在nodejs中最常见的方式是读取其它文件或读取网络请求内容
+
+#### 14.2.1 自定义可读流
+
+- 继承 stream 里的 Readable
+- 重写 _read 方法调用push 产出数据
+
+**自定义可读流问题**
+
+- 底层数据读取完成后如何处理？
+  - 给push传递一个null
+- 消费者如何获取可读流中的数据？
+  - readable 事件
+  - data 事件
+
+![image-20220121224549486](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220121224549486.png)
+
+**消费数据**
+
+- readable 事件：当流中存在可读取数据时触发
+
+- data 事件：当流中数据块传给消费者后触发
+
+```
+const { Readable } = require('stream')
+
+// 模拟底层数据
+let source = ['liuguowei', '18', 'student']
+
+// 自定义继承 Readable
+class MyReadable extends Readable {
+    constructor(source) {
+        super()
+        this.source = source
+    }
+    _read() {
+        let data = this.source.shift() || null
+        this.push(data)
+    }
+}
+
+// 实例化
+let myReadable = new MyReadable(source)
+
+/* myReadable.on('readable', () => {
+    let data = null
+    while((data = myReadable.read()) !== null) {
+        console.log(data.toString())
+        // liuguowei18
+        // student
+    }
+}) */
+
+
+myReadable.on('data', (chunk) => {
+    console.log(chunk.toString())
+    // liuguowei
+    // 18     
+    // student
+})
+```
+
+### 14.3 stream 之可写流
+
+#### 14.3.1 自定义可写流
+
+- 继承 stream 模块的 Writeable
+- 重写 _write 方法，调用 write 执行写入
+
+**可写流事件**
+
+- pipe事件：可读流调用 pipe() 方法时触发
+- unpipe事件：可读流调用 unpipe() 方法时触发
+- drink、end、finish、error
+
+```
+const { Writable } = require('stream')
+
+class MyWritable extends Writable {
+    constructor() {
+        super()
+    }
+    _write(chunk, en, done) {
+        process.stdout.write(chunk.toString() + '<-----')
+        process.nextTick(done)
+    }
+}
+
+let myWritable = new MyWritable()
+
+myWritable.write('刘国威', 'utf-8', () => {
+    console.log('end')
+})
+```
+
+### 14.4 stream 之双工和转换流
+
+- Node.js 中 stream 是流操作的抽象接口集合
+- 可读、可写、双工、转换是单一抽象具体实现
+- Duplex 是双工流，既能生产又能消费
+
+#### 14.4.1 自定义双工流
+
+- 继承 Duplex 类
+- 重写_read 方法，调用 push 生产数据
+- Treansorm 也是双工流，可读可写，还能实现类型转换
+
+#### 14.4.2 自定义转换流
+
+- 继承 Transform 类
+- 重写 _transform 方法，调用 push 和 callback
+- 重写 _flush 方法，处理剩余数据
