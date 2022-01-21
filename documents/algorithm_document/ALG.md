@@ -391,8 +391,61 @@ var intersection = function(nums1, nums2) {
 ```
 
 - 题解一
+  - 排序两个数组
+  - 双指针指向头部，找相等，元素小的指针加一
+  - 如果相等，则相交，两个指针都加一
 
-  
+```
+var intersect = function(nums1, nums2) {
+   nums1.sort((a,b) => a-b)
+   nums2.sort((a,b) => a-b)
+   const length1 = nums1.length
+   const length2 = nums2.length
+   let index1=0, index2=0
+   let result = []
+   while(index1 < length1 && index2 < length2) {
+    let num1 = nums1[index1]
+    let num2 = nums2[index2]
+    if(num1 === num2) {
+        result.push(num1)
+        index1++
+        index2++
+    } else if (num1 < num2) {
+        index1++
+    } else {
+        index2++
+    }
+   }
+   return result
+};
+```
+
+- 哈希表
+  - 遍历一个数组，取得元素及元素出现的次数
+  - 遍历另一个数组，根据出现次数获得相交次数
+
+```
+var intersect = function(nums1, nums2) {
+    const map = new Map()
+    let result = []
+    // 遍历 nums1, 元素作为map的key，重复次数作为对应的value
+    for(const n of nums1) {
+        if(map.has(n)) {
+            map.set(n, map.get(n)+1)
+        } else {
+            map.set(n, 1)
+        }
+    }
+    // 遍历 nums2, 如果元素对应的值存在且value大于0，则代表相交
+    for(const n of nums2) {
+        if(map.has(n) && map.get(n) > 0) {
+            map.set(n, map.get(n) -1)
+            result.push(n)
+        }
+    }
+    return result
+};
+```
 
 ## 2. APIS
 
@@ -565,5 +618,25 @@ array.reduce((pre, cur, index, arr) => {
 11--2--1--1,2,3,4
 13--3--2--1,2,3,4
 16--4--3--1,2,3,4 */
+```
+
+## 3. 链表
+
+### 3.1 链表与数组的对比
+
+- 数组
+  - 优点：
+    - 查找方便
+  - 缺点
+    - 添加和删除元素需要将数组中的其他元素向前或向后平移
+- 链表
+  - 优点
+    - 不需要连续的空间
+    - 存取方便
+  - 缺点
+    - 查找不方便
+
+```
+
 ```
 
