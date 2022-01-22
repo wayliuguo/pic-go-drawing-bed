@@ -2332,8 +2332,63 @@ myWritable.write('刘国威', 'utf-8', () => {
 - 重写_read 方法，调用 push 生产数据
 - Treansorm 也是双工流，可读可写，还能实现类型转换
 
+```
+let { Duplex } = require('stream')
+
+class MyDuplex extends Duplex {
+    constructor(source) {
+        super()
+        this.source = source
+    }
+    _read() {
+        let data = this.source.shift() || null
+        this.push(data)
+    }
+    _write(chunk, en, next) {
+        process.stdout.write(chunk)
+        process.nextTick(next)
+    }
+}
+
+let source = ['a', 'b', 'c']
+let myDuplex = new MyDuplex(source)
+
+/* myDuplex.on('data', chunk => {
+    console.log(chunk.toString())
+    // a
+    // b
+    // c
+}) */
+
+myDuplex.write('刘国威', () => {
+    console.log('end')
+})
+```
+
 #### 14.4.2 自定义转换流
 
 - 继承 Transform 类
 - 重写 _transform 方法，调用 push 和 callback
 - 重写 _flush 方法，处理剩余数据
+
+```
+const { Transform } = require('stream')
+
+class MyTransform extends Transform {
+    constructor() {
+        super()
+    }
+    _transform(chunk, en, cb) {
+        this.push(chunk.toString().toUpperCase())
+        cb(null)
+    }
+}
+
+let t = new MyTransform()
+t.write('a')
+t.on('data', chunk => {
+    console.log(chunk.toString()) // A
+})
+```
+
+### 14.5 文件可读流
