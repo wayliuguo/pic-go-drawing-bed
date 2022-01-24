@@ -637,6 +637,296 @@ array.reduce((pre, cur, index, arr) => {
     - 查找不方便
 
 ```
+// 定义一个节点
+class Node {
+    constructor(element) {
+        this.element = element
+        this.next = null
+    }
+}
+// 定义链表
+class List {
+    constructor() {
+        // 头节点
+        this.head = new Node('head')
+    }
+    // 查找链表元素
+    find(item) {
+        let currNode = this.head
+        while(currNode.element !== item) {
+            currNode = currNode.next
+        }
+        return currNode
+    }
+    // 追加元素
+    append(item) {
+        let newNode = new Node(item)
+        let currNode = this.head
+        while(currNode.next) {
+            currNode = currNode.next
+        }
+        currNode.next = newNode
+    }
+    // 展示链表
+    display() {
+        let currNode = this.head
+        while(currNode.next) {
+            console.log('-----')
+            console.log(currNode)
+            console.log('-----')
+            currNode =currNode.next
+        }
+    }
+    // 在指定节点 element 后插入 item
+    insert(newElement, item) {
+        let newNode = new Node(newElement)
+        let currNode = this.find(item)
+        if(!currNode) {
+            console.log('目标元素不存在')
+            return false
+        } 
+        /**
+         * 从右向左赋值
+         * 使插入节点指向当前节点的下一个节点
+         * 使当前节点指向插入节点
+         */
+        newNode.next = currNode.next 
+        currNode.next = newNode
+        return true
+    }
+    find(item) {
+        let currNode = this.head
+        while(currNode && currNode.element !== item) {
+            currNode = currNode.next
+        }
+        return currNode && currNode.element === item ? currNode : false
+    }
+}
 
+let myList = new List()
+myList.append(1)
+myList.insert(0, 'head')
+myList.display()
+
+/* -----
+Node {
+  element: 'head',
+  next: Node { element: 0, next: Node { element: 1, next: null } } }
+-----
+-----
+Node { element: 0, next: Node { element: 1, next: null } }
+----- */
 ```
 
+### 3.2 合并两个有序数组
+
+将两个升序链表合并为一个新的 **升序** 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。
+
+```
+输入：l1 = [1,2,4], l2 = [1,3,4]
+输出：[1,1,2,3,4,4]
+```
+
+- 解法一
+  - 如果任何一链遍历完，返回另一剩下的
+  - 对比值，递归调用对比，并把下一结果作为上一结果的next
+
+```
+var mergeTwoLists = function(list1, list2) {
+    // 如果list1遍历完，返回list2剩下的
+    if(list1 === null) {
+        return list2
+    }
+    // 如果list2遍历完，返回list1剩下的
+    if(list2 === null) {
+        return list1
+    }
+    if(list1.val <= list2.val) {
+        // 将下一结果作为上个的next
+        list1.next = mergeTwoLists(list1.next, list2)
+        return list1
+    }
+    if(list1.val >= list2.val) {
+        // 将下一结果作为上个的next
+        list2.next = mergeTwoLists(list2.next, list1)
+        return list2
+    }
+};
+```
+
+- 迭代
+  - 如果都不是空链表，比较较小值添加到结果链表，添加后对应链表后移
+  - 如果有一个遍历完，剩下的添加到结果
+
+```
+var mergeTwoLists = function(list1, list2) {
+    const prehead = new ListNode(-1);
+    let prev = prehead;
+
+    while(list1 !== null && list2 !== null) {
+        if(list1.val <= list2.val) {
+            // prev 添加节点的 next
+            prev.next = list1
+            // 下一个节点
+            list1 = list1.next
+        } else {
+            prev.next = list2
+            list2 = list2.next
+        }
+        // prev 添加节点
+        prev = prev.next
+    }
+    prev.next = list1 === null ? list2 : list1
+    return prehead.next
+};
+```
+
+### 3.3 环形链表
+
+给你一个链表的头节点 `head` ，判断链表中是否有环。
+
+如果链表中有某个节点，可以通过连续跟踪 `next` 指针再次到达，则链表中存在环。 为了表示给定链表中的环，评测系统内部使用整数 `pos` 来表示链表尾连接到链表中的位置（索引从 0 开始）。如果 `pos` 是 `-1`，则在该链表中没有环。**注意：`pos` 不作为参数进行传递**，仅仅是为了标识链表的实际情况。
+
+如果链表中存在环，则返回 `true` 。 否则，返回 `false` 
+
+```
+输入：head = [3,2,0,-4], pos = 1
+输出：true
+解释：链表中有一个环，其尾部连接到第二个节点
+```
+
+[题解]: https://leetcode-cn.com/problems/linked-list-cycle/solution/huan-xing-lian-biao-by-leetcode-solution/
+
+- 解法一: **超出时间限制**
+  - 遍历过的给一个标记: has,判断如果有遍历过程中有has，则return true
+  - 否则 return false
+
+```
+var hasCycle = function(head) {
+    let has = true
+    while(head) {
+        if(head.next && !head.has) {
+            head.has = has
+            head.next = head
+        } else if(head.has) {
+            return true
+        }
+    }
+    return false
+};
+```
+
+- 解法二
+  - 哈希表实现
+  - 如果未存在的则加入哈希表
+  - 否则已存在则有环
+
+```
+var hasCycle = function(head) {
+    let set = new Set()
+    while(head !== null) {
+        if(set.has(head)) {
+            return true
+        } else {
+            set.add(head)
+            head = head.next
+        }
+    }
+    return false
+}
+```
+
+- 解法三
+  - 快慢指针
+
+```
+var hasCycle = function(head) {
+    if(head === null || head.next === null) {
+        return false
+    }
+    // 快慢指针
+    let slow = head
+    let fast = head.next
+    // 如果快指针与满指针不相等
+    while(slow !== fast) {
+        // 边界：由于快指针走两步，所以判断当前及下一个
+        if(fast === null || fast.next === null) {
+            return false
+        }
+        // 快指针走两步，慢指针走一步
+        fast = fast.next.next
+        slow = slow.next
+    }
+    return true
+}
+```
+
+### 3.4 环形链表 II
+
+给定一个链表，返回链表开始入环的第一个节点。 如果链表无环，则返回 `null`。
+
+如果链表中有某个节点，可以通过连续跟踪 `next` 指针再次到达，则链表中存在环。 为了表示给定链表中的环，评测系统内部使用整数 `pos` 来表示链表尾连接到链表中的位置（索引从 0 开始）。如果 `pos` 是 `-1`，则在该链表中没有环。**注意：`pos` 不作为参数进行传递**，仅仅是为了标识链表的实际情况。
+
+```
+输入：head = [3,2,0,-4], pos = 1
+输出：返回索引为 1 的链表节点
+解释：链表中有一个环，其尾部连接到第二个节点。
+```
+
+- 哈希表实现
+
+```
+var detectCycle = function(head) {
+    let set = new Set()
+    while(head !== null) {
+        if(set.has(head)) {
+            return head
+        } else {
+            set.add(head)
+            head = head.next
+        }
+    }
+    return null
+};
+```
+
+- 快慢指针
+
+![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/142_fig1.png)
+
+- 设链表中环外部分的长度为 **a**。**slow** 指针进入环后，又走了 **b** 的距离与 **fast** 相遇,则**slow走过距离=a+b**
+- **fast**已经走了n圈，则**fast走过距离=a+b+n(b+c) ==> *a*+(*n*+1)*b*+nc **
+- **fast** 指针走过的距离都为**slow** 指针的 2倍,即 **a*+(*n*+1)*b*+nc = 2(a+b)  ==> a=c+(n-1)(b+c)**
+- 观察可得，从相遇点到入环点的距离加上 n-1*n*−1 圈的环长，恰好等于从链表头部到入环点的距离
+
+```
+var detectCycle = function(head) {
+    if (head === null) {
+        return null;
+    }
+    let slow = head, fast = head;
+    // 当 fast 不为空
+    while (fast !== null) {
+        // 慢指针后移
+        slow = slow.next;
+        if (fast.next !== null) {
+            // 快指针后移
+            fast = fast.next.next;
+        } else {
+            return null;
+        }
+        if (fast === slow) {
+            let ptr = head;
+            // 找到ptr与slow相交即环节点
+            while (ptr !== slow) {
+                ptr = ptr.next;
+                slow = slow.next;
+            }
+            return ptr;
+        }
+    }
+    return null;
+};
+```
+
+### 3.5 反转链表
