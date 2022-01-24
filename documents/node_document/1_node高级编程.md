@@ -2392,3 +2392,218 @@ t.on('data', chunk => {
 ```
 
 ### 14.5 文件可读流
+
+- data 事件
+- readable 事件
+
+```
+// text3.txt
+0123456789
+```
+
+```
+const fs = require('fs')
+
+let rs = fs.createReadStream('text3.txt', {
+    flags: 'r',
+    encoding: null, // null 不指定默认buffer
+    fd: null, // 文件标志符
+    mode: 438, // 权限位
+    autoClose: true, // 自动关闭
+    start: 0, // 读取起始位置
+    // end: 3, // 读取结束位置
+    highWaterMark: 2 // (水位线)底层存储的数据
+})
+
+/* rs.on('data', chunk => {
+    console.log(chunk.toString())
+    // 由于水位线是2，则每次输出两个
+    // 01
+    // 23
+    // 45
+    // 67
+    // 89
+}) */
+
+/* rs.on('data', chunk => {
+    console.log(chunk.toString())
+    // 调用 passe()手动暂停
+    // 调用 resume()手动继续
+    rs.pause()
+    setTimeout(() => {
+        rs.resume()
+    }, 1000)
+}) */
+
+/* rs.on('readable', () => {
+    let data
+    while((data = rs.read()) !== null) {
+        console.log(data.toString())
+        // 01
+        // 23
+        // 45
+        // 67
+        // 89
+    }
+}) */
+
+rs.on('readable', () => {
+    let data
+    while((data = rs.read(1)) !== null) {
+        console.log(data.toString(), '----', rs._readableState.length)
+    }
+    // read()加参数指定每次读取的长度，每次读取为1，水位线为2
+    // 0 ---- 1
+    // 1 ---- 0
+    // 2 ---- 1
+    // 3 ---- 0
+    // 4 ---- 1
+    // 5 ---- 0
+    // 6 ---- 1
+    // 7 ---- 0
+    // 8 ---- 1
+    // 9 ---- 0
+})
+```
+
+### 14.6 文件可读流事件与应用
+
+**顺序：**
+
+- open
+- data
+- end
+- close
+- error（错误）
+
+```
+const fs = require('fs')
+
+let rs = fs.createReadStream('text3.txt', {
+    flags: 'r',
+    encoding: null, // null 不指定默认buffer
+    fd: null, // 文件标志符
+    mode: 438, // 权限位
+    autoClose: true, // 自动关闭
+    start: 0, // 读取起始位置
+    // end: 3, // 读取结束位置
+    highWaterMark: 2 // (水位线)底层存储的数据(字节)
+})
+
+rs.on('open', fd => {
+    console.log(fd, '文件打开了')
+})
+
+let bufferArr = []
+rs.on('data', (chunk) => {
+    bufferArr.push(chunk)
+})
+
+rs.on('end', () => {
+    console.log(Buffer.concat(bufferArr).toString())
+    console.log('当数据被清空之后')
+})
+
+rs.on('close', () => {
+    console.log('文件关闭了')
+})
+
+rs.on('error', () => {
+    console.log('出错了')
+})
+
+// 3 文件打开了
+// 0123456789      
+// 当数据被清空之后
+// 文件关闭了
+```
+
+### 14.7 文件可写流
+
+```
+const fs = require('fs')
+
+const ws = fs.createWriteStream('text4.txt', {
+    flags: 'w',
+    mode: 438,
+    fd: null,
+    encoding: 'utf-8',
+    start: 0,
+    highWaterMark: 3
+})
+/**
+ * fs 的可写流只能用字符串或者buffer
+ */
+ws.write('nihaoya', () => {
+    console.log('ok1')
+})
+
+let buf = Buffer.from('abc')
+ws.write(buf, () => {
+    console.log('ok2')
+})
+
+ws.on('open', (fd) => {
+    console.log('open')
+})
+
+// close 在数据写入操作全部完成之后再执行
+ws.on('close', () => {
+    console.log('文件关闭了')
+})
+
+// end 执行之后意味着数据写入操作完成，这时才触发close
+ws.end('123456')
+
+ws.on('error', err => {
+    console.log(err)
+})
+
+/* open
+ok1       
+ok2       
+文件关闭了 */
+
+// text4.txt  nihaoyaabc123456
+```
+
+- write回调写入的顺序与书写顺序一致
+- 必须手动触发end事件才会触发close，可读流会自动关闭
+
+### 14.8 write 执行流程
+
+```
+const fs = require('fs')
+
+let ws = fs.createWriteStream('text5.txt', {
+    highWaterMark: 3 // 水位线（3个字节）
+})
+
+let flag = ws.write('1')
+console.log(flag) // true
+
+flag = ws.write('2')
+console.log(flag) // true
+
+// 超过等于了水位线，则返回fasle
+// 如果 flag 为 false 并不是说明当前数据不能被执行写入
+flag = ws.write('3')
+console.log(flag) // false
+
+// 如果达到水位线则触发drain事件
+ws.on('drain', () => {
+    console.log('drain 事件被触发了')
+})
+```
+
+![image-20220124234001285](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220124234001285.png)
+
+- 第一次调用write方法是将数据直接写入到文件中
+- 第二次开始 write 方法是将数据写入至缓存中
+- 生产速度和消费速度是不一样的，一般情况下生产速度要比消费速度快很多
+- 当falg为false，并不意味着当前次的数据不能被写入了，但是我们应该告知数据的生产者，当前的消费速度已经跟不上生产速度了，所以这个时候，一般我们会将可读流的模块修改为暂停模式
+- 当数据生产者暂停之后，消费者会慢慢的消费它内部缓存中的数据，直到可以再次被执行写入操作
+- 当缓冲区可以继续写入数据我们如何让生产者直到？drain 事件
+
+
+
