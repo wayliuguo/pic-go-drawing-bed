@@ -2605,5 +2605,48 @@ ws.on('drain', () => {
 - 当数据生产者暂停之后，消费者会慢慢的消费它内部缓存中的数据，直到可以再次被执行写入操作
 - 当缓冲区可以继续写入数据我们如何让生产者直到？drain 事件
 
+### 14.9 控制写入速度
 
+**drain 事件主要作用是控制速度，指定 highWaterMark 配合 write 的返回值进行使用**
+
+```
+/**
+ * 需求： "我是刘国威" 写入指定文件
+ */
+
+// 一次性写入
+/* let fs = require('fs')
+let ws = fs.createWriteStream('text6.txt')
+ws.write('我是刘国威') // 瞬间写入我是刘国威 */
+
+// 分批写入
+let fs = require('fs')
+let ws = fs.createWriteStream('text6.txt', {
+    highWaterMark: 3 // 水位线（3个字节）
+})
+
+let soruce = "我是刘国威".split('')
+let num = 0
+let flag
+
+function executeWrite() {
+    flag = true
+    while(num !== 4 && flag) {
+        flag = ws.write(soruce[num])
+        num++
+    }
+}
+executeWrite()
+
+ws.on('drain', () => {
+    // 当 write 返回了false， drain 触发
+    console.log('drain 执行了')
+    // 由于每个中文3个字节，这里会返回4个false，执行3次写入
+    executeWrite()
+    // drain 执行了
+    // drain 执行了
+    // drain 执行了
+    // drain 执行了
+}) 
+```
 
