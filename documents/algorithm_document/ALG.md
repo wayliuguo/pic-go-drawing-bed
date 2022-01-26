@@ -943,5 +943,130 @@ var detectCycle = function(head) {
   - 第一轮
     - prev=null, 1->prev, 节点后移，prev=1, curr=2
   - 第二轮
-    - 2-> 1
+    - pre=1, 2->prev,节点后移，prev=2，curr=3
   - ...
+
+```
+var reverseList = function(head) {
+    let prev = null
+    let curr = head
+    while(curr) {
+        const next = curr.next;
+        // 当前几点next 指向 prev
+        curr.next = prev;
+        // prev 节点后移
+        prev = curr;
+        // curr 节点后移
+        curr = next;
+    }
+    return prev
+};
+```
+
+- 解法二
+  - 递归
+  - 把拿到的链表进行反转，然后返回新的头结点
+  - reverseList(1)
+    - reverseList(2)
+    - 2 -> 1 1 -> null
+  - reverseList(2)
+    - reverseList(3)
+    - 3 -> 2 2 -> null
+  - reverseList(3)
+    - reverseList(4)
+    - 4 -> 3 3-> null
+  - reverseList(4)
+    - reverseList(5)
+    - 5 -> 4 4 -> null
+  - reverseList(5)
+    - return 5
+- 按照调用栈，则会先入后出，先执行reverseList(5) -> reverseList(1),则反转
+
+```
+var reverseList = function(head) {
+    if(head === null || head.next === null) {
+        return head
+    }
+    // 下一个节点递归
+    const newHead = reverseList(head.next)
+    // 当前节点的下一个节点指向当前节点
+    head.next.next = head
+    // 当前节点指向 null
+    head.next = null
+    return newHead
+};
+```
+
+### 3.6 链表的中间节点
+
+给定一个头结点为 `head` 的非空单链表，返回链表的中间结点。
+
+如果有两个中间结点，则返回第二个中间结点。
+
+```
+输入：[1,2,3,4,5]
+输出：此列表中的结点 3 (序列化形式：[3,4,5])
+```
+
+```
+输入：[1,2,3,4,5,6]
+输出：此列表中的结点 4 (序列化形式：[4,5,6])
+由于该列表有两个中间结点，值分别为 3 和 4，我们返回第二个结点。
+```
+
+- 解法一：
+  - 快慢指针
+  - 慢指针走一步、快指针走两步，当快指针走到末尾，则慢指针到中间
+
+```
+var middleNode = function(head) {
+    let fast = head
+    let slow = head
+    while(fast !== null && fast.next !== null) {
+        fast = fast.next.next
+        slow = slow.next
+    }
+    return slow
+}
+```
+
+- 解法二：
+  - 数组：将遍历的元素依次放入数组A中，如果我们遍历到了N个元素，则链表以及数组的长度为N,对应的中间节点为A[N/2]
+
+```
+var middleNode = function(head) {
+    // 数组，存入头指针
+    let k = [head]
+    // 当数组的最后一个不是 null， 则依次push进入数组
+    while(k[k.length -1].next !== null) {
+        k.push(k[k.length-1].next)
+    }
+    return k[Math.trunc(k.length/2)]
+};
+```
+
+- 解法三
+  - 单指针解法
+  - 进行两次遍历，第一次获取链表元素个数，第二次根据个数找到中间节点
+
+```
+// 单指针解法
+var middleNode = function(head) {
+    let n =0
+    let cur = head
+    // 遍历获取链表元素个数
+    while(cur != null) {
+        ++n
+        cur = cur.next
+    }
+    let k = 0
+    cur = head
+    // 根据链表元素个数找到中间节点
+    while(k < Math.trunc(n/2)) {
+        ++k
+        cur = cur.next
+    }
+    return cur
+}
+```
+
