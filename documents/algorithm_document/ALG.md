@@ -1070,3 +1070,44 @@ var middleNode = function(head) {
 }
 ```
 
+### 3.7 删除链表的倒数第 n 个节点
+
+```
+输入：head = [1,2,3,4,5], n = 2
+输出：[1,2,3,5]
+```
+
+- 题解一
+  - 计算链表的长度
+
+```
+var removeNthFromEnd = function(head, n) {
+    // 遍历获取链表长度
+    let length = getLength(head)
+    // 哑节点，其next指向 head
+    let dummy = new ListNode(0, head)
+    let cur = dummy
+    for(let i=1; i< length-n+1; i++) {
+        cur = cur.next
+    }
+    cur.next = cur.next.next
+    return dummy.next
+    
+    function getLength(head) {
+        let length = 0
+        while(head !== null) {
+            ++length
+            head = head.next
+        }
+        return length
+    }
+};
+```
+
+- 题解二
+  - 栈法
+
+```
+
+```
+
