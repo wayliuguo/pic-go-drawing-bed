@@ -2650,3 +2650,40 @@ ws.on('drain', () => {
 }) 
 ```
 
+### 14.10 背压机制
+
+![image-20220128213641372](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220128213641372.png)
+
+![image-20220128214010097](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220128214010097.png)
+
+```
+let fs = require('fs')
+
+let rs = fs.createReadStream('text7.txt', {
+    highWaterMark: 6
+})
+
+let ws = fs.createWriteStream('text8.txt', {
+    highWaterMark: 1
+})
+
+let flag = true
+rs.on('data', (chunk) => {
+    flag = ws.write(chunk, () => {
+        console.log('写完了')
+    })
+    if(!flag) {
+        // 暂停模式
+        rs.pause()
+    }
+})
+ws.on('drain', () => {
+    // 流动模式
+    rs.resume()
+})
+
+// rs.pipe(ws)
+```
+
+- 模拟了pipe的作用
+
