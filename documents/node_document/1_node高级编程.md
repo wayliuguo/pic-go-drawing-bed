@@ -2687,3 +2687,302 @@ ws.on('drain', () => {
 
 - 模拟了pipe的作用
 
+### 14.11 模拟文件的可读流
+
+```
+const fs = require('fs')
+const EventEmitter = require('events')
+
+class MyFileReadStream extends EventEmitter{
+  constructor(path, options = {}) {
+    super()
+    this.path = path
+    this.flags = options.flags || "r"
+    this.mode = options.mode || 438
+    this.autoClose = options.autoClose || true 
+    this.start = options.start || 0
+    this.end = options.end 
+    this.highWaterMark = options.highWaterMark || 64 * 1024 
+    this.readOffset = 0
+
+    this.open()
+
+    this.on('newListener', (type) => {
+      if (type === 'data') {
+        this.read()
+      }
+    })
+  }
+  open() {
+    // 原生 open 方法来打开指定位置上的文件
+    fs.open(this.path, this.flags, this.mode, (err, fd) => {
+      if (err) {
+        this.emit('error', err)
+      }
+      this.fd = fd
+      this.emit('open', fd)
+    })
+  }
+  read() {
+    if (typeof this.fd !== 'number') {
+      return this.once('open', this.read)
+    }
+
+    let buf = Buffer.alloc(this.highWaterMark)
+
+    let howMuchToRead
+    /* if (this.end) {
+      howMuchToRead = Math.min(this.end - this.readOffset + 1, this.highWaterMark)
+    } else {
+      howMuchToRead = this.highWaterMark
+    } */
+
+    howMuchToRead = this.end ? Math.min(this.end - this.readOffset + 1, this.highWaterMark) : this.highWaterMark
+
+    fs.read(this.fd, buf, 0, howMuchToRead, this.readOffset, (err, readBytes) => {
+      if (readBytes) {
+        this.readOffset += readBytes
+        this.emit('data', buf.slice(0, readBytes))
+        this.read()
+      } else {
+        this.emit('end')
+        this.close()
+      }
+    })
+  }
+  close() {
+    fs.close(this.fd, () => {
+      this.emit('close')
+    })
+  }
+}
+
+let rs = new MyFileReadStream('test.txt', {
+  end: 7,
+  highWaterMark: 3
+})
+
+rs.on('data', (chunk) => {
+  console.log(chunk)
+})
+```
+
+### 14.12单链表实现
+
+```
+class Node{
+  constructor(element, next) {
+    this.element = element
+    this.next = next
+  }
+}
+
+class LinkedList{
+  constructor(head, size) {
+    this.head = null 
+    this.size = 0
+  }
+  _getNode(index) {
+    if (index < 0 || index >= this.size) {
+      throw new Error('越界了')
+    }
+    let currentNode = this.head
+    for (let i = 0; i < index; i++) {
+      currentNode = currentNode.next
+    }
+    return currentNode
+  }
+  add(index, element) {
+    if (arguments.length == 1) {
+      element = index
+      index = this.size
+    }
+    if (index < 0 || index > this.size) {
+      throw new Error('cross the border')
+    }
+    if (index == 0) {
+      let head = this.head // 保存原有 head 的指向
+      this.head = new Node(element, head)
+    } else {
+      let prevNode = this._getNode(index - 1)
+      prevNode.next = new Node(element, prevNode.next)
+    }
+    this.size++
+  }
+
+  remove(index) {
+    let rmNode = null 
+    if (index == 0) {
+      rmNode = this.head 
+      if (!rmNode) {
+        return undefined
+      }
+      this.head = rmNode.next
+    } else {
+      let prevNode = this._getNode(index -1)
+      rmNode = prevNode.next
+      prevNode.next = rmNode.next
+    }
+    this.size--
+    return rmNode
+  }
+  set(index, element) {
+    let node = this._getNode(index)
+    node.element = element
+  }
+  get(index) {
+    return this._getNode(index)
+  }
+  clear() {
+    this.head = null 
+    this.size = 0 
+  }
+}
+
+class Queue{
+  constructor() {
+    this.linkedList = new LinkedList()
+  }
+  enQueue(data) {
+    this.linkedList.add(data)
+  }
+  deQueue() {
+    return this.linkedList.remove(0)
+  }
+}
+
+const q = new Queue()
+
+q.enQueue('node1')
+q.enQueue('node2')
+
+let a = q.deQueue()
+a = q.deQueue()
+a = q.deQueue()
+
+console.log(a)
+```
+
+### 14.13 模拟文件可写流
+
+```
+const fs = require('fs')
+const EventsEmitter = require('events')
+const Queue = require('./linkedlist')
+
+class MyWriteStream extends EventsEmitter{
+  constructor(path, options={}) {
+    super()
+    this.path = path
+    this.flags = options.flags || 'w'
+    this.mode = options.mode || 438
+    this.autoClose = options.autoClose || true 
+    this.start = options.start || 0
+    this.encoding = options.encoding || 'utf8'
+    this.highWaterMark = options.highWaterMark || 16*1024
+
+    this.open()
+
+    this.writeoffset = this.start 
+    this.writing = false 
+    this.writeLen = 0
+    this.needDrain = false 
+    this.cache = new Queue()
+  }
+  open() {
+    // 原生 fs.open 
+    fs.open(this.path, this.flags, (err, fd) => {
+      if (err) {
+        this.emit('error', err)
+      }
+      // 正常打开文件
+      this.fd = fd 
+      this.emit('open', fd)
+    })
+  }
+  write(chunk, encoding, cb) {
+    chunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+
+    this.writeLen += chunk.length
+    let flag = this.writeLen < this.highWaterMark
+    this.needDrain = !flag
+
+    if (this.writing) {
+      // 当前正在执行写入，所以内容应该排队
+      this.cache.enQueue({chunk, encoding, cb})
+    } else {
+      this.writing = true
+      // 当前不是正在写入那么就执行写入
+      this._write(chunk, encoding, () => {
+        cb()
+        // 清空排队的内容
+        this._clearBuffer()
+      })
+    }
+    return flag
+  }
+  _write(chunk, encoding, cb) {
+    if (typeof this.fd !== 'number') {
+      return this.once('open', ()=>{return this._write(chunk, encoding, cb)})
+    }
+    fs.write(this.fd, chunk, this.start, chunk.length, this.writeoffset, (err, written) => {
+      this.writeoffset += written
+      this.writeLen -= written
+
+      cb && cb()
+    })
+  }
+  _clearBuffer() {
+    let data = this.cache.deQueue()
+    if (data) {
+      this._write(data.element.chunk, data.element.encoding, ()=>{
+        data.element.cb && data.element.cb()
+        this._clearBuffer()
+      })
+    } else {
+      if (this.needDrain) {
+        this.needDrain = false 
+        this.emit('drain')
+      }
+    }
+  }
+}
+
+const ws = new MyWriteStream('./f9.txt', {})
+
+ws.on('open', (fd) => {
+  console.log('open---->', fd)
+})
+
+let flag = ws.write('1', 'utf8', () => {
+  console.log('ok1')
+})
+
+flag = ws.write('10', 'utf8', () => {
+  console.log('ok1')
+})
+
+flag = ws.write('拉勾教育', 'utf8', () => {
+  console.log('ok3')
+})
+
+ws.on('drain', () => {
+  console.log('drain')
+})
+```
+
+### 14.14 pipe方法使用
+
+```
+const fs = require('fs')
+
+const rs = fs.createReadStream('./text9.txt', {
+    highWaterMark: 4
+})
+
+const ws = fs.createWriteStream('./text10.txt', {
+    highWaterMark: 1
+})
+
+rs.pipe(ws)
+```
