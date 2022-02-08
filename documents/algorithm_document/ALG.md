@@ -1106,8 +1106,115 @@ var removeNthFromEnd = function(head, n) {
 
 - 题解二
   - 栈法
+  - 全部入栈
+  - 出栈第n个之前的
+  - 删除第n个节点
 
 ```
+var removeNthFromEnd = function(head, n) {
+    const dummy = new ListNode(0, head)
+    const stack = new Array()
+    let pushList = dummy
+    // 全部入栈
+    while(pushList !== null) {
+        stack.push(pushList)
+        pushList = pushList.next
+    }
+    // 倒数第n个节点前出栈
+    for(let i=0; i<n; i++) {
+        stack.pop()
+    }
+    // 删除第n个节点
+    let peek = stack[stack.length - 1]
+    peek.next = peek.next.next
+    return dummy.next
+}
+```
 
+- 题解三
+  - 双指针
+  - 前指针forward，后指针backward相差为n后同时向后推进
+  - 当forward到达终点时，即forward.next 为null 时，backward恰好到达倒数第n项的前一项
+  - 链接倒数第n项的前后项
+
+```
+var removeNthFromEnd = function(head, n) {
+    const dummy = new ListNode(0, head)
+    let forward = dummy, backward = dummy
+    // 前指针向前走n步
+    while(n--) {
+        forward = forward.next
+    }
+    // 前指针与后指针往后走
+    while(forward.next) {
+        forward = forward.next
+        backward = backward.next
+    }
+    backward.next = backward.next.next
+    return dummy.next
+}
+```
+
+### 3.8 相交链表
+
+给你两个单链表的头节点 `headA` 和 `headB` ，请你找出并返回两个单链表相交的起始节点。如果两个链表不存在相交节点，返回 `null` 。
+
+图示两个链表在节点 `c1` 开始相交**：**
+
+![](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/14/160_statement.png)
+
+- 解法一
+  - 哈希表
+  - 遍历第一条链表，加入哈希表
+  - 遍历第二条链表，如果相加则返回相交节点，否则返回null
+
+```
+var getIntersectionNode = function(headA, headB) {
+    const visited = new Set()
+    let temp = headA
+    while(temp !== null) {
+        visited.add(temp)
+        temp = temp.next
+    }
+    temp = headB
+    while(temp !== null) {
+        if(visited.has(temp)) {
+            return temp
+        }
+        temp = temp.next
+    }
+    return null
+};
+```
+
+- 解法二
+
+  - 情况一：两个链表相交
+
+  - 链表 headA 和headB 的长度分别是 m 和 n。假设链表 headA 的不相交部分有 a 个节点，链表headB 的不相交部分有 b 个节点，两个链表相交的部分有 c 个节点，则有 a+c=m，b+c=n。
+
+    - 如果 a=b，则两个指针会同时到达两个链表相交的节点，此时返回相交的节点；
+
+      如果 a !==b，则指针 pA 会遍历完链表 headA，指针 pB 会遍历完链表 headB，两个指针不会同时到达链表的尾节点，然后指针 pA 移到链表 headB 的头节点，指针pB 移到链表 headA 的头节点，然后两个指针继续移动，在指针 pA 移动了 a+c+b 次、指针 pB 移动了b+c+a 次之后，两个指针会同时到达两个链表相交的节点，该节点也是两个指针第一次同时指向的节点，此时返回相交的节点。
+
+  - 情况二：两个链表不相交
+
+  - 链表 headA 和 headB 的长度分别是 m 和 n。考虑当 m=n 和 m !==n 时，两个指针分别会如何移动：
+
+    - 如果m*=*n，则两个指针会同时到达两个链表的尾节点，然后同时变成空值null，此时返回 null；
+- 如果 m !==n，则由于两个链表没有公共节点，两个指针也不会同时到达两个链表的尾节点，因此两个指针都会遍历完两个链表，在指针 pA 移动了 m+nm+n 次、指针pB 移动了n+m 次之后，两个指针会同时变成空值 null，此时返回 null。
+
+```
+var getIntersectionNode = function(headA, headB) {
+    if(headA === null || headB === null) {
+        return null
+    }
+    let pA = headA, pB = headB
+    while(pA !== pB) {
+        pA = pA === null ? headB : pA.next
+        pB = pB === null ? headA : pB.next
+    }
+    return pA
+};
 ```
 
