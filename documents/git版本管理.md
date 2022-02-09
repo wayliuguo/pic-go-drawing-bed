@@ -495,3 +495,16 @@ git branch --contains commitid
 - git fetch [alias/branch]: 拉取远程分子
 - git pull = git fetch + git pull
 - git pull --rebase = git ftech + git rebase
+- 基于某个分支新建分支
+
+```
+git checkout -b 新建的分支 基于的分支
+git checkout -b feature-liuguowei-supportDeleteOnlineCustomer origin/release-4.5.0  
+```
+
+- 删除远程分支
+
+```
+git push origin --delete feature-liuguowei-supportDeleteOnlineCustomer
+```
+

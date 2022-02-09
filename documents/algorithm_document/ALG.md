@@ -447,6 +447,59 @@ var intersect = function(nums1, nums2) {
 };
 ```
 
+### 1.8 有效三角形的个数
+
+给定一个包含非负整数的数组 `nums` ，返回其中可以组成三角形三条边的三元组个数。
+
+```
+输入: nums = [2,2,3,4]
+输出: 3
+解释:有效的组合是: 
+2,3,4 (使用第一个 2)
+2,3,4 (使用第二个 2)
+2,2,3
+```
+
+- 题解一
+  - 排序+二分法
+  - 排序的作用：前三个a、b、c，使得a<b<c,则只需要判断a+b>c即可
+
+```
+var triangleNumber = function(nums) {
+    // 数组长度
+    const n = nums.length;
+    // 升序排序
+    nums.sort((a, b) => a - b);
+    let ans = 0;
+    // 第一个
+    for (let i = 0; i < n; ++i) {
+        // 第二个
+        for (let j = i + 1; j < n; ++j) {
+            // 二分法的left 和 right
+            let left = j + 1, right = n - 1, k = j;
+            while (left <= right) {
+                // 中间下标
+                const mid = Math.floor((left + right) / 2);
+                // 如果中间值符合，则left向中移动，如果不符合，则right向中移动
+                if (nums[mid] < nums[i] + nums[j]) {
+                    k = mid;
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+            ans += k - j;
+        }
+    }
+    return ans;
+};
+```
+
+- 题解二
+  - 排序+双指针
+
+
+
 ## 2. APIS
 
 ### 2.1 String.prototype.split()
