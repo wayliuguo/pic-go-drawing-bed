@@ -108,3 +108,230 @@ Build Info: {
 
 - 关闭
   - ctrl + c 或关闭命令窗口
+
+## 5. Mongo Shell 连接 MongoDB
+
+- 上面的启动过程就是使用 mongo shell 连接 mongoDB
+
+- 连接非默认端口上的本地 MongoDB
+
+  ```
+  mongo --port 2015
+  ```
+
+- 连接远程主机上的 MongoDB 服务
+
+  ```
+  mongo "mongodb://mongodb0.example.com:28015"
+  
+  mongo --host mongodb0.example.com:28015
+  
+  mongo --host mongodb0.example.com --port 28015
+  ```
+
+- 连接具有身份认证的 MongoDB 服务
+
+  ```
+  mongo "mongodb://alice@mongodb0.examples.com:28015/?authSource=admin"
+  
+  mongo --username alice --password --authenticationDatabase admin --host mongodb0.examples.com --port 28015
+  ```
+
+## 6. Mongo Shell 执行环境
+
+- 提供了 JavaScript 执行环境
+- 内置了一些数据库操作命令
+
+- - show dbs 展示已创建并有数据的数据库
+  - db  当前操作的数据库
+
+- - use database 使用/创建 数据库
+  - show collections 展示集合
+
+- - ...
+
+- 提供了一大堆的内置 API 用来操作数据库
+
+- - db.users.insert({ name: 'Jack', age: 18 })
+
+![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213220847809.png)
+
+- 退出连接的三种方式
+  - exit
+  - quit()
+  - Ctrl + C
+
+## 7. MongoDB 基础概念
+
+- 数据存储结构
+- 数据库
+
+- 集合
+- 文档
+
+### 7.1 数据存储结构
+
+- 你可以把 MongoDB 数据库想象为一个超级大对象
+- 对象里面有不同的集合
+
+- 集合中有不同的文档
+
+```
+{
+  // 数据库 Database
+  "京东": {
+    // 集合 Collection，对应关系型数据库中的 Table
+    "用户": [
+      // 文档 Document，对应关系型数据库中的 Row
+      {
+        // 数据字段 Field，对应关系数据库中的 Column
+        "id": 1,
+        "username": "张三",
+        "password": "123"
+      },
+      {
+        "id": 2,
+        "username": "李四",
+        "password": "456"
+      }
+      // ...
+    ],
+    "商品": [
+      {
+        "id": 1,
+        "name": "iPhone Pro Max",
+        "price": 100
+      },
+      {
+        "id": 2,
+        "name": "iPad Pro",
+        "price": 80
+      }
+    ],
+    "订单": []
+    // ...
+  },
+
+  // 数据库
+  "淘宝": {}
+
+  // ...
+}
+```
+
+- Database
+
+  - 集合：Collection ==> 对应关系型数据库 Table
+    - 文档：Document ==> 对应关系型数据库 Row（行）
+      - 数据字段：Field ==> 对应关系型数据库中的 Column（列）
+
+  ```
+  姓名  身高  体重
+  张三  178   60
+  李四  178   70
+  ```
+
+  - 一行由多个列组成，一列有多个字段
+
+### 7.2 数据库操作
+
+- 创建数据
+
+  ```
+  use databaseName
+  ```
+
+  - 不区分大小写，但是建议全部小写
+  - 不能包含空字符。
+
+  - 数据库名称不能为空，并且必须少于64个字符。
+  - Windows 上的命名限制
+
+  - - 不能包括 `/\. "$*<>:|?` 中的任何内容
+
+  - Unix 和 Linux 上的命名限制
+
+  - - 不能包括 `/\. "$` 中的任何字符
+
+- 删除数据库
+
+  ```
+  > use person
+  switched to db person
+  > show dbs
+  admin   0.000GB
+  config  0.000GB
+  local   0.000GB
+  test    0.000GB
+  > db.users.insert({name:"liuguowei", age: 18})
+  WriteResult({ "nInserted" : 1 })
+  > show dbs
+  admin   0.000GB
+  config  0.000GB
+  local   0.000GB
+  person  0.000GB
+  test    0.000GB
+  > show collections
+  users
+  > db.users.find()
+  { "_id" : ObjectId("6209190e35030ca8a7475f37"), "name" : "liuguowei", "age" : 18 }
+  > db.dropDatabase()
+  { "ok" : 1 }
+  > show dbs
+  admin   0.000GB
+  config  0.000GB
+  local   0.000GB
+  test    0.000GB
+  ```
+
+  ### 7.3 集合
+
+  集合类似于关系数据库中的表，MongoDB 将文档存储在集合中![image-20220213225759618](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213225759618.png)
+
+**创建集合**
+
+如果不存在集合，则在您第一次为该集合存储数据时，MongoDB 会创建该集合。
+
+```
+db.myNewCollection2.insert( { x: 1 } )
+```
+
+MongoDB提供 `db.createCollection()` 方法来显式创建具有各种选项的集合，例如设置最大大小或文档验证规则。如果未指定这些选项，则无需显式创建集合，因为在首次存储集合数据时，MongoDB 会创建新集合。
+
+**集合名称规则**
+
+集合名称应以下划线或字母字符开头，并且：
+
+- 不能包含 `$`
+- 不能为空字符串
+
+- 不能包含空字符
+- 不能以 `.` 开头
+
+- 长度限制
+
+- - 版本 4.2 最大 120 个字节
+  - 版本 4.4 最大 255 个字节
+
+**查看集合**
+
+```
+show collections
+```
+
+**删除集合**
+
+```
+db.集合名称.drop()
+```
+
+```
+> db.users.insert({name: "liuguowei", age: 18})
+WriteResult({ "nInserted" : 1 })
+> show collections
+users
+> db.users.drop()
+true
+> show collections
+```
+
