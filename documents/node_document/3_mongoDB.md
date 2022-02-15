@@ -284,9 +284,10 @@ Build Info: {
   test    0.000GB
   ```
 
-  ### 7.3 集合
 
-  集合类似于关系数据库中的表，MongoDB 将文档存储在集合中![image-20220213225759618](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213225759618.png)
+### 7.3 集合
+
+- 集合类似于关系数据库中的表，MongoDB 将文档存储在集合中![image-20220213225759618](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213225759618.png)
 
 **创建集合**
 
@@ -335,3 +336,108 @@ true
 > show collections
 ```
 
+### 7.4 文档
+
+- MongoDB 将数据记录存储为 BSON 文档
+- BSON（Binary JSON）是 JSON 文档的二进制表示形式，它比 JSON 包含更多的数据类型
+- [BSON 规范](http://bsonspec.org/)
+- [BSON 支持的数据类型](https://docs.mongodb.com/manual/reference/bson-types/)
+
+![image-20220215224757850](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220215224757850.png)
+
+#### 7.4.1 文档结构
+
+MongoDB 文档由字段和值对组成，并具有以下结构： 
+
+```
+{
+   field1: value1,
+   field2: value2,
+   field3: value3,
+   ...
+   fieldN: valueN
+}
+```
+
+#### 7.4.2 字段名称
+
+文档对字段名称有以下限制：
+
+- 字段名称 `_id` 保留用作主键；它的值在集合中必须是唯一的，不可变的，并且可以是数组以外的任何类型。
+- 字段名称不能包含空字符。
+- 顶级字段名称不能以美元符号 `$` 开头。
+- 从 MongoDB 3.6 开始，服务器允许存储包含点 `.` 和美元符号 `$` 的字段名称
+
+#### 7.4.3 MongoDB 中的数据类型
+
+字段的值可以是任何 BSON 数据类型，包括其他文档，数组和文档数组。例如，以下文档包含各种类型的值：
+
+```
+var mydoc = {
+    _id: ObjectId("5099803df3f4948bd2f98391"),
+    name: { first: "Alan", last: "Turing" },
+    birth: new Date('Jun 23, 1912'),
+    death: new Date('Jun 07, 1954'),
+    contribs: [ "Turing machine", "Turing test", "Turingery" ],
+    views : NumberLong(1250000)
+}
+```
+
+上面的字段具有以下数据类型：
+
+- _id 保存一个 [ObjectId](https://docs.mongodb.com/manual/reference/bson-types/#objectid) 类型
+- name 包含一个嵌入式文档，该文档包含 first 和 last 字段
+
+- birth 和 death 持有 Date 类型的值
+- contribs 保存一个字符串数组
+
+- views 拥有 NumberLong 类型的值
+
+下面是 MongoDB 支持的常用数据类型。
+
+| 类型               | 整数标识符 | 别名（字符串标识符） |
+| ------------------ | ---------- | -------------------- |
+| Double             | 1          | “double”             |
+| String             | 2          | “string”             |
+| Object             | 3          | “object”             |
+| Array              | 4          | “array”              |
+| Binary data        | 5          | “binData”            |
+| ObjectId           | 7          | “objectId”           |
+| Boolean            | 8          | “bool”               |
+| Date               | 9          | “date”               |
+| Null               | 10         | “null”               |
+| Regular Expression | 11         | “regex”              |
+| 32-bit integer     | 16         | “int”                |
+| Timestamp          | 17         | “timestamp”          |
+| 64-bit integer     | 18         | “long”               |
+| Decimal128         | 19         | “decimal”            |
+
+#### 7.4.4 _id 字段
+
+在 MongoDB 中，存储在集合中的每个文档都需要一个唯一的 `_id` 字段作为主键。如果插入的文档省略 。
+
+`_id` 字段，则 MongoDB 驱动程序会自动为 `_id` 字段生成 `ObjectId`。
+
+`_id` 字段具有以下行为和约束：
+
+- 默认情况下，MongoDB 在创建集合时会在 `_id` 字段上创建唯一索引。
+- `_id` 字段始终是文档中的第一个字段
+
+- `_id` 字段可以包含任何 BSON 数据类型的值，而不是数组。
+
+#### 7.4.5 案例说明
+
+```
+> db.users.find()
+{ "_id" : ObjectId("620bc26d1f6c42ee85607a9e"), "name" : "liuguowei", "age" : 18 }
+> db.users.insert({_id: 123, a: 100})
+WriteResult({ "nInserted" : 1 })
+> db.users.find()
+{ "_id" : ObjectId("620bc26d1f6c42ee85607a9e"), "name" : "liuguowei", "age" : 18 }
+{ "_id" : 123, "a" : 100 }
+```
+
+- 可以指定_id，不指定默认生成
+- 不同文档的数据结构不必相同
+
+## 8.关于 MongoDB 可视化管理工具
