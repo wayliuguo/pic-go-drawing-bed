@@ -440,4 +440,422 @@ WriteResult({ "nInserted" : 1 })
 - 可以指定_id，不指定默认生成
 - 不同文档的数据结构不必相同
 
-## 8.关于 MongoDB 可视化管理工具
+## 8. 基础操作
+
+### 8.1 创建文档
+
+| `db.collection.insertOne()` | 插入单个文档到集合中        |
+| --------------------------- | --------------------------- |
+| `db.collection.insertOne()` | 插入多个文档到集合中        |
+| `db.collection.insert()`    | 将1个或多个文档插入到集合中 |
+
+- db.collection.insertOne()
+
+  ```
+  db.inventory.insertOne(
+     { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
+  )
+  ```
+
+  ```
+  {
+      "acknowledged": true,
+      "insertedId": ObjectId("620d0276f83d000003005123")
+  }
+  ```
+
+- db.collection.insertOne()
+
+  ```
+  db.inventory.insertMany(
+  	[
+     		{ item: "journal", qty: 25, tags: ["blank", "red"], size: { h: 14, w: 21, uom: "cm" } },
+     		{ item: "mat", qty: 85, tags: ["gray"], size: { h: 27.9, w: 35.5, uom: "cm" } },
+     		{ item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
+  	]
+  )
+  ```
+
+  ```
+  {
+      "acknowledged": true,
+      "insertedIds": [
+          ObjectId("620d02c7f83d000003005124"),
+          ObjectId("620d02c7f83d000003005125"),
+          ObjectId("620d02c7f83d000003005126")
+      ]
+  }
+  ```
+
+- db.collection.insert()
+
+  ```
+  db.inventory.insert(
+  	[
+         { item: "javascript", qty: 100, tags: ["blank", "red"], size: { h: 14, w: 21, uom: "cm" } },
+         { item: "css", qty: 85, tags: ["gray"], size: { h: 27.9, w: 35.5, uom: "cm" } },
+         { item: "html", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
+  	]
+  )
+  ```
+
+  ```
+  BulkWriteResult({
+  	"nRemoved" : 0,
+  	"nInserted" : 3,
+  	"nUpserted" : 0,
+  	"nMatched" : 0,
+  	"nModified" : 0,
+  	"writeErrors" : [ ]
+  })
+  ```
+
+  
+
+### 8.2 查询文档
+
+#### 8.2.1 准备数据
+
+```
+db.inventory.insertMany(
+	[
+		 { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+		 { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "A" },
+		 { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+		 { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+		 { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" }
+	]
+);
+```
+
+#### 8.2.2 查询所有文档
+
+```
+db.inventory.find()
+
+// SELECT * FROM inventory
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d00000300512f"),
+    "item": "journal",
+    "qty": 25,
+    "size": {
+        "h": 14,
+        "w": 21,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+
+// 2
+{
+    "_id": ObjectId("620d0829f83d000003005130"),
+    "item": "notebook",
+    "qty": 50,
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "status": "A"
+}
+
+// 3
+{
+    "_id": ObjectId("620d0829f83d000003005131"),
+    "item": "paper",
+    "qty": 100,
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "status": "D"
+}
+
+// 4
+{
+    "_id": ObjectId("620d0829f83d000003005132"),
+    "item": "planner",
+    "qty": 75,
+    "size": {
+        "h": 22.85,
+        "w": 30,
+        "uom": "cm"
+    },
+    "status": "D"
+}
+
+// 5
+{
+    "_id": ObjectId("620d0829f83d000003005133"),
+    "item": "postcard",
+    "qty": 45,
+    "size": {
+        "h": 10,
+        "w": 15.25,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+
+```
+
+#### 8.2.3 指定返回的文档字段
+
+```
+db.inventory.find({}, {
+	item: 1,
+  	qty: 1
+})
+
+// SELECT item, qty FROM inventory
+```
+
+- 1：需要展示的字段，0：不需要展示的字段
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d00000300512f"),
+    "item": "journal",
+    "qty": 25
+}
+
+// 2
+{
+    "_id": ObjectId("620d0829f83d000003005130"),
+    "item": "notebook",
+    "qty": 50
+}
+
+// 3
+{
+    "_id": ObjectId("620d0829f83d000003005131"),
+    "item": "paper",
+    "qty": 100
+}
+
+// 4
+{
+    "_id": ObjectId("620d0829f83d000003005132"),
+    "item": "planner",
+    "qty": 75
+}
+
+// 5
+{
+    "_id": ObjectId("620d0829f83d000003005133"),
+    "item": "postcard",
+    "qty": 45
+}
+```
+
+#### 8.2.4 相等条件查询
+
+```
+db.inventory.find( { status: "D" } )
+
+// SELECT * FROM inventory WHERE status = "D"
+```
+
+- 找出 status 为 D 的文档
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d000003005131"),
+    "item": "paper",
+    "qty": 100,
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "status": "D"
+}
+
+// 2
+{
+    "_id": ObjectId("620d0829f83d000003005132"),
+    "item": "planner",
+    "qty": 75,
+    "size": {
+        "h": 22.85,
+        "w": 30,
+        "uom": "cm"
+    },
+    "status": "D"
+}
+```
+
+#### 8.2.5 指定 AND 条件
+
+```
+db.inventory.find( { status: "A", qty: { $lt: 30 } } )
+
+// SELECT * FROM inventory WHERE status = "A" AND qty < 30
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d00000300512f"),
+    "item": "journal",
+    "qty": 25,
+    "size": {
+        "h": 14,
+        "w": 21,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+
+```
+
+- AND:  在第一个对象中添加其它条件
+- $lt：小于
+
+#### 8.2.6 指定 OR 条件
+
+使用 `$or` 运算符，您可以指定一个复合查询，该查询将每个子句与一个逻辑或连接相连接，以便该查询选择集合中至少匹配一个条件的文档。
+
+```
+db.inventory.find({
+  $or: [
+    { status: "A" },
+    { qty: { $lt: 30 } }
+  ]
+})
+
+// SELECT * FROM inventory WHERE status = "A" OR qty < 30
+```
+
+- 查询状态为 `A` 或数量小于 `$lt30` 的集合中的所有文档
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d00000300512f"),
+    "item": "journal",
+    "qty": 25,
+    "size": {
+        "h": 14,
+        "w": 21,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+
+// 2
+{
+    "_id": ObjectId("620d0829f83d000003005130"),
+    "item": "notebook",
+    "qty": 50,
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "status": "A"
+}
+
+// 3
+{
+    "_id": ObjectId("620d0829f83d000003005133"),
+    "item": "postcard",
+    "qty": 45,
+    "size": {
+        "h": 10,
+        "w": 15.25,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+```
+
+#### 8.2.7 指定 AND 和 OR 条件
+
+```
+db.inventory.find({
+  status: "A",
+  $or: [ { qty: { $lt: 30 } }, { item: /^p/ } ]
+})
+
+// SELECT * FROM inventory WHERE status = "A" AND ( qty < 30 OR item LIKE "p%")
+```
+
+- 复合查询文档选择状态为“ A”且qty小于（$ lt）30或item以字符p开头的所有文档
+
+```
+// 1
+{
+    "_id": ObjectId("620d0829f83d00000300512f"),
+    "item": "journal",
+    "qty": 25,
+    "size": {
+        "h": 14,
+        "w": 21,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+
+// 2
+{
+    "_id": ObjectId("620d0829f83d000003005133"),
+    "item": "postcard",
+    "qty": 45,
+    "size": {
+        "h": 10,
+        "w": 15.25,
+        "uom": "cm"
+    },
+    "status": "A"
+}
+```
+
+#### 8.2.8 查询操作符
+
+https://docs.mongodb.com/manual/reference/operator/query/
+
+- 比较运算符
+
+  | 名称   | 描述                       |
+  | ------ | -------------------------- |
+  | `$eq`  | 匹配等于指定值的值。       |
+  | `$gt`  | 匹配大于指定值的值。       |
+  | `$gte` | 匹配大于或等于指定值的值。 |
+  | `$in`  | 匹配数组中指定的任何值。   |
+  | `$lt`  | 匹配小于指定值的值。       |
+  | `$lte` | 匹配小于或等于指定值的值。 |
+  | `$ne`  | 匹配所有不等于指定值的值。 |
+  | `$nin` | 不匹配数组中指定的任何值。 |
+
+- 逻辑运算符
+
+  | `$and` | 将查询子句与逻辑连接，并返回与这两个子句条件匹配的所有文档。 |
+  | ------ | ------------------------------------------------------------ |
+  | `$not` | 反转查询表达式的效果，并返回与查询表达式不匹配的文档。       |
+  | `$nor` | 用逻辑NOR连接查询子句，返回所有不能匹配这两个子句的文档。    |
+  | `$or`  | 用逻辑连接查询子句，或返回与任一子句条件匹配的所有文档。     |
+
+#### 8.2.9 查询嵌套文档
+
+##### 8.2.9.1 匹配嵌套文档
+
+- 要在作为嵌入/嵌套文档的字段上指定相等条件，请使用查询过滤器文档 `{<field>: <value>}`，其中 `<value>` 是要匹配的文档。
+- 整个嵌入式文档上的相等匹配要求与指定的 `<value>` 文档完全匹配，包括字段顺序。
+
+```
+db.inventory.find({
+  size: { h: 14, w: 21, uom: "cm" }
+})
+```
+
+##### 8.2.9.2 查询嵌套字段
+
+1. 
