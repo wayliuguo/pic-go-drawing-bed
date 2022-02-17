@@ -858,4 +858,394 @@ db.inventory.find({
 
 ##### 8.2.9.2 查询嵌套字段
 
-1. 
+1. 在嵌套字段上指定相等匹配
+
+   ```
+   db.inventory.find({
+     "size.uom": "in"
+   })
+   ```
+
+   - 择嵌套在 size 字段中的 uom 字段等于 `"in"`  的所有文档
+
+2. 使用查询运算符指定匹配项
+
+   ```
+   db.inventory.find({
+     "size.h": { $lt: 15 }
+   })
+   ```
+
+   - 查询在 `size` 字段中嵌入的字段 `h` 上使用小于运算符 `$lt`
+
+3. 指定 AND 条件
+
+   ```
+   db.inventory.find({
+     "size.h": { $lt: 15 },
+     "size.uom": "in",
+     status: "D"
+   })
+   ```
+
+   - 查询选择嵌套字段 `h` 小于 15，嵌套字段 `uom` 等于 `"in"`，状态字段等于 `"D"` 的所有文档
+
+### 8.2.10 查询数组
+
+#### 8.2.10.1 数据准备
+
+```
+db.inventory.insertMany([
+   { item: "journal", qty: 25, tags: ["blank", "red"], dim_cm: [ 14, 21 ] },
+   { item: "notebook", qty: 50, tags: ["red", "blank"], dim_cm: [ 14, 21 ] },
+   { item: "paper", qty: 100, tags: ["red", "blank", "plain"], dim_cm: [ 14, 21 ] },
+   { item: "planner", qty: 75, tags: ["blank", "red"], dim_cm: [ 22.85, 30 ] },
+   { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
+]);
+```
+
+#### 8.2.10.2 匹配一个数组
+
+```
+db.inventory.find({
+  tags: ["red", "blank"]
+})
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620e5bd262150000200041a3"),
+    "item": "notebook",
+    "qty": 50,
+    "tags": [
+        "red",
+        "blank"
+    ],
+    "dim_cm": [
+        14,
+        21
+    ]
+}
+```
+
+- 字段标签值是按指定顺序恰好具有两个元素 `"red"` 和 `"blank"` 的数组
+
+```
+db.inventory.find({
+  tags: { $all: ["red", "blank"] }
+})
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620e5bd262150000200041a2"),
+    "item": "journal",
+    "qty": 25,
+    "tags": [
+        "blank",
+        "red"
+    ],
+    "dim_cm": [
+        14,
+        21
+    ]
+}
+
+// 2
+{
+    "_id": ObjectId("620e5bd262150000200041a3"),
+    "item": "notebook",
+    "qty": 50,
+    "tags": [
+        "red",
+        "blank"
+    ],
+    "dim_cm": [
+        14,
+        21
+    ]
+}
+
+// 3
+{
+    "_id": ObjectId("620e5bd262150000200041a4"),
+    "item": "paper",
+    "qty": 100,
+    "tags": [
+        "red",
+        "blank",
+        "plain"
+    ],
+    "dim_cm": [
+        14,
+        21
+    ]
+}
+
+// 4
+{
+    "_id": ObjectId("620e5bd262150000200041a5"),
+    "item": "planner",
+    "qty": 75,
+    "tags": [
+        "blank",
+        "red"
+    ],
+    "dim_cm": [
+        22.85,
+        30
+    ]
+}
+
+```
+
+- 不考虑顺序或数组中的其它元素，使用 $all
+
+#### 8.2.10.3 查询数组中的元素
+
+1. 查询数组字段是否包含至少一个具有指定值的元素：{<field>: <value>}
+
+   ```
+   db.inventory.find({
+     tags: "red"
+   })
+   ```
+
+   - 查询 tags 数组包含 red 的所有文档
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620e5bd262150000200041a2"),
+       "item": "journal",
+       "qty": 25,
+       "tags": [
+           "blank",
+           "red"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 2
+   {
+       "_id": ObjectId("620e5bd262150000200041a3"),
+       "item": "notebook",
+       "qty": 50,
+       "tags": [
+           "red",
+           "blank"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 3
+   {
+       "_id": ObjectId("620e5bd262150000200041a4"),
+       "item": "paper",
+       "qty": 100,
+       "tags": [
+           "red",
+           "blank",
+           "plain"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 4
+   {
+       "_id": ObjectId("620e5bd262150000200041a5"),
+       "item": "planner",
+       "qty": 75,
+       "tags": [
+           "blank",
+           "red"
+       ],
+       "dim_cm": [
+           22.85,
+           30
+       ]
+   }
+   
+   ```
+
+2. 在数组字段中的元素指定条件，在查询过滤器文档中使用查询运算符
+
+   ```
+   { <array field>: { <operator1>: <value1>, ... } }
+   ```
+
+   ```
+   db.inventory.find({
+     dim_cm: { $gt: 25 }
+   })
+   ```
+
+#### 8.2.10.4 为数组元素指定多个条件
+
+1. 使用数组元素上的复合过滤条件查询数组
+
+   ```
+   db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+   ```
+
+   -  一个元素可以满足大于 15 的条件，而另一个元素可以满足小于 20 的条件；或者单个元素可以满足以下两个条件
+   - 14 < 20 , 21>15
+   - 10<20, 15.5>15
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620e5bd262150000200041a2"),
+       "item": "journal",
+       "qty": 25,
+       "tags": [
+           "blank",
+           "red"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 2
+   {
+       "_id": ObjectId("620e5bd262150000200041a3"),
+       "item": "notebook",
+       "qty": 50,
+       "tags": [
+           "red",
+           "blank"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 3
+   {
+       "_id": ObjectId("620e5bd262150000200041a4"),
+       "item": "paper",
+       "qty": 100,
+       "tags": [
+           "red",
+           "blank",
+           "plain"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   
+   // 4
+   {
+       "_id": ObjectId("620e5bd262150000200041a6"),
+       "item": "postcard",
+       "qty": 45,
+       "tags": [
+           "blue"
+       ],
+       "dim_cm": [
+           10,
+           15.25
+       ]
+   }
+   
+   ```
+
+2. 查询满足多个条件的数组元素
+
+   ```
+   db.inventory.find({
+     dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } }
+   })
+   ```
+
+   - `dim_cm` 数组中包含至少一个同时 大于22  和 小于30 的元素的文档
+   - 22.85 符合
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620e5bd262150000200041a5"),
+       "item": "planner",
+       "qty": 75,
+       "tags": [
+           "blank",
+           "red"
+       ],
+       "dim_cm": [
+           22.85,
+           30
+       ]
+   }
+   
+   ```
+
+   
+
+3. 通过数组索引位置查询元素
+
+   ```
+   db.inventory.find( { "dim_cm.1": { $gt: 25 } } )
+   ```
+
+   -  查询数组 `dim_cm` 中第二个元素大于 25 的所有文档
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620e5bd262150000200041a5"),
+       "item": "planner",
+       "qty": 75,
+       "tags": [
+           "blank",
+           "red"
+       ],
+       "dim_cm": [
+           22.85,
+           30
+       ]
+   }
+   ```
+
+4. 通过数组长度查询数组
+
+   ```
+   db.inventory.find( { "tags": { $size: 3 } } )
+   ```
+
+   - 选择数组标签具有3个元素的文档
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620e5bd262150000200041a4"),
+       "item": "paper",
+       "qty": 100,
+       "tags": [
+           "red",
+           "blank",
+           "plain"
+       ],
+       "dim_cm": [
+           14,
+           21
+       ]
+   }
+   ```
+
+   
