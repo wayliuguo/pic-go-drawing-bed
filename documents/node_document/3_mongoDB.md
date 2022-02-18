@@ -1994,3 +1994,39 @@ db.inventory.insertMany( [
 db.inventory.deleteMany({ status : "A" })
 ```
 
+## 9.在nodejs 中操作数据库
+
+### 9.1 连接到mongoDB
+
+```
+npm install mongodb
+```
+
+```
+const { MongoClient } = require('mongodb')
+
+const client = new MongoClient('mongodb://127.0.0.1:27017', {
+    useUnifiedTopology: true
+})
+
+async function run () {
+    try {
+        // 开始连接
+        await client.connect()
+        const personDB = client.db('person')
+        const inventoryCollection = personDB.collection('inventory')
+        const ret = await inventoryCollection.find()
+        console.log(await ret.toArray())
+    } catch (err) {
+        // 连接失败
+        console.log('连接失败', err)
+    } finally {
+        // 关闭连接
+        await client.close()
+    }
+}
+
+run()
+```
+
+### 9.2 CRUD 操作
