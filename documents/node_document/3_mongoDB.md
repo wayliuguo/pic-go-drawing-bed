@@ -514,7 +514,9 @@ WriteResult({ "nInserted" : 1 })
 
 ### 8.2 查询文档
 
-#### 8.2.1 准备数据
+#### 8.2.1 基本查询
+
+##### 8.2.1.1 准备数据
 
 ```
 db.inventory.insertMany(
@@ -528,7 +530,17 @@ db.inventory.insertMany(
 );
 ```
 
-#### 8.2.2 查询所有文档
+##### 8.2.1.2 查询所有文档
+
+**语法**
+
+- db.collection.find(query, projection)
+
+  - query: 可选，使用查询操作符指定查询条件
+
+- - projection ：可选，使用投影操作符指定返回的键。查询时返回文档中所有键值， 只需省略该参数即可（默认省略）。
+
+- db.collection.findOne()
 
 ```
 db.inventory.find()
@@ -604,7 +616,7 @@ db.inventory.find()
 
 ```
 
-#### 8.2.3 指定返回的文档字段
+##### 8.2.1.3 指定返回的文档字段
 
 ```
 db.inventory.find({}, {
@@ -654,7 +666,7 @@ db.inventory.find({}, {
 }
 ```
 
-#### 8.2.4 相等条件查询
+##### 8.2.1.4 相等条件查询
 
 ```
 db.inventory.find( { status: "D" } )
@@ -692,7 +704,7 @@ db.inventory.find( { status: "D" } )
 }
 ```
 
-#### 8.2.5 指定 AND 条件
+##### 8.2.1.5 指定 AND 条件
 
 ```
 db.inventory.find( { status: "A", qty: { $lt: 30 } } )
@@ -719,7 +731,7 @@ db.inventory.find( { status: "A", qty: { $lt: 30 } } )
 - AND:  在第一个对象中添加其它条件
 - $lt：小于
 
-#### 8.2.6 指定 OR 条件
+##### 8.2.1.6 指定 OR 条件
 
 使用 `$or` 运算符，您可以指定一个复合查询，该查询将每个子句与一个逻辑或连接相连接，以便该查询选择集合中至少匹配一个条件的文档。
 
@@ -777,7 +789,7 @@ db.inventory.find({
 }
 ```
 
-#### 8.2.7 指定 AND 和 OR 条件
+##### 8.2.1.7 指定 AND 和 OR 条件
 
 ```
 db.inventory.find({
@@ -818,7 +830,17 @@ db.inventory.find({
 }
 ```
 
-#### 8.2.8 查询操作符
+##### 8.2.1.8 使用查询运算符指定条件
+
+```
+db.inventory.find( { status: { $in: [ "A", "D" ] } } )
+
+// SELECT * FROM inventory WHERE status in ("A", "D")
+```
+
+
+
+##### 8.2.1.9 查询运算符
 
 https://docs.mongodb.com/manual/reference/operator/query/
 
@@ -843,12 +865,12 @@ https://docs.mongodb.com/manual/reference/operator/query/
   | `$nor` | 用逻辑NOR连接查询子句，返回所有不能匹配这两个子句的文档。    |
   | `$or`  | 用逻辑连接查询子句，或返回与任一子句条件匹配的所有文档。     |
 
-#### 8.2.9 查询嵌套文档
+#### 8.2.2 查询嵌套文档
 
-##### 8.2.9.1 匹配嵌套文档
+##### 8.2.2.1 匹配嵌套文档
 
 - 要在作为嵌入/嵌套文档的字段上指定相等条件，请使用查询过滤器文档 `{<field>: <value>}`，其中 `<value>` 是要匹配的文档。
-- 整个嵌入式文档上的相等匹配要求与指定的 `<value>` 文档完全匹配，包括字段顺序。
+- 整个嵌入式文档上的相等匹配要求与指定的 `<value>` 文档**完全匹配**，包括字段**顺序**。
 
 ```
 db.inventory.find({
@@ -856,7 +878,7 @@ db.inventory.find({
 })
 ```
 
-##### 8.2.9.2 查询嵌套字段
+##### 8.2.2.2 查询嵌套字段
 
 1. 在嵌套字段上指定相等匹配
 
@@ -890,9 +912,9 @@ db.inventory.find({
 
    - 查询选择嵌套字段 `h` 小于 15，嵌套字段 `uom` 等于 `"in"`，状态字段等于 `"D"` 的所有文档
 
-### 8.2.10 查询数组
+#### 8.2.3 查询数组
 
-#### 8.2.10.1 数据准备
+##### 8.2.3.1 数据准备
 
 ```
 db.inventory.insertMany([
@@ -904,7 +926,7 @@ db.inventory.insertMany([
 ]);
 ```
 
-#### 8.2.10.2 匹配一个数组
+##### 8.2.3.2 匹配一个数组
 
 ```
 db.inventory.find({
@@ -1003,7 +1025,7 @@ db.inventory.find({
 
 - 不考虑顺序或数组中的其它元素，使用 $all
 
-#### 8.2.10.3 查询数组中的元素
+##### 8.2.3.3 查询数组中的元素
 
 1. 查询数组字段是否包含至少一个具有指定值的元素：{<field>: <value>}
 
@@ -1091,7 +1113,7 @@ db.inventory.find({
    })
    ```
 
-#### 8.2.10.4 为数组元素指定多个条件
+##### 8.2.3.4 为数组元素指定多个条件
 
 1. 使用数组元素上的复合过滤条件查询数组
 
@@ -1245,6 +1267,619 @@ db.inventory.find({
            14,
            21
        ]
+   }
+   ```
+
+   
+
+#### 8.2.4 查询嵌入文档的数组
+
+##### 8.2.4.1 数据准备
+
+```
+db.inventory.insertMany( [
+   { item: "journal", instock: [ { warehouse: "A", qty: 5 }, { warehouse: "C", qty: 15 } ] },
+   { item: "notebook", instock: [ { warehouse: "C", qty: 5 } ] },
+   { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 15 } ] },
+   { item: "planner", instock: [ { warehouse: "A", qty: 40 }, { warehouse: "B", qty: 5 } ] },
+   { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
+]);
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620f433a72350000b4003a88"),
+    "item": "journal",
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 5
+        },
+        {
+            "warehouse": "C",
+            "qty": 15
+        }
+    ]
+}
+
+// 2
+{
+    "_id": ObjectId("620f433a72350000b4003a89"),
+    "item": "notebook",
+    "instock": [
+        {
+            "warehouse": "C",
+            "qty": 5
+        }
+    ]
+}
+
+// 3
+{
+    "_id": ObjectId("620f433a72350000b4003a8a"),
+    "item": "paper",
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 60
+        },
+        {
+            "warehouse": "B",
+            "qty": 15
+        }
+    ]
+}
+
+// 4
+{
+    "_id": ObjectId("620f433a72350000b4003a8b"),
+    "item": "planner",
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 40
+        },
+        {
+            "warehouse": "B",
+            "qty": 5
+        }
+    ]
+}
+
+// 5
+{
+    "_id": ObjectId("620f433a72350000b4003a8c"),
+    "item": "postcard",
+    "instock": [
+        {
+            "warehouse": "B",
+            "qty": 15
+        },
+        {
+            "warehouse": "C",
+            "qty": 35
+        }
+    ]
+}
+```
+
+##### 8.2.4.2 查询嵌套在数组中的文档
+
+```
+db.inventory.find({
+  "instock": { warehouse: "A", qty: 5 }
+})
+```
+
+- 整个嵌入式/嵌套文档上的相等匹配要求与指定文档（包括字段顺序）完全匹配
+
+```
+// 1
+{
+    "_id": ObjectId("620f433a72350000b4003a88"),
+    "item": "journal",
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 5
+        },
+        {
+            "warehouse": "C",
+            "qty": 15
+        }
+    ]
+}
+
+```
+
+##### 8.2.4.3 在文档中的字段上指定查询条件
+
+- 在嵌入文档数组中的字段上指定查询条件
+- 使用数组索引在嵌入式文档中查询字段
+
+
+
+1. 在嵌入文档数组中的字段上指定查询条件
+
+   ```
+   db.inventory.find( { 'instock.qty': { $gte: 50 } } )
+   ```
+
+   - 如果不知道嵌套在数组中的文档的索引位置，使用（.）和嵌套文档中的字段名来链接数组字段的名称
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620f433a72350000b4003a8a"),
+       "item": "paper",
+       "instock": [
+           {
+               "warehouse": "A",
+               "qty": 60
+           },
+           {
+               "warehouse": "B",
+               "qty": 15
+           }
+       ]
+   }
+   ```
+
+2. 使用数组索引在嵌入式文档中查询字段
+
+   ```
+   db.inventory.find( { 'instock.1.qty': { $gte: 30 } } )
+   ```
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620f433a72350000b4003a8c"),
+       "item": "postcard",
+       "instock": [
+           {
+               "warehouse": "B",
+               "qty": 15
+           },
+           {
+               "warehouse": "C",
+               "qty": 35
+           }
+       ]
+   }
+   ```
+
+##### 8.2.4.4 为文档数组指定多个条件
+
+- 单个嵌套文档在嵌套字段上满足多个查询条件
+- 元素组合满足标准
+
+
+
+1. 单个嵌套文档在嵌套字段上满足多个查询条件
+
+   ```
+   db.inventory.find( { 'instock': { $elemMatch: {qty: 5, warehouse: "A"} } } )
+   ```
+
+   - instock 字段至少存在一项满足：{qty: 5, warehouse: "A"}, 即同时qty为5且warehouse为 A
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620f433a72350000b4003a88"),
+       "item": "journal",
+       "instock": [
+           {
+               "warehouse": "A",
+               "qty": 5
+           },
+           {
+               "warehouse": "C",
+               "qty": 15
+           }
+       ]
+   }
+   ```
+
+   ```
+   db.inventory.find( { "instock": { $elemMatch: { qty: { $gt: 10, $lte: 20 } } } } )
+   ```
+
+   - 继续匹配使用 {},即存在一项满足qty大于10且小于等于20
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620f433a72350000b4003a88"),
+       "item": "journal",
+       "instock": [
+           {
+               "warehouse": "A",
+               "qty": 5
+           },
+           {
+               "warehouse": "C",
+               "qty": 15
+           }
+       ]
+   }
+   
+   // 2
+   {
+       "_id": ObjectId("620f433a72350000b4003a8a"),
+       "item": "paper",
+       "instock": [
+           {
+               "warehouse": "A",
+               "qty": 60
+           },
+           {
+               "warehouse": "B",
+               "qty": 15
+           }
+       ]
+   }
+   
+   // 3
+   {
+       "_id": ObjectId("620f433a72350000b4003a8c"),
+       "item": "postcard",
+       "instock": [
+           {
+               "warehouse": "B",
+               "qty": 15
+           },
+           {
+               "warehouse": "C",
+               "qty": 35
+           }
+       ]
+   }
+   ```
+
+2. 元素组合满足标准
+
+   如果数组字段上的复合查询条件未使用$elemMath运算符，则查询将选择其数组包含满足条件的元素的任意组合的那些文档。
+
+   ```
+   db.inventory.find( { "instock.qty": {$gt: 30,  $lte: 10 } } )
+   ```
+
+   - 任意存在满足一个qty大于30另一个小于10或同时满足两个条件
+
+   ```
+   // 1
+   {
+       "_id": ObjectId("620f433a72350000b4003a8b"),
+       "item": "planner",
+       "instock": [
+           {
+               "warehouse": "A",
+               "qty": 40
+           },
+           {
+               "warehouse": "B",
+               "qty": 5
+           }
+       ]
+   }
+   
+   ```
+
+#### 8.2.5 指定从查询返回的项目字段
+
+##### 8.2.5.1 数据准备
+
+```
+db.inventory.insertMany( [
+  { item: "journal", status: "A", size: { h: 14, w: 21, uom: "cm" }, instock: [ { warehouse: "A", qty: 5 } ] },
+  { item: "notebook", status: "A",  size: { h: 8.5, w: 11, uom: "in" }, instock: [ { warehouse: "C", qty: 5 } ] },
+  { item: "paper", status: "D", size: { h: 8.5, w: 11, uom: "in" }, instock: [ { warehouse: "A", qty: 60 } ] },
+  { item: "planner", status: "D", size: { h: 22.85, w: 30, uom: "cm" }, instock: [ { warehouse: "A", qty: 40 } ] },
+  { item: "postcard", status: "A", size: { h: 10, w: 15.25, uom: "cm" }, instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
+]);
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620f550e72350000b4003a92"),
+    "item": "journal",
+    "status": "A",
+    "size": {
+        "h": 14,
+        "w": 21,
+        "uom": "cm"
+    },
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 5
+        }
+    ]
+}
+
+// 2
+{
+    "_id": ObjectId("620f550e72350000b4003a93"),
+    "item": "notebook",
+    "status": "A",
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "instock": [
+        {
+            "warehouse": "C",
+            "qty": 5
+        }
+    ]
+}
+
+// 3
+{
+    "_id": ObjectId("620f550e72350000b4003a94"),
+    "item": "paper",
+    "status": "D",
+    "size": {
+        "h": 8.5,
+        "w": 11,
+        "uom": "in"
+    },
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 60
+        }
+    ]
+}
+
+// 4
+{
+    "_id": ObjectId("620f550e72350000b4003a95"),
+    "item": "planner",
+    "status": "D",
+    "size": {
+        "h": 22.85,
+        "w": 30,
+        "uom": "cm"
+    },
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 40
+        }
+    ]
+}
+
+// 5
+{
+    "_id": ObjectId("620f550e72350000b4003a96"),
+    "item": "postcard",
+    "status": "A",
+    "size": {
+        "h": 10,
+        "w": 15.25,
+        "uom": "cm"
+    },
+    "instock": [
+        {
+            "warehouse": "B",
+            "qty": 15
+        },
+        {
+            "warehouse": "C",
+            "qty": 35
+        }
+    ]
+}
+```
+
+##### 8.2.5.2 返回匹配文档中的所有字段
+
+```
+db.inventory.find( { status: "A" } )
+```
+
+##### 8.2.5.3 仅返回指定字段和_id字段
+
+```
+db.inventory.find({status: "D"}, {status: 1})
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620f550e72350000b4003a94"),
+    "status": "D"
+}
+
+// 2
+{
+    "_id": ObjectId("620f550e72350000b4003a95"),
+    "status": "D"
+}
+```
+
+##### 8.2.5.4 禁止id字段
+
+```
+db.inventory.find({status: "D"}, {status: 1, _id: 0})
+```
+
+##### 8.2.5.5 返回所有但排除的字段
+
+```
+db.inventory.find( { status: "D" }, { status: 0, instock: 0 } )
+```
+
+##### 8.2.5.6 返回嵌入式文档中的特定字段
+
+```
+db.inventory.find(
+   { status: "D" },
+   { item: 1, status: 1, "size.uom": 1 }
+)
+```
+
+```
+// 1
+{
+    "_id": ObjectId("620f550e72350000b4003a94"),
+    "item": "paper",
+    "status": "D",
+    "size": {
+        "uom": "in"
+    }
+}
+
+// 2
+{
+    "_id": ObjectId("620f550e72350000b4003a95"),
+    "item": "planner",
+    "status": "D",
+    "size": {
+        "uom": "cm"
+    }
+}
+
+```
+
+##### 8.2.5.7 禁止嵌入文档中的特定字段
+
+```
+db.inventory.find(
+   { status: "D" },
+   { "size.uom": 0,"instock.qty": 0 }
+)
+```
+
+- 禁止size的uom
+- 禁止instock的qty
+
+##### 8.2.5.8 返回数组中的项目特定元素
+
+```
+db.inventory.find( { status: "A" }, { item: 1, status: 1, instock: { $slice: -1 } } )
+```
+
+- 使用 $slice 投影运算符返回库存数组中的最后一个元素
+
+```
+// 1
+{
+    "_id": ObjectId("620f550e72350000b4003a92"),
+    "item": "journal",
+    "status": "A",
+    "instock": [
+        {
+            "warehouse": "A",
+            "qty": 5
+        }
+    ]
+}
+
+// 2
+{
+    "_id": ObjectId("620f550e72350000b4003a93"),
+    "item": "notebook",
+    "status": "A",
+    "instock": [
+        {
+            "warehouse": "C",
+            "qty": 5
+        }
+    ]
+}
+
+// 3
+{
+    "_id": ObjectId("620f550e72350000b4003a96"),
+    "item": "postcard",
+    "status": "A",
+    "instock": [
+        {
+            "warehouse": "C",
+            "qty": 35
+        }
+    ]
+}
+```
+
+#### 8.2.6 查询空字段或缺少字段
+
+##### 8.2.6.1 数据准备
+
+```
+db.inventory.insertMany([
+   { _id: 1, item: null },
+   { _id: 2 }
+])
+```
+
+##### 8.2.6.2 查询空字段或缺少字段
+
+- 相等过滤器
+- 类型检查
+- 存在检查
+
+
+
+1. 相等过滤器
+
+   ```
+   db.inventory.find( { item: null } )
+   ```
+
+   - `{item: null}` 查询将匹配包含其值为 `null` 的 `item` 字段或不包含 `item` 字段的文档。
+
+   ```
+   // 1
+   {
+       "_id": 1,
+       "item": null
+   }
+   
+   // 2
+   {
+       "_id": 2
+   }
+   ```
+
+   
+
+2. 类型检查
+
+   ```
+   db.inventory.find( { item : { $type: 10 } } )
+   ```
+
+   - `{ item: { $type: 10 } }` 查询仅匹配包含 `item` 字段，其值为 `null` 的文档；
+   - 即 `item` 字段的值为 BSON 类型为 Null（类型编号10）
+
+   ```
+   // 1
+   {
+       "_id": 1,
+       "item": null
+   }
+   ```
+
+3. 存在检查
+
+   ```
+   db.inventory.find( { item : { $exists: false } } )
+   ```
+
+   - 查询不包含字段的文档
+
+   ```
+   // 1
+   {
+       "_id": 2
    }
    ```
 
