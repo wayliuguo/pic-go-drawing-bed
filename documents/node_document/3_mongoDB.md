@@ -1883,4 +1883,114 @@ db.inventory.insertMany([
    }
    ```
 
-   
+### 8.3 更新文档
+
+- `db.collection.updateOne(<filter>, <update>, <options>)`
+- `db.collection.updateMany(<filter>, <update>, <options>)`
+
+- `db.collection.replaceOne(<filter>, <update>, <options>)`
+- https://docs.mongodb.com/manual/reference/method/js-collection/
+
+![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-18_17-37-56.png)
+
+#### 8.3.1 数据准备
+
+```
+db.inventory.insertMany( [
+   { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A" },
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A" },
+   { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "P" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+   { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
+] );
+```
+
+#### 8.3.2 语法
+
+为了更新文档，MongoDB 提供了更新操作符（例如 `$set`）来修改字段值
+
+```
+{
+  <update operator>: { <field1>: <value1>, ... },
+  <update operator>: { <field2>: <value2>, ... },
+  ...
+}
+```
+
+#### 8.3.3 更新单个文档
+
+```
+db.inventory.updateOne(
+   { item: "paper" },
+   {
+     $set: { "size.uom": "cm", status: "P" },
+     $currentDate: { lastModified: true }
+   }
+)
+```
+
+- 更新item字段为paper 的第一个文档
+- 更新操作
+  - 使用 `$set` 运算符将 `size.uom` 字段的值更新为 `cm`，将状态字段的值更新为 `P`
+  - 使用 `$currentDate` 运算符将 `lastModified` 字段的值更新为当前日期。如果 `lastModified` 字段不存在，则 `$currentDate` 将创建该字段。
+
+#### 8.3.4 更新多个文档
+
+```
+db.inventory.updateMany(
+   { "qty": { $lt: 50 } },
+   {
+     $set: { "size.uom": "in", status: "P" },
+     $currentDate: { lastModified: true }
+   }
+)
+```
+
+- 使用 `db.collection.updateMany()` 方法来更新数量小于50的所有文档
+- 更新操作
+  - 使用 $set 运算符将 size.uom 字段的值更新为 `"in"`，将状态字段的值更新为 `"p"`
+  - 使用 `$currentDate` 运算符将 `lastModified` 字段的值更新为当前日期。如果 `lastModified` 字段不存在，则 `$currentDate` 将创建该字段。
+
+#### 8.3.5 替换文档
+
+```
+db.inventory.replaceOne(
+   { item: "paper" },
+   { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
+)
+```
+
+- 替换文档时，替换文档必须仅由字段/值对组成；即不包含更新运算符表达式。
+- 替换文档可以具有与原始文档不同的字段。
+- 在替换文档中，由于 `_id` 字段是不可变的，因此可以省略 `_id` 字段；但是，如果您确实包含 `_id` 字段，则它必须与当前值具有相同的值。
+
+### 8.4 删除文档
+
+- `db.collection.deleteMany()`
+- `db.collection.deleteOne()`
+
+![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-18_19-16-00.png))
+
+#### 8.4.1 数据准备
+
+```
+db.inventory.insertMany( [
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+] );
+```
+
+#### 8.4.2 删除所有符合条件的文档
+
+```
+db.inventory.deleteMany({ status : "A" })
+```
+
