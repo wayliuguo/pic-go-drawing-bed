@@ -1289,3 +1289,185 @@ var getIntersectionNode = function(headA, headB) {
 };
 ```
 
+## 4. 栈
+
+### 4.1 最小栈
+
+设计一个支持 `push` ，`pop` ，`top` 操作，并能在常数时间内检索到最小元素的栈。
+
+实现 `MinStack` 类:
+
+- `MinStack()` 初始化堆栈对象。
+- `void push(int val)` 将元素val推入堆栈。
+- `void pop()` 删除堆栈顶部的元素。
+- `int top()` 获取堆栈顶部的元素。
+- `int getMin()` 获取堆栈中的最小元素
+
+```
+["MinStack","push","push","push","getMin","pop","top","getMin"]
+[[],[-2],[0],[-3],[],[],[],[]]
+
+输出：
+[null,null,null,null,-3,null,0,-2]
+解析
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();   --> 返回 -3.
+minStack.pop();
+minStack.top();      --> 返回 0.
+minStack.getMin();   --> 返回 -2.
+```
+
+```
+/*
+ * @lc app=leetcode.cn id=155 lang=javascript
+ *
+ * [155] 最小栈
+ */
+
+// @lc code=start
+
+var MinStack = function() {
+    this.items = []
+    this.min = null
+};
+
+/** 
+ * @param {number} val
+ * @return {void}
+ */
+MinStack.prototype.push = function(val) {
+    if (!this.items.length) this.min = val
+    this.min = Math.min(val, this.min)
+    this.items.push(val)
+};
+
+/**
+ * @return {void}
+ */
+MinStack.prototype.pop = function() {
+    let num = this.items.pop()
+    this.min = Math.min(...this.items)
+    return num
+};
+
+/**
+ * @return {number}
+ */
+MinStack.prototype.top = function() {
+    if(!this.items.length) return null
+    return this.items[this.items.length -1]
+};
+
+/**
+ * @return {number}
+ */
+MinStack.prototype.getMin = function() {
+    return this.min
+};
+
+/**
+ * Your MinStack object will be instantiated and called as such:
+ * var obj = new MinStack()
+ * obj.push(val)
+ * obj.pop()
+ * var param_3 = obj.top()
+ * var param_4 = obj.getMin()
+ */
+// @lc code=end
+```
+
+### 4.2 有效的括号
+
+给定一个只包括 `'('`，`')'`，`'{'`，`'}'`，`'['`，`']'` 的字符串 `s` ，判断字符串是否有效。
+
+有效字符串需满足：
+
+1. 左括号必须用相同类型的右括号闭合。
+2. 左括号必须以正确的顺序闭合。
+
+```
+输入：s = "()[]{}"
+输出：true
+```
+
+- 写法比较糟糕的解法
+
+  ```
+  var isValid = function(s) {
+      if(s.length %2 !== 0) return false
+      let arr = []
+      for(let i=0; i<s.length; ++i) {
+          const current = s[i]
+          if(current === '(' || current === '[' || current === '{') {
+              arr.push(current)
+          } else {
+              let pop = arr.pop()
+              if(current === ')') {
+                  if (pop !== '(') return false
+              }
+              if(current === ']') {
+                  if (pop !== '[') return false
+              }
+              if(current === '}') {
+                  if (pop !== '{') return false
+              }
+          }
+      }
+      if(!arr.length) return true
+      return false
+  };
+  ```
+
+- 使用 map 映射的解法
+
+  ```
+  var isValid = function(s) {
+      let map = {
+          '(': ')',
+          '[': ']',
+          '{': '}'
+      }
+      let stack = []
+      for(let i=0; i<s.length; i++) {
+          if(map[s[i]]) {
+              stack.push(s[i])
+          } else if(s[i] !== map[stack.pop()]) {
+              return false
+          }
+      }
+      return stack.length === 0
+  };
+  ```
+
+### 4.3 删除字符串中的所有相邻重复项
+
+给出由小写字母组成的字符串 `S`，**重复项删除操作**会选择两个相邻且相同的字母，并删除它们。
+
+在 S 上反复执行重复项删除操作，直到无法继续删除。
+
+在完成所有重复项删除操作后返回最终的字符串。答案保证唯一
+
+```
+输入："abbaca"
+输出："ca"
+解释：
+例如，在 "abbaca" 中，我们可以删除 "bb" 由于两字母相邻且相同，这是此时唯一可以执行删除操作的重复项。之后我们得到字符串 "aaca"，其中又只有 "aa" 可以执行重复项删除操作，所以最后的字符串为 "ca"。
+```
+
+```
+var removeDuplicates = function(s) {
+    let stack = []
+    for(let i=0; i<s.length; i++) {
+        if(stack[stack.length-1] === s[i]) {
+            stack.pop()
+            continue
+        }
+        stack.push(s[i])
+    }
+    return stack.join('')
+};
+```
+
