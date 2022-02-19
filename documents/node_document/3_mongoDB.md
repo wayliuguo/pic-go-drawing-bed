@@ -2044,3 +2044,128 @@ run()
 ```
 
 ### 9.2 CRUD 操作
+
+**数据准备**
+
+```
+db.inventory.insertMany( [
+   { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+   { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+   { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+   { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+   { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+] );
+
+db.inventory.deleteMany({ status : "A" })
+db.inventory.deleteOne( { status: "D" } )
+```
+
+```
+const { MongoClient } = require('mongodb')
+
+const client = new MongoClient('mongodb://127.0.0.1:27017', {
+    useUnifiedTopology: true
+})
+
+async function run () {
+    try {
+        // 开始连接
+        await client.connect()
+        const personDB = client.db('hello')
+        const inventoryCollection = personDB.collection('inventory')
+        // 1.插入单个
+        /* const inventoryDocument = {
+            "item": "banana",
+            "qty": 500,
+            "size": {
+                "h": 15,
+                "w": 8,
+                "uom": "big"
+            },
+            "status": "in"
+        }
+        const insertOneResult = await inventoryCollection.insertOne(inventoryDocument)
+        console.log(insertOneResult) */
+        /* {
+            acknowledged: true,
+            insertedId: new ObjectId("62104c454d3012271f460132")
+        } */
+
+        // 插入多个
+        /* const inventoryDocuments = [
+            { name: "Sicilian pizza", shape: "square" },
+            { name: "New York pizza", shape: "round" },
+            { name: "Grandma pizza", shape: "square" }
+        ]
+        const insertManyResult = await inventoryCollection.insertMany(inventoryDocuments)
+        console.log(insertManyResult) */
+        /* {
+            acknowledged: true,
+            insertedCount: 3,
+            insertedIds: {
+                '0': new ObjectId("62104d749b604bc48886dc2c"),
+                '1': new ObjectId("62104d749b604bc48886dc2d"),
+                '2': new ObjectId("62104d749b604bc48886dc2e")
+            } 
+        } */
+        // 查询文档
+        /* const findResult = await inventoryCollection.find(
+            {
+                item: "banana",
+                "size.h": {
+                    $gt: 10,
+                    $lt: 20
+                }
+            }
+        )
+        console.log(await findResult.toArray()) */
+        /* [
+            {
+                _id: new ObjectId("62104c454d3012271f460132"),
+                item: 'banana',
+                qty: 500,
+                size: { h: 15, w: 8, uom: 'big' },
+                status: 'in'
+            }
+        ] */
+        // 删除文档
+        /* const deleteDoc = {
+            "size.h": {
+                $gt:20, $lt: 25
+            }
+        }
+        const deleteResult = await inventoryCollection.deleteOne(deleteDoc)
+        console.log(deleteResult) */
+        /* { acknowledged: true, deletedCount: 1 } */
+        // 修改文档
+        const updateFilter = {
+            item: /^p/
+        }
+        const updateDoc = {
+            $set: {
+                "size.w": 18
+            }
+        }
+        const updateResult = await inventoryCollection.updateMany(updateFilter,updateDoc)
+        console.log(updateResult)
+        /* 
+            {
+                acknowledged: true,
+                modifiedCount: 1,  
+                upsertedId: null,  
+                upsertedCount: 0,  
+                matchedCount: 1    
+            }
+        */
+    } catch (err) {
+        // 连接失败
+        console.log('连接失败', err)
+    } finally {
+        // 关闭连接
+        await client.close()
+    }
+}
+
+run()
+```
+
