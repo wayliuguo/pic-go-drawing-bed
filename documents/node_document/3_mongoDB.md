@@ -1994,3 +1994,17 @@ db.inventory.insertMany( [
 db.inventory.deleteMany({ status : "A" })
 ```
 
+```
+// 1
+{
+    "acknowledged": true,
+    "deletedCount": 2
+}
+```
+
+#### 8.4.3 仅删除1个符合条件的文档
+
+```
+db.inventory.deleteOne( { status: "D" } )
+```
+
