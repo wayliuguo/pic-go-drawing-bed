@@ -1471,3 +1471,268 @@ var removeDuplicates = function(s) {
 };
 ```
 
+### 4.4 删除字符串中的所有相邻重复项 II
+
+给你一个字符串 `s`，「`k` 倍重复项删除操作」将会从 `s` 中选择 `k` 个相邻且相等的字母，并删除它们，使被删去的字符串的左侧和右侧连在一起。
+
+你需要对 `s` 重复进行无限次这样的删除操作，直到无法继续为止。
+
+在执行完所有删除操作后，返回最终得到的字符串。
+
+本题答案保证唯一。
+
+```
+输入：s = "deeedbbcccbdaa", k = 3
+输出："aa"
+解释： 
+先删除 "eee" 和 "ccc"，得到 "ddbbbdaa"
+再删除 "bbb"，得到 "dddaa"
+最后删除 "ddd"，得到 "aa"
+```
+
+- 解法一：栈
+
+  ```
+  var removeDuplicates = function(s, k) {
+      let stack = [] // 字母栈
+      let countStack = [] // 数字栈
+      let i = 0
+      while(i<s.length) {
+          // 如果和上一个是同一个
+          if(stack[stack.length -1] === s[i]) {
+              // 字母栈入栈
+              stack.push(s[i])
+              // 数字栈 +1
+              countStack[countStack.length -1] += 1
+              // 如果数字栈到达阈值，字母栈出栈k个，数字栈出栈
+              if(countStack[countStack.length-1] === k) {
+                  for(let j=0; j<k; j++) {
+                      stack.pop()
+                  }
+                  countStack.pop()
+              }
+          } else {
+              stack.push(s[i])
+              countStack.push(1)
+          }
+          i++
+      }
+      return stack.join('')
+  };
+  ```
+
+## 5. 队列
+
+### 5.1 翻转字符串里的单词
+
+给你一个字符串 `s` ，逐个翻转字符串中的所有 **单词** 。
+
+**单词** 是由非空格字符组成的字符串。`s` 中使用至少一个空格将字符串中的 **单词** 分隔开。
+
+请你返回一个翻转 `s` 中单词顺序并用单个空格相连的字符串。
+
+**说明：**
+
+- 输入字符串 `s` 可以在前面、后面或者单词间包含多余的空格。
+- 翻转后单词间应当仅用一个空格分隔。
+- 翻转后的字符串中不应包含额外的空格。
+
+```
+输入：s = "a good   example"
+输出："example good a"
+解释：如果两个单词间有多余的空格，将翻转后单词间的空格减少到只含一个。
+```
+
+```
+输入：s = "  Bob    Loves  Alice   "
+输出："Alice Loves Bob"
+```
+
+- 解法一：
+  - 使用语言API
+
+```
+var reverseWords = function(s) {
+    return s.trim().split(/\s+/).reverse().join(' ');
+}
+```
+
+- 解法二：
+  - 双端队列
+
+```
+var reverseWords = function(s) {
+    let left = 0
+    let right = s.length -1
+    let queue = []
+    let world = ''
+    // 去除左右边空格
+    while(s.charAt(left) === ' ') left++
+    while(s.charAt(right) === ' ') right--
+    while(left <= right) {
+        let char = s.charAt(left)
+        if (char === ' ' && world) {
+            queue.unshift(world)
+            world = ''
+        } else if (char !== ' ') { // 排查中间有多个连续空格，所以不能只用else
+            world += char
+        }
+        left++
+    }
+    queue.unshift(world) // 最后一个单词后面没有空格，需要单独入队
+    return queue.join(' ')
+}
+```
+
+### 5.2 无重复字符串的最长子串
+
+给定一个字符串 `s` ，请你找出其中不含有重复字符的 **最长子串** 的长度。
+
+```
+输入: s = "abcabcbb"
+输出: 3 
+解释: 因为无重复字符的最长子串是 "abc"，所以其长度为 3。
+```
+
+- 解法一：
+
+  - 暴力解法
+
+  ```
+  var lengthOfLongestSubstring = function(s) {
+      let maxLength = 0
+      let currentLength = 0
+      let set = new Set()
+      for(let i=0; i<s.length; i++) {
+          for(let j=i; j<s.length; j++) {
+              if(set.has(s[j])) {
+                  set.clear()
+                  maxLength = maxLength > currentLength ? maxLength : currentLength
+                  currentLength = 0
+                  break
+              } else {
+                  set.add(s[j])
+                  currentLength++
+              }
+          }
+      }
+      return maxLength > currentLength ? maxLength : currentLength
+  };
+  ```
+
+  - 从0开始找，如果没有重复的则加入set，如果有重复的，则清空set，更新最大值，重置当前值，下标加一
+  - 如果没有重复的，更新最大值，更新当前值，加入set
+  - 为防止没有遍历的是没有重复的，return 的值对比处理
+
+- 解法二
+
+  - 滑动窗口
+
+  ```
+  var lengthOfLongestSubstring = function(s) {
+      // 哈希集合，记录每个字符是否出现过
+      const occ = new Set();
+      const n = s.length;
+      // 右指针，初始值为 -1，相当于我们在字符串的左边界的左侧，还没有开始移动
+      let rk = -1, ans = 0;
+      for (let i = 0; i < n; ++i) {
+          if (i != 0) {
+              // 左指针向右移动一格，移除一个字符
+              occ.delete(s.charAt(i - 1));
+          }
+          while (rk + 1 < n && !occ.has(s.charAt(rk + 1))) {
+              // 不断地移动右指针
+              occ.add(s.charAt(rk + 1));
+              ++rk;
+          }
+          // 第 i 到 rk 个字符是一个极长的无重复字符子串
+          ans = Math.max(ans, rk - i + 1);
+      }
+      return ans;
+  };
+  ```
+
+  - lengthOfLongestSubstring("abcabcbb")
+    - i=0, rk=2, 最大为3，set：a,b,c
+    - i=1, set 去除 a，rk=3, set: b,c,a
+    - i=2 set 去除 b, rk=4, set: c,a,b
+    - i=3, set 去除 c, rk= 5,set: a,b,c
+    - i=4, set 去除a, rk=5, set: b,c 
+    - i=5, set 去除b, rk=6, set:c,b
+    - i=6, set 去除c, rk=6, set: b
+    - i=7, set 去除b, rk=7， set: b
+
+### 5.3 用栈实现队列
+
+实现 `MyQueue` 类：
+
+- `void push(int x)` 将元素 x 推到队列的末尾
+- `int pop()` 从队列的开头移除并返回元素
+- `int peek()` 返回队列开头的元素
+- `boolean empty()` 如果队列为空，返回 `true` ；否则，返回 `false`
+
+**说明：**
+
+- 你 **只能** 使用标准的栈操作 —— 也就是只有 `push to top`, `peek/pop from top`, `size`, 和 `is empty` 操作是合法的。
+- 你所使用的语言也许不支持栈。你可以使用 list 或者 deque（双端队列）来模拟一个栈，只要是标准的栈操作即可。
+
+```
+输入：
+["MyQueue", "push", "push", "peek", "pop", "empty"]
+[[], [1], [2], [], [], []]
+输出：
+[null, null, null, 1, 1, false]
+
+解释：
+MyQueue myQueue = new MyQueue();
+myQueue.push(1); // queue is: [1]
+myQueue.push(2); // queue is: [1, 2] (leftmost is front of the queue)
+myQueue.peek(); // return 1
+myQueue.pop(); // return 1, queue is [2]
+myQueue.empty(); // return false
+```
+
+```
+var MyQueue = function() {
+    this.inStack = [];
+    this.outStack = [];
+};
+
+MyQueue.prototype.push = function(x) {
+    this.inStack.push(x);
+};
+
+MyQueue.prototype.pop = function() {
+    if (!this.outStack.length) {
+        while (this.inStack.length) {
+            this.outStack.push(this.inStack.pop());
+        }
+    }
+    return this.outStack.pop();
+};
+
+MyQueue.prototype.peek = function() {
+    if (!this.outStack.length) {
+        while (this.inStack.length) {
+            this.outStack.push(this.inStack.pop());
+        }
+    }
+    return this.outStack[this.outStack.length - 1];
+};
+
+MyQueue.prototype.empty = function() {
+    return this.outStack.length === 0 && this.inStack.length === 0;
+};
+```
+
+- inStack 用于输入，outStack用于输出
+- 如果输出的为空了，就把输入的全部出栈进入输出的栈
+
+## 6. 散列表
+
+一种以空间换取时间的方式。
+
+1.  1.1 两数之和
+2.  1.4 三数之和
+3.  1.7 两个数的交集 Ⅱ
+
