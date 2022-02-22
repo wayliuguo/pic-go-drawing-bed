@@ -2363,5 +2363,65 @@ npm i express mongodb
   req.body() // 获取请求体参数
   ```
 
-  
+- 连接数据库
 
+  ```
+  const { MongoClient, Db } = require('mongodb')
+  const connectUri = 'mongodb://localhost:27017'
+  const dbClient = new MongoClient(connectUri)
+  
+  // 使用
+  const collection = dbClient.db('test').collection('articles')
+  article.createdAt = new Date()
+  article.updateAt = new Date()
+  // 插入
+  const ret = await collection.insertOne(article)
+  ```
+
+#### 9.3.2.1 创建文章与统一错误处理
+
+```
+app.post('/articles', async (req, res, next) => {
+   try {
+        // 1.获取客户端表单数据
+        const { article } = req.body
+        // 2.数据验证
+        if(!article || !article.title || !article.description || !article.body) {
+            return res.status(422).json({
+                error: '请求参数不符合规则要求'
+            })
+        }
+        // 3. 把验证通过的数据插入数据库中
+        // 成功 =》 发送成功响应
+        // 失败 =》 发送失败响应
+        await dbClient.connect()
+        const collection = dbClient.db('test').collection('articles')
+        article.createdAt = new Date()
+        article.updateAt = new Date()
+        // 插入
+        const ret = await collection.insertOne(article)
+        // 成功响应
+        article._id = ret.insertedId
+        res.status(201).json({
+            article
+        })
+    } catch (error) {
+        // 由错误处理中间件统一处理
+        next(error)
+    }
+})
+```
+
+```
+// 统一错误处理中间件
+// 它之前的所有路由中调用 next(error) 就会进入这里
+// 注意：四个参数齐全才是错误处理中间件，如果不是会被当作路由处理
+app.use((err, req, res, next) => {
+    res.status(500).json({
+        error: err.message
+    })
+})
+```
+
+- 在路由的形参中req,res,next，next 用于中间件
+- res.status用于返回状态码，加上.json可以返回json数据
