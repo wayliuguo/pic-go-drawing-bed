@@ -2378,7 +2378,7 @@ npm i express mongodb
   const ret = await collection.insertOne(article)
   ```
 
-#### 9.3.2.1 创建文章与统一错误处理
+#### 9.3.3 创建文章与统一错误处理
 
 ```
 app.post('/articles', async (req, res, next) => {
@@ -2425,3 +2425,97 @@ app.use((err, req, res, next) => {
 
 - 在路由的形参中req,res,next，next 用于中间件
 - res.status用于返回状态码，加上.json可以返回json数据
+
+#### 9.3.4 获取文章列表数据与分页
+
+```
+app.get('/articles', async (req, res, next) => {
+    try {
+        let {_page = 1, _size = 10 } = req.query
+        _page = Number.parseInt(_page)
+        _size = Number.parseInt(_size)
+        await dbClient.connect()
+        const collection = dbClient.db('test').collection('articles')
+        const ret = await collection
+            .find() // 查询数据
+            .skip((_page - 1) * _size) // 跳过多少条
+            .limit(_size) // 拿多少条
+        const articles = await ret.toArray()
+        // 获取文档个数
+        const articlesCount = await collection.countDocuments()
+        res.status(200).json({
+            articles,
+            articlesCount
+        })
+    } catch (error) {
+        next(error)
+    }
+})
+```
+
+#### 9.3.5 获取单个文章
+
+```
+app.get('/articles/:id', async (req, res, next) => {
+   try {
+       await dbClient.connect()
+       const collection = dbClient.db('test').collection('articles')
+
+       const article = await collection.findOne({
+           _id: ObjectId(req.params.id)
+       })
+       res.status(200).json({
+           article
+       })
+   } catch (error) {
+       next(error)
+   }
+})
+```
+
+- id 需要使用 ObjectId
+
+#### 9.3.6 更新文章
+
+```
+app.patch('/articles/:id', async (req, res, next) => {
+    try {
+        await dbClient.connect()
+        const collection = dbClient.db('test').collection('articles')
+ 
+        await collection.updateOne({
+            _id: ObjectId(req.params.id)
+        }, {
+            $set: req.body.article
+        })
+
+        const article = await await collection.findOne({
+            _id: ObjectId(req.params.id)
+        })
+        
+        res.status(200).json({
+            article
+        })
+    } catch (error) {
+        next(error)
+    }
+})
+```
+
+#### 9.3.7 删除文章
+
+```
+app.delete('/articles/:id', async (req, res, next) => {
+    try {
+        await dbClient.connect()
+        const collection = dbClient.db('test').collection('articles')
+        await collection.deleteOne({
+          _id: ObjectId(req.params.id)
+        })
+        res.status(204).json({})
+    } catch (error) {
+        next(error)
+    }
+})
+```
+
