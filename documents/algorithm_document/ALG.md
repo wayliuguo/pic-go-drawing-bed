@@ -1736,3 +1736,327 @@ MyQueue.prototype.empty = function() {
 2.  1.4 三数之和
 3.  1.7 两个数的交集 Ⅱ
 
+### 6.1 380.o-1-时间插入、删除和获取随机元素
+
+实现`RandomizedSet` 类：
+
+- `RandomizedSet()` 初始化 `RandomizedSet` 对象
+- `bool insert(int val)` 当元素 `val` 不存在时，向集合中插入该项，并返回 `true` ；否则，返回 `false` 。
+- `bool remove(int val)` 当元素 `val` 存在时，从集合中移除该项，并返回 `true` ；否则，返回 `false` 。
+- `int getRandom()` 随机返回现有集合中的一项（测试用例保证调用此方法时集合中至少存在一个元素）。每个元素应该有 **相同的概率** 被返回。
+
+你必须实现类的所有函数，并满足每个函数的 **平均** 时间复杂度为 `O(1)`
+
+```
+输入
+["RandomizedSet", "insert", "remove", "insert", "getRandom", "remove", "insert", "getRandom"]
+[[], [1], [2], [2], [], [1], [2], []]
+输出
+[null, true, false, true, 2, true, false, 2]
+
+解释
+RandomizedSet randomizedSet = new RandomizedSet();
+randomizedSet.insert(1); // 向集合中插入 1 。返回 true 表示 1 被成功地插入。
+randomizedSet.remove(2); // 返回 false ，表示集合中不存在 2 。
+randomizedSet.insert(2); // 向集合中插入 2 。返回 true 。集合现在包含 [1,2] 。
+randomizedSet.getRandom(); // getRandom 应随机返回 1 或 2 。
+randomizedSet.remove(1); // 从集合中移除 1 ，返回 true 。集合现在包含 [2] 。
+randomizedSet.insert(2); // 2 已在集合中，所以返回 false 。
+randomizedSet.getRandom(); // 由于 2 是集合中唯一的数字，getRandom 总是返回 2 。
+```
+
+- 解法一：
+
+  - 使用set
+
+  ```
+  var RandomizedSet = function() {
+      this.set = new Set()
+  };
+  
+  /** 
+   * @param {number} val
+   * @return {boolean}
+   */
+  RandomizedSet.prototype.insert = function(val) {
+      if(this.set.has(val)) {
+          return false
+      } else {
+          this.set.add(val)
+          return true
+      }
+  };
+  
+  /** 
+   * @param {number} val
+   * @return {boolean}
+   */
+  RandomizedSet.prototype.remove = function(val) {
+      if(this.set.has(val)) {
+          this.set.delete(val)
+          return true
+      } else {
+          return false
+      }
+  };
+  
+  /**
+   * @return {number}
+   */
+  RandomizedSet.prototype.getRandom = function() {
+      const random = parseInt(Math.random() * this.set.size)
+      return [...this.set][random]
+  };
+  ```
+
+  **难点在于怎样随机返回一项，由于set没有下标，所以转为数组配合Math.random()获取随机下标**
+
+- 哈希表 + 动态数组
+
+  ```
+  var RandomizedSet = function() {
+      this.map = new Map()
+      this.values = []
+  };
+  
+  RandomizedSet.prototype.insert = function(val) {
+      // 存在
+      if(this.map.has(val)) {
+          return false
+      }
+      // 不存在
+      // 把val作为key，把数组的长度作为value
+      this.map.set(val, this.values.length)
+      this.values.push(val)
+      return true
+  };
+  
+  RandomizedSet.prototype.remove = function(val) {
+      // 不存在
+      if(!this.map.has(val)) {
+          return false
+      }
+      // 获取val在数组对应的下标
+      const index = this.map.get(val)
+      // 存在且为最后一个元素
+      if(index === this.values.length - 1) {
+          this.values.pop()
+          this.map.delete(val)
+      } else {
+          // 存在且不为最后一个元素，则把要删除的元素与最后一个元素调换
+          const lastValue = this.values.pop()
+          this.values[index] = lastValue
+          this.map.set(lastValue, index)
+          this.map.delete(val)
+      }
+      return true
+  };
+  
+  RandomizedSet.prototype.getRandom = function() {
+      const length = this.values.length
+      const random = Math.floor(Math.random() * length)
+      return this.values[random]
+  };
+  ```
+
+  哈希表可以提供常数时间的插入和删除，但是实现 getRandom 时会出现问题。解决的方法是用一个列表存储值。
+
+  insert：
+
+  ![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_11-52-27.png)
+
+delete
+
+![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_11-52-43.png)
+
+### 6.2 136.只出现一次的数字
+
+给定一个**非空**整数数组，除了某个元素只出现一次以外，其余每个元素均出现两次。找出那个只出现了一次的元素。
+
+```
+输入: [2,2,1]
+输出: 1
+```
+
+- 哈希表
+
+  ```
+  var singleNumber = function(nums) {
+      let map = new Map()
+      for(let i=0; i<nums.length; i++) {
+          if(map.has(nums[i])) {
+              map.set(nums[i], map.get(nums[i]) + 1)
+          } else {
+              map.set(nums[i], 1)
+          }
+      }
+      for(let c of map.keys()) {
+          if(map.get(c) === 1) {
+              return c
+          }
+      }
+      return ''
+  }
+  ```
+
+- 遍历（不使用额外空间）
+
+  ```
+  var singleNumber = function(nums) {
+      nums.sort((a,b) => a-b)
+      for(let i=0; i<nums.length; i++) {
+          if(nums[i-1] !== nums[i] && nums[i] !== nums[i+1]) {
+              return nums[i]
+          }
+      }
+  };
+  ```
+
+## 7. 树
+
+### 7.1 树的定义
+
+树是一种非线性结构，它遵循：
+
+- 仅有唯一一个根节点，没有节点则为空树
+- 除根节点外，每个节点都有并仅有唯一一个父节点
+- 节点间不能形成闭环
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/微信图片_20220224154215.png)
+
+树有几个概念：
+
+- 拥有相同父节点的节点，互称为兄弟节点
+- **节点的深度：从根节点到该节点所经历的边的个数**
+- **节点的高度：节点到叶节点的最长路径**
+- 书的高度：根节点的高度
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_15-42-56.png)
+
+- B、C、D 互称为兄弟节点
+- 节点B 的高度为 2
+- 节点B 的深度为 1
+- 树的高度为 3
+
+### 7.2 二叉树
+
+最多仅有两个子节点的树
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-11-14.png)
+
+### 7.3 平衡二叉树
+
+⼆叉树中，每⼀个节点的左右⼦树的⾼度相差不能⼤于 1，称为平衡⼆叉树。
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-11-36.png)
+
+另外还有满⼆叉树、完全⼆叉树等：
+
+-  满⼆叉树：除了叶结点外每⼀个结点都有左右⼦叶且叶⼦结点都处在最底层的⼆叉树 
+- 完全⼆叉树：深度为h，除第 h 层外，其它各层 (1～h-1) 的结点数都达到最⼤个数，第h 层所有 的结点都连续集中在最左边
+
+### 7.4 在代码中表示一个二叉树
+
+每个节点：
+
+```
+function Node(val) {
+ 	// 保存当前节点 key 值
+ 	this.val = val
+ 	// 指向左⼦节点
+ 	this.left = null
+ 	// 指向右⼦节点
+ 	this.right = null
+}
+```
+
+⼀棵⼆叉树可以由根节点通过左右指针连接起来形成⼀个树。
+
+```
+function BinaryTree() {
+	let Node = function (val) {
+        this.val = val
+        this.left = null
+        this.right = null
+ 	}
+ 	let root = null
+}
+```
+
+### 7.5 二叉树的遍历
+
+#### 7.5.1 前序遍历
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-33.png)
+
+#### 7.5.2 中序遍历
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-46.png)
+
+#### 7.5.3 后序遍历
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-58.png)
+
+#### 7.5.4 递归实现（前序为例）
+
+```
+// 前序遍历
+const preorderTraversal = (root) => {
+	let result = []
+	var preOrderTraverseNode = (node) => {
+        if(node) {
+            // 先根节点
+            result.push(node.val)
+            // 然后遍历左⼦树
+            preOrderTraverseNode(node.left)
+            // 再遍历右⼦树
+            preOrderTraverseNode(node.right)
+        }
+    }
+    preOrderTraverseNode(root)
+    return result
+};
+```
+
+#### 7.5.5 迭代实现
+
+- ⾸先根⼊栈 
+- 将根节点出栈，将根节点值放⼊结果数组中
+-  然后遍历左⼦树、右⼦树，因为栈是先⼊后出，所以，我们先右⼦树⼊栈，然后左⼦树⼊栈 
+- 继续出栈（左⼦树被出栈）…….
+
+```
+// 前序遍历
+const preorderTraversal = (root) => {
+	const list = [];
+    const stack = [];
+ 
+ 	// 当根节点不为空的时候，将根节点⼊栈
+ 	if(root) stack.push(root)
+ 	while(stack.length > 0) {
+ 		const curNode = stack.pop()
+ 		// 第⼀步的时候，先访问的是根节点
+ 		list.push(curNode.val)
+ 
+ 		// 我们先打印左⼦树，然后右⼦树
+ 		// 所以先加⼊栈的是右⼦树，然后左⼦树
+ 		if(curNode.right !== null) {
+ 			stack.push(curNode.right)
+ 		}
+ 		if(curNode.left !== null) {
+ 			stack.push(curNode.left)
+ 		}
+ 	}
+ 	return list
+ }
+```
+
+### 7.6 二叉查找树（BST树）
+
+⼆叉查找树与⼆叉树不同的是，它在⼆叉树的基础上，增加了对⼆叉树上节点存储位置的限 制：⼆叉搜索树上的每个节点都需要满⾜
+
+- 左子节点值小于该节点值
+- 右⼦节点值⼤于等于该节点值
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_17-48-15.png)
+
