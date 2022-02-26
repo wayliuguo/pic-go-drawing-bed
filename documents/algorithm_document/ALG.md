@@ -691,6 +691,34 @@ array.reduce((pre, cur, index, arr) => {
 16--4--3--1,2,3,4 */
 ```
 
+### 2.7 递归的调用细节
+
+```
+function calc(n){
+    if(n>0) {
+        return calc(n-1) * n
+    }
+    return 1
+}
+calc(3)
+```
+
+**调用栈：**
+
+- n: 3   calc(3)  return calc(2) * 3
+- n: 2   calc(2) return calc(1) * 2
+- n: 1   calc(1) return calc(0) * 1
+- n: 0   calc(0) return 1
+
+**执行细节**
+
+由于调用栈是先进后出，则
+
+- n: 0 return 1  calc(0)=1
+- n: 1 return 1*1  calc(1) =calc(0) * 1 = 1*1
+- n:2 return 1 * 1 * 2 calc(2)= calc(1)*2 = 1 * 1 * 2
+- n:3 return 1 * 1 * 2 * 3 calc(3) = calc(2) * 3 = 1 * 1 * 2 *3
+
 ## 3. 链表
 
 ### 3.1 链表与数组的对比
