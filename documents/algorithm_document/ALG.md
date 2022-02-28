@@ -2046,7 +2046,7 @@ const preorderTraversal = (root) => {
 };
 ```
 
-#### 7.5.5 迭代实现
+#### 7.5.5 迭代实现（前序为例）
 
 - ⾸先根⼊栈 
 - 将根节点出栈，将根节点值放⼊结果数组中
@@ -2087,4 +2087,76 @@ const preorderTraversal = (root) => {
 - 右⼦节点值⼤于等于该节点值
 
 ![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_17-48-15.png)
+
+### 7.7 94.二叉树的中序遍历
+
+给定一个二叉树的根节点 `root` ，返回它的 **中序** 遍历。
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-28_15-32-47.png)
+
+```
+输入：root = [1,null,2,3]
+输出：[1,3,2]
+```
+
+- 递归遍历
+
+  ```
+  var inorderTraversal = function(root) {
+      let result = []
+      let inorderTraversalNode = (node) => {
+          if(node) {
+              // 先遍历左⼦树
+              inorderTraversalNode(node.left)
+              // 再根节点
+              result.push(node.val)
+              // 最后遍历右⼦树
+              inorderTraversalNode(node.right)
+          }
+      }
+      inorderTraversalNode(root)
+      return result
+  };
+  ```
+
+  ![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-46.png)
+
+- 入栈
+
+| root | 操作                   | 调用栈                                                       |
+| ---- | ---------------------- | ------------------------------------------------------------ |
+| A    | inorderTraversal(B)    | result.push(A)、inorderTraversal(C)                          |
+| B    | inorderTraversal(D)    | result.push(A)、inorderTraversal(C)<br />result.push(B)、inorderTraversal(E) |
+| D    | inorderTraversal(null) | result.push(A)、inorderTraversal(C)<br />result.push(B)、inorderTraversal(E)<br />result.push(D)、inorderTraversal(null) |
+
+- 出栈
+
+  - result.push(D)
+  - result.push(B)、inorderTraversal(E)  ==> [D, B]
+    - 调用栈:
+      - result.push(A)、inorderTraversal(C)
+      - result.push(E) ==> [D, B, E]
+  - result.push(A)  ==> [D, B, E, A]
+  - ......
+
+- 迭代
+
+  ```
+  var inorderTraversal = function(root) {
+      let list = []
+      let stack = []
+      while(root || stack.length) {
+          while(root) {
+              stack.push(root)
+              root = root.left
+          }
+          root = stack.pop()
+          list.push(root.val)
+          root = root.right
+      }
+      return list
+  };
+  ```
+
+  
 
