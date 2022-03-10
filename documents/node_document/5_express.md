@@ -277,3 +277,61 @@ express 不对 Node.js 已有的特性进行二次抽象，知识在它之上扩
   4. 数据库操作封装，使用 util 的 promisify 转换方法为 promise形式
 
 ## 2. 中间件
+
+### 2.1 示例引入
+
+```
+const express = require('express')
+
+const app = new express()
+
+/**
+ * req: 请求对象
+ * res: 响应对象
+ * next：下一个中间件
+ */
+
+app.use((req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+})
+
+app.get('/', (req, res) => {
+    res.send('Hello world!')
+})
+
+app.listen(3000, () => {
+    console.log('Server run at 3000')
+})
+```
+
+### 2.2 中间件函数
+
+```
+app.get('/', (req, res, next) => {
+    res.send('Hello world!')
+    next()
+})
+```
+
+**在中间件函数中可以执行以下任何任务**
+
+- 执行任务代码
+- 修改 request 或者 response 响应对象
+- 结束请求响应周期
+- 调用下一个中间件
+
+
+
+**express.json()原理**
+
+```
+function json(req, res, next) {
+	// 处理req的数据，往req添加body属性
+	// 调用下一个中间件
+	next()
+}
+app.use(json)
+```
+
