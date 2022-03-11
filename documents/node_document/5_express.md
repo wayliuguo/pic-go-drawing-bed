@@ -335,3 +335,135 @@ function json(req, res, next) {
 app.use(json)
 ```
 
+### 2.3 中间件分类
+
+- 应用程序级别中间件
+- 路由级别中间件
+- 错误处理中间件
+- 内置中间件
+- 第三方中间件
+
+#### 2.3.1 应用程序级别中间件
+
+**不关心请求路径 **
+
+```
+app.use((req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+})
+```
+
+**限定请求路径**
+
+```
+app.use('/user/:id', (req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+})
+```
+
+**限定请求方法 + 请求路径**
+
+```
+app.get('/user/:id', (req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+})
+```
+
+**限定路径 + 多个处理函数**
+
+```
+app.use('/user/:id', (req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+},(req, res, next) => {
+	console.log('hello world')
+})
+```
+
+**限定请求方法 + 请求路径+多个处理中间件**
+
+```
+app.get('/user/:id', (req, res, next) => {
+    console.log(req.method, req.url, Date.now())
+    // 交出执行权，往后继续匹配执行
+    next()
+},(req, res, next) => {
+	console.log('hello world')
+})
+```
+
+- 要从路由器中间件堆栈中跳过其余中间件功能，请调用 next('router') 将控制权传递给下一条路由。
+
+- 注意：next('router') 仅在使用app.METHOD() 或 router.METHOD() 函数加载的中间件函数中有效
+
+- ```
+  app.get('/', (req, res, next) => {
+      next('route')
+  },(req, res, next) => {
+  	console.log('second function')
+  })
+  
+  app.get('/', (req, res) => {
+      res.send('Hello world!')
+  })
+  ```
+
+- 这里的代码由于执行了 next('route'),所以第二个中间件会被跳过（不会打印second function）
+
+#### 2.3.2 路由级别中间件
+
+路由器级中间件与应用程序中间件工作方式相同，只不过它绑定到的实例是 express.Router()
+
+```
+const router = express.Router()
+```
+
+使用 router.use() 和 router.METHOD() 函数加载路由器级别中间件。
+
+- app.js
+
+```
+const express = require('express')
+const app = new express()
+
+const userRouter = require('./userRouter')
+
+// 挂载路由（userRouter 里的路由前缀为 /user）
+app.use('/user', userRouter)
+
+app.listen(3000, () => {
+    console.log('Server run at 3000')
+})
+```
+
+- userRouter.js
+
+```
+const express = require('express')
+
+// 1.创建路由实例
+// 路由实例其实就相当于一个mini Express 实例
+
+const router = express.Router()
+
+// 2.配置路由
+router.get('', (req, res) => {
+    res.send('user list')
+})
+
+router.get('/:id', (req, res) => {
+    res.send(req.params.id)
+})
+
+// 3.导出路由实例
+module.exports = router
+```
+
+![image-20220312000020117](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220312000020117.png)
