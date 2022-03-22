@@ -467,3 +467,58 @@ module.exports = router
 ```
 
 ![image-20220312000020117](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220312000020117.png)
+
+#### 2.3.3 错误处理中间件
+
+```
+app.delete('/articles/:id', async (req, res, next) => {
+    try {
+        await dbClient.connect()
+        const collection = dbClient.db('test').collection('articles')
+        await collection.deleteOne({
+          _id: ObjectId(req.params.id)
+        })
+        res.status(204).json({})
+    } catch (error) {
+        next(error) // 跳过所有的无错误处理路由喝中间件函数
+    }
+})
+.......
+
+// 统一错误处理中间件
+// 它之前的所有路由中调用 next(error) 就会进入这里
+// 注意：四个参数齐全才是错误处理中间件，如果不是会被当作路由处理
+app.use((err, req, res, next) => {
+    res.status(500).json({
+        error: err.message
+    })
+})
+```
+
+#### 2.3.4 处理404
+
+- 在所有路由之后配置处理 404 的内容
+- 请求进来从上到下依次匹配
+
+```
+app.delete()
+app.post()
+...
+
+app.use((req, res) => {
+	res.status(404).send('404 not Found')
+})
+```
+
+#### 2.5 内置中间件
+
+- express.json()
+  - 解析 Content-Type 为application/json 格式的请求体
+- express.urlencoded()
+  - 解析 Content-Type 为 www-form-urlencoded 格式的请求体
+- express.raw()
+  - 解析 Content-Type 为 application/octet-stream 格式的请求体
+- express.text()
+  - 解析 Content-Type 为 text/plain 格式的请求体
+- express.static()
+  - 托管静态资源文件
