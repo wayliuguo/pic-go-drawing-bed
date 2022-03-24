@@ -522,3 +522,129 @@ app.use((req, res) => {
   - 解析 Content-Type 为 text/plain 格式的请求体
 - express.static()
   - 托管静态资源文件
+
+#### 2.6 第三方中间件
+
+https://www.expressjs.com.cn/resources/middleware.html
+
+
+
+## 3.接口案例
+
+### 3.1RESTful 接口规范
+
+**路径**
+
+路径又称“终点”，表示 API 的具体网址
+
+在 RESTful 架构中，每个网址代表一种资源，所有网址中不能有动词，只能用名词，而且所用的名词往往与数据库的表格名对应。一般来说，数据库中的表都是同种记录的集合，所以API 中的名称也应该使用复数。
+
+举例来说，有一个API 提供动物园（Zoo）的信息，还包括各种动物和雇员的信息，则它的路径应该设计成下面这样
+
+- https://api.example.com/v1/zoos
+
+- https://api.example.com/v1/animals
+
+- https://api.example.com/v1/employees
+
+  https://api.example.com/v1/zoos
+
+**HTTP 动词**
+
+对于资源的具体操作类型，由HTTP动词表示
+
+常用的HTTP动词有下面五个（括号对应SQL命令）
+
+- GET(读取)：从服务器取出资源（一项或多项）
+- POST(创建)：在服务器新建一个资源
+- PUT(完成更新)：在服务器更新资源（客户端提供改变后的完整资源）
+- PATCH(部分更新)：在服务器更新资源（客户端提供改变的属性）
+- DELETE(删除)：从服务器删除资源
+
+两个不常用的HTTP动词：
+
+- HEAD: 获取资源的元数据
+- OPTIONS: 获取信息，关于资源的那些属性是客户端可以改变的
+
+**过滤信息**
+
+如果记录数量很多，服务器不可能都将他们返回给用户。API因该提供参数，过滤返回结果。
+
+- ?limit = 10 指定返回记录的数量
+- ?offset= 10 指定返回的开始记录
+
+**状态码**
+
+客户端的每一次请求，服务器都必须给出回应。回应包括 HTTP 状态码和数据两部分
+
+HTTP 状态码就是一个三位数，分成五个类别
+
+- 1**: 相关信息
+- 2**:操作成功
+- 3**:重定向
+- 4**:客户端错误
+- 5**:服务器错误
+
+常见的有以下：
+
+- 200 OK [GET]: 服务器成功返回用户请求的数据，该操作是幂等的
+- 201 CREATED[POST/PUT/PATCH]: 用户新建或修改数据成功
+- 202 Acepted[*]： 表示一个请求已经进入后台排队（后台任务）
+- 204 no content[DELETE]: 用户删除数据成功
+- 400 INVALID REQUEST[POST/PUT/PATCH]:用户发出的请求有错误，服务器没有进行新建或修改数据的操作，该操作时幂等的
+- 401 Unauthorized[*]: 表示用户没有权限（令牌、用户名、密码错误）
+- 403 Forbidden[*]：表示用户得到授权（与401错误相等），但是访问被禁止
+- 404 NOT FOUND[*]:用户发出的请求针对是不存在的记录，服务器没有该操作，该操作是幂等的
+- 406 Not Acceptable[GET]: 用户的请求格式不可得（必去用户请求json格式，但是只有xml格式）
+- 410 Gone[Get]:用户请求资源被永久删除，且不会再得到
+- 422 Unprocesable entity[POST/PUT/PATCH] 当创建一个对象时，发生一个验证错误
+- 500 INTERNAL SERVER ERROR[*] 服务器发生错误，用户将无法判断发出的请求是否成功
+
+**返回结果**
+
+- HTTP 的 Content-type 属性设为 application/json
+- 返回json 数据
+
+针对不同操作，服务器向用户返回的结果应该符合以下规范
+
+- GET/ collection：返回资源对象的列表（数组）
+- GET/ collection/resource：返回单个资源对象
+- POST/ collection：返回新生成的资源对象
+- PUT/ collection/resource：返回完整的资源对象
+- PATCH/ collection/resource：返回完整的资源对象
+- DELETE/ collection/resource：返回一个空文档
+
+**错误处理**
+
+```
+HTTP /1.1 400 Bad Request
+Content-type: application/json
+{
+	"error": "Invalid payoad",
+	"detail": {
+		"surname": "This field is required"
+	}
+}
+```
+
+**身份认证**
+
+基于 JWT 的接口权限认证：
+
+- 字段名：Authorization
+- 字段值：Bearer token 数据
+
+**跨域处理**
+
+可以在服务端设置 CORS 设置客户端跨域资源请求
+
+### 3.2 目录结构
+
+- config 配置文件
+  - config.default.js
+- controller 用于解析用户的输入，处理后返回相应的结果
+- model 数据持久层
+- middleware 用于编写中间件
+- router 用于配置 url 路由
+- util 工具模块
+- app.js  用于自定义启动
