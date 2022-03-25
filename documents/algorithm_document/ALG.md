@@ -719,6 +719,44 @@ calc(3)
 - n:2 return 1 * 1 * 2 calc(2)= calc(1)*2 = 1 * 1 * 2
 - n:3 return 1 * 1 * 2 * 3 calc(3) = calc(2) * 3 = 1 * 1 * 2 *3
 
+
+
+```
+function mycalc(n){
+    let result = []
+    function calc (num) {
+        if(num <= 10) {
+            calc(num+5)
+            result.push(num)
+            calc(num+10)
+        }
+    }
+    calc(n)
+    console.log(result)
+}
+mycalc(0)
+```
+
+| num  | **下一步操作**  | **下一步调用栈（同一级从左到右，从下到上）**                 |
+| ---- | --------------- | ------------------------------------------------------------ |
+| 0    | calc(5)         | result.push(0)、calc(10) -------0                            |
+| 5    | calc(10)        | result.push(0)、calc(10)--------0<br />result.push(5)、calc(15)--------5 |
+| 10   | calc(15)        | result.push(0)、calc(10)--------0<br />result.push(5)、calc(15)--------5<br />result.push(10)、calc(20)--------10 |
+| 15   |                 |                                                              |
+| 10   | result.push(10) | result.push(0)、calc(10)--------0<br />result.push(5)、calc(15)--------5<br />calc(20)--------10 |
+| 10   | calc(20)        | result.push(0)、calc(10)--------0<br />result.push(5)、calc(15)--------5 |
+| 20   |                 |                                                              |
+| 5    | result.push(5)  | result.push(0)、calc(10)--------0<br />calc(15)--------5     |
+| 15   |                 | result.push(0)、calc(10)--------0                            |
+| 0    | result.push(0)  | calc(10)--------0                                            |
+| 0    | calc(10)        |                                                              |
+| 10   | calc(15)        | result.push(10)、calc(20)-------10                           |
+| 15   |                 | result.push(10)、calc(20)-------10                           |
+| 10   | result.push(10) | calc(20)-------10                                            |
+| 20   |                 |                                                              |
+
+[10,5,0,10]
+
 ## 3. 链表
 
 ### 3.1 链表与数组的对比
@@ -2123,21 +2161,23 @@ const preorderTraversal = (root) => {
 
 - 入栈
 
-| root | 操作                   | 调用栈                                                       |
-| ---- | ---------------------- | ------------------------------------------------------------ |
-| A    | inorderTraversal(B)    | result.push(A)、inorderTraversal(C)                          |
-| B    | inorderTraversal(D)    | result.push(A)、inorderTraversal(C)<br />result.push(B)、inorderTraversal(E) |
-| D    | inorderTraversal(null) | result.push(A)、inorderTraversal(C)<br />result.push(B)、inorderTraversal(E)<br />result.push(D)、inorderTraversal(null) |
-
-- 出栈
-
-  - result.push(D)
-  - result.push(B)、inorderTraversal(E)  ==> [D, B]
-    - 调用栈:
-      - result.push(A)、inorderTraversal(C)
-      - result.push(E) ==> [D, B, E]
-  - result.push(A)  ==> [D, B, E, A]
-  - ......
+| root | 下一步操作                 | 下一步调用栈（同一级从左到右，从下到上）                     |
+| ---- | -------------------------- | ------------------------------------------------------------ |
+| A    | inorderTraversalNode(B)    | result.push(A)、inorderTraversalNode(C)                      |
+| B    | inorderTraversalNode(D)    | result.push(A)、inorderTraversalNode(C)<br />result.push(B)、inorderTraversalNode(E) |
+| D    | inorderTraversalNode(null) | result.push(A)、inorderTraversalNode(C)<br />result.push(B)、inorderTraversalNode(E)<br />result.push(D)、inorderTraversalNode(null) |
+| null | result.push(D)             | result.push(A)、inorderTraversalNode(C)<br />result.push(B)、inorderTraversalNode(E)<br />inorderTraversalNode(null) |
+| null | inorderTraversalNode(null) | result.push(A)、inorderTraversalNode(C) <br />result.push(B)、inorderTraversalNode(E) |
+| null | result.push(B)             | result.push(A)、inorderTraversalNode(C) <br />inorderTraversalNode(E) |
+| E    | inorderTraversalNode(E)    | result.push(A)、inorderTraversalNode(C) <br />result.push(E)、inorderTraversalNode(null) |
+| null | result.push(E)             | result.push(A)、inorderTraversalNode(C) <br />inorderTraversalNode(null) |
+| null | inorderTraversalNode(null) | result.push(A)、inorderTraversalNode(C)                      |
+| null | result.push(A)             | inorderTraversalNode(C)                                      |
+| C    | inorderTraversalNode(C)    | result.push(C)、inorderTraversalNode(F)                      |
+| null | result.push(C)             | inorderTraversalNode(F)                                      |
+| F    | inorderTraversalNode(F)    | result.push(F)、inorderTraversalNode(null)                   |
+| null | result.push(F)             | inorderTraversalNode(null)                                   |
+| null | inorderTraversalNode(null) |                                                              |
 
 - 迭代
 
@@ -2145,6 +2185,7 @@ const preorderTraversal = (root) => {
   var inorderTraversal = function(root) {
       let list = []
       let stack = []
+      // 当root不为空则入栈，如果root为空，但是stack不为空，则把stack的节点出栈
       while(root || stack.length) {
           while(root) {
               stack.push(root)
@@ -2158,5 +2199,47 @@ const preorderTraversal = (root) => {
   };
   ```
 
-  
+| root | stack (stack.push(root)  root = root.left)) \|\| ((stack.pop() root=root.right)) | list  |
+| ---- | ------------------------------------------------------------ | ----- |
+| A    | A [A]                                                        |       |
+| B    | B [A,B]                                                      |       |
+| D    | D [A,B,D]                                                    |       |
+| NULL |                                                              |       |
+| D    | [A,B]                                                        | D     |
+| NULL |                                                              |       |
+| B    | [A]                                                          | D,B   |
+| E    | [A,E]                                                        |       |
+| NULL | [A]                                                          | D,B,E |
+
+
+
+### 7.8 145.二叉树的后序遍历
+
+给你一棵二叉树的根节点 `root` ，返回其节点值的 **后序遍历** 。
+
+![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-58.png)
+
+- 递归遍历
+
+  ```
+  var postorderTraversal = function(root) {
+      let result = []
+      let postorderTraversalNode = (root) => {
+          if(root) {
+              postorderTraversalNode(root.left)
+              postorderTraversalNode(root.right)
+              result.push(root.val)
+          }
+      }
+      postorderTraversalNode(root)
+      return result
+  };
+  ```
+
+
+- 迭代
+
+```
+
+```
 
