@@ -321,6 +321,29 @@ process.exit()
 - 运行状态
 - 事件
 
+### 7.3 cross-env
+
+```
+npm install cross-env
+```
+
+```
+// package.json
+
+{
+  "name": "realword-api-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env PORT=8080 nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+```
+
 ## 8. 核心模块-path
 
 - path.basename():获取路径中的基础名称

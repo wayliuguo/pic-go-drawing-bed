@@ -62,11 +62,11 @@ express 不对 Node.js 已有的特性进行二次抽象，知识在它之上扩
 - 请求对象继承自
   - http.InComingMessage 类
   - http://nodejs.cn/api/http.html#class-httpincomingmessage
-  - ![image-20220303232215250](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220303232215250.png)
+  - ![image-20220303232215250](5_express.assets/image-20220303232215250.png)
 
 - express req
   - http://expressjs.com/en/4x/api.html#req
-  - ![image-20220306123719279](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220306123719279.png)
+  - ![image-20220306123719279](5_express.assets/image-20220306123719279.png)
 
 ### 1.4 响应对象
 
@@ -105,7 +105,7 @@ express 不对 Node.js 已有的特性进行二次抽象，知识在它之上扩
 
 - express res
 
-  - ![image-20220306125049199](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220306125049199.png)
+  - ![image-20220306125049199](5_express.assets/image-20220306125049199.png)
 
   
 
@@ -466,7 +466,7 @@ router.get('/:id', (req, res) => {
 module.exports = router
 ```
 
-![image-20220312000020117](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220312000020117.png)
+![image-20220312000020117](5_express.assets/image-20220312000020117.png)
 
 #### 2.3.3 错误处理中间件
 
@@ -648,3 +648,66 @@ Content-type: application/json
 - router 用于配置 url 路由
 - util 工具模块
 - app.js  用于自定义启动
+
+### 3.2 配置常用中间件
+
+- 解析请求体
+
+  - express.json()
+  - express.urlencoded()
+
+- 日志输出
+
+  - morgan()
+
+  ```
+  npm i morgan
+  ```
+
+- 为客户端提供跨域资源请求
+
+  - cors()
+
+  ```
+  npm i cors
+  ```
+
+```
+// app.js
+
+const express = require('express')
+
+// 日志中间件
+const morgan = require('morgan')
+// cors 中间件
+const cors = require('cors')
+
+const app = new express()
+
+// 日志收集
+app.use(morgan('dev'))
+
+//  解析请求体
+app.use(express.json())
+app.use(express.urlencoded())
+
+// 为客户端提供跨域资源请求
+app.use(cors())
+
+const PORT = process.env.PORT
+
+app.get('/', (req, res) => {
+    res.send('Hello World')
+})
+
+app.post('/', (req, res) => {
+    res.send(req.body)
+})
+
+app.listen(PORT, () => {
+    console.log(`Server is running at http://localhost:${PORT}`)
+})
+```
+
+![image-20220325234131054](5_express.assets/image-20220325234131054.png)
+
