@@ -223,7 +223,7 @@ git status
 
   - 显示工作目录和索引之间的差异
 
-  ![image-20211229221619961](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229221619961.png)
+  ![image-20211229221619961](git版本管理.assets/image-20211229221619961.png)
 
 - git diff commit
 
@@ -231,12 +231,12 @@ git status
 
   - 常见的一种用法是用HEAD或者一个特定的分支名作为commit
 
-    ![image-20211229221826654](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229221826654.png)
+    ![image-20211229221826654](git版本管理.assets/image-20211229221826654.png)
 
     - hello world 提交了一次
     - 跟上次提交进行diff
 
-    ![image-20211229222036086](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211229222036086.png)
+    ![image-20211229222036086](git版本管理.assets/image-20211229222036086.png)
 
     - 跟 dev 分支进行diff
 
@@ -327,7 +327,7 @@ git log --oneline
 e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
 ```
 
-![image-20211231004939656](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231004939656.png)
+![image-20211231004939656](git版本管理.assets/image-20211231004939656.png)
 
 如果不需要改变索引（因为一切都正确存储了），可以使用--soft参数
 
@@ -339,7 +339,7 @@ git log --oneline
 e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
 ```
 
-![image-20211231010243387](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231010243387.png)
+![image-20211231010243387](git版本管理.assets/image-20211231010243387.png)
 
 **通过图片即可对比--soft 与 --mixed**
 
@@ -360,13 +360,13 @@ git log --oneline
 e572364 (HEAD -> master) 第一次提交 //HEAD指向了上一次提交，索引变更了
 ```
 
-![image-20211231011235515](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211231011235515.png)
+![image-20211231011235515](git版本管理.assets/image-20211231011235515.png)
 
 - 彻彻底底回到了第一次提交，就像没有发生过第二次提交一样
 
 #### 8.1.1.4 三种模式总结
 
-![image-20211230234340180](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211230234340180.png)
+![image-20211230234340180](git版本管理.assets/image-20211230234340180.png)
 
 - 还把原始HEAD值存在ORIG_HEAD
 - HEAD^ = HEAD ~1
@@ -394,14 +394,14 @@ git cherry-pick dev~1 // 挑选dev倒数第二个提交
 
 ### 8.3 git revert
 
-!['image-20220101104330400'](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220101104330400.png)
+!['image-20220101104330400'](git版本管理.assets/image-20220101104330400.png)
 
 ```
 // 撤销提交消息为'第一次提交' 的commit
 git revert master~2 #commit 去除第一次提交
 ```
 
-![image-20220101104525865](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220101104525865.png)
+![image-20220101104525865](git版本管理.assets/image-20220101104525865.png)
 
 - 解决冲突即可
 - revert命令不修改版本库的现存历史记录
@@ -426,13 +426,13 @@ git commit --amend
 
 **常见用途：保持你正在开发的一系列提交相对于另一个分支是最新的**
 
-![image-20220102122742919](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102122742919.png)
+![image-20220102122742919](git版本管理.assets/image-20220102122742919.png)
 
 - topic 分支从master分支的提交B处开始的
 - 可以改写提交让他们基于提交E而不是提交B
 - 这样提交就相对于master分支是最新的了
 
-![image-20220102124656075](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102124656075.png)
+![image-20220102124656075](git版本管理.assets/image-20220102124656075.png)
 
 ```
 // hello.txt second 分支
@@ -446,7 +446,7 @@ hello world
 git rebase master
 ```
 
-![image-20220102123952988](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220102123952988.png)
+![image-20220102123952988](git版本管理.assets/image-20220102123952988.png)
 
 second的提交相对于master即是最新的了
 
