@@ -869,7 +869,7 @@ export default withRouter(Header)
 
 #### 7.2 redux 工作流程
 
-![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/同步异步任务.png)
+![redux原理图](React_staging.assets/同步异步任务.png)
 
 ##### 7.2.1 action
 
@@ -1150,7 +1150,7 @@ export default createStore(countReducer, applyMiddleware(thunk))
 
 #### 7.6 react-redux
 
-![react-redux模型图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/react-redux%E6%A8%A1%E5%9E%8B%E5%9B%BE.png)
+![react-redux模型图](React_staging.assets/react-redux模型图.png)
 
 ```
 npm i react-redux
