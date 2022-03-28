@@ -1,6 +1,6 @@
 ## 1. nodejs 架构
 
-![image-20220103235646550](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220103235646550.png)
+![image-20220103235646550](1_node高级编程.assets/image-20220103235646550.png)
 
 ### 1.1 Natives modules
 
@@ -23,7 +23,7 @@
 
 ### 2.1 同步与异步
 
-![image-20220104001922090](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220104001922090.png)
+![image-20220104001922090](1_node高级编程.assets/image-20220104001922090.png)
 
 ### 2.2 阻塞IO 与非阻塞IO
 
@@ -37,11 +37,11 @@
   - 期望实现无需主动判断的非阻塞IO
   - nodejs 非阻塞IO由libuv实现
 
-  ![image-20220104002443522](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220104002443522.png)
+  ![image-20220104002443522](1_node高级编程.assets/image-20220104002443522.png)
 
 - node 实现异步IO
 
-![image-20220104002606752](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220104002606752.png)
+![image-20220104002606752](1_node高级编程.assets/image-20220104002606752.png)
 
 ### 2.3 总结
 
@@ -52,7 +52,7 @@
 
 ## 3. 事件驱动架构
 
-![image-20220104002606752](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220104002606752.png)
+![image-20220104002606752](1_node高级编程.assets/image-20220104002606752-16484513093165.png)
 
 ```
 const EventEmitter = require('events')
@@ -99,7 +99,7 @@ server.listen(8080, () => {
 
   - 作为中间层
 
-  ![image-20220104005826664](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220104005826664.png)
+  ![image-20220104005826664](1_node高级编程.assets/image-20220104005826664.png)
 
   - 操作数据库提供API服务
   - 实时聊天应用程序
@@ -227,7 +227,7 @@ tsc --init
 console.log(global)
 ```
 
-![image-20220105000436567](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220105000436567.png)
+![image-20220105000436567](1_node高级编程.assets/image-20220105000436567.png)
 
 ```
 console.log(__filename) // D:\学习资料\学习笔记\node_study\1_node高级编程\7_全局对象\node_grobal.js
@@ -451,7 +451,7 @@ console.log(path.resolve('/a', '/b')) // D:\b ('/b': from, /a：不要)
 - 内存的使用由node控制，由v8的GC来回收
 - 一般配合Stream流使用，充当数据缓冲区
 
-![image-20220107220840356](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220107220840356.png)
+![image-20220107220840356](1_node高级编程.assets/image-20220107220840356.png)
 
 ### 9.2 创建Buffer
 
@@ -649,7 +649,7 @@ console.log(bufArr) // [ 'lgw ', '馒头，', '面条，我', '所有' ]
     - 文件的所属组
     - 其他用户
 
-    ![image-20220108231353905](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220108231353905.png)
+    ![image-20220108231353905](1_node高级编程.assets/image-20220108231353905.png)
 
     ```
     -rw-r--r-- 1 way liu 197121       3336 12月 16  2019  unintall.log
@@ -868,7 +868,7 @@ fs.open(path.resolve('data.txt'), 'r', (err, fd) => {
 
 ### 10.5 大文件读写操作
 
-![image-20220109222126097](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220109222126097.png)
+![image-20220109222126097](1_node高级编程.assets/image-20220109222126097.png)
 
 - readFile、writeFile适合小文件的操作
 - read、write、open、close配合Buffer适合于大文件的操作
@@ -1189,7 +1189,7 @@ rmdir('newDir', () => {
 })
 ```
 
-![image-20220110234949031](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220110234949031.png)
+![image-20220110234949031](1_node高级编程.assets/image-20220110234949031.png)
 
 ## 11. 模块化
 
@@ -1238,7 +1238,7 @@ rmdir('newDir', () => {
 
 **module.exports 与 exports**
 
-![image-20220111223200300](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220111223200300.png)
+![image-20220111223200300](1_node高级编程.assets/image-20220111223200300.png)
 
 - 不可以直接给exports赋值，因为会切断其与module.exports的引用
 
@@ -1503,7 +1503,7 @@ const obj = require('./02m')
 
 #### 11.5.1 mod.require
 
-![image-20220113231158645](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113231158645.png)
+![image-20220113231158645](1_node高级编程.assets/image-20220113231158645.png)
 
 - mod.require中mod
 
@@ -1513,7 +1513,7 @@ filename: 'd:\\学习资料\\学习笔记\\node_study\\1_node高级编程\\11_�
 
 - path参数：./02m
 
-![image-20220113231714089](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113231714089.png)
+![image-20220113231714089](1_node高级编程.assets/image-20220113231714089.png)
 
 - Module.prototype.require
 - 调用 Module._load( )
@@ -1533,7 +1533,7 @@ children:(0) []
 
 #### 11.5.2 Module._load
 
-![image-20220113232728480](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113232728480.png)
+![image-20220113232728480](1_node高级编程.assets/image-20220113232728480.png)
 
 - 调用Module._resolveFilename()
 
@@ -1543,7 +1543,7 @@ children:(0) []
 
 - 得到的filename ==》 绝对路径
 
-  ![image-20220113233547120](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113233547120.png)
+  ![image-20220113233547120](1_node高级编程.assets/image-20220113233547120.png)
 
 -  new Module
 
@@ -1562,7 +1562,7 @@ children:(0) []
   }
   ```
 
-  ![image-20220113234344905](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113234344905.png)
+  ![image-20220113234344905](1_node高级编程.assets/image-20220113234344905.png)
 
 ​        module 内容入上图
 
@@ -1595,7 +1595,7 @@ Module._extensions['.js'] = function(module, filename) {
 };
 ```
 
-![image-20220113235503196](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220113235503196.png)
+![image-20220113235503196](1_node高级编程.assets/image-20220113235503196.png)
 
 - 上图即为content 内容
 - 调用 module._compile(content, filename); 
@@ -1811,7 +1811,7 @@ ev.emit('事件1')
 
 ### 12.2 发布订阅
 
-![image-20220117001902994](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220117001902994.png)
+![image-20220117001902994](1_node高级编程.assets/image-20220117001902994.png)
 
 **发布订阅要素**
 
@@ -2031,7 +2031,7 @@ Promise.resolve().then(() => {
 })
 ```
 
-![image-20220119225744546](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220119225744546.png)
+![image-20220119225744546](1_node高级编程.assets/image-20220119225744546.png)
 
 - script 是一个宏任务，执行完毕，清理其微任务，打印p1
 - 第一个定时器是一个宏任务，同步执行打印s1,清理其微任务打印p2、p3
@@ -2040,7 +2040,7 @@ Promise.resolve().then(() => {
 
 ### 13.2 nodejs下的事件循环
 
-![image-20220119230348567](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220119230348567.png)
+![image-20220119230348567](1_node高级编程.assets/image-20220119230348567.png)
 
 nodejs 中不止是宏任务队列与微任务队列，其分为上图六个任务队列，每一个队列里存放的都是回调函数。
 
@@ -2207,16 +2207,16 @@ fs.readFile('./index.html', () => {
 - 文件操作系统和网络模块实现了流接口
 - 流就是处理流式数据的抽象接口
 
-![image-20220120235010768](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235010768.png)
+![image-20220120235010768](1_node高级编程.assets/image-20220120235010768.png)
 
 #### 14.1.1 常见问题
 
 - 同步读取资源文件，用户需要等待数据读取完成
 - 资源文件最终一次性加载至内存，开销较大
 
-![image-20220120235222765](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235222765.png)
+![image-20220120235222765](1_node高级编程.assets/image-20220120235222765.png)
 
-![image-20220120235249799](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220120235249799.png)
+![image-20220120235249799](1_node高级编程.assets/image-20220120235249799.png)
 
 #### 14.1.2 流处理的优势
 
@@ -2263,7 +2263,7 @@ rs.pipe(ws)
   - readable 事件
   - data 事件
 
-![image-20220121224549486](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220121224549486.png)
+![image-20220121224549486](1_node高级编程.assets/image-20220121224549486.png)
 
 **消费数据**
 
@@ -2619,7 +2619,7 @@ ws.on('drain', () => {
 })
 ```
 
-![image-20220124234001285](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220124234001285.png)
+![image-20220124234001285](1_node高级编程.assets/image-20220124234001285.png)
 
 - 第一次调用write方法是将数据直接写入到文件中
 - 第二次开始 write 方法是将数据写入至缓存中
@@ -2675,9 +2675,9 @@ ws.on('drain', () => {
 
 ### 14.10 背压机制
 
-![image-20220128213641372](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220128213641372.png)
+![image-20220128213641372](1_node高级编程.assets/image-20220128213641372.png)
 
-![image-20220128214010097](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220128214010097.png)
+![image-20220128214010097](1_node高级编程.assets/image-20220128214010097.png)
 
 ```
 let fs = require('fs')

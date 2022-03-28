@@ -94,7 +94,7 @@ console.log(common) // {} // exports输出
 
 ### 2.1 同步任务-异步任务
 
-![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/同步异步任务.png)
+![redux原理图](nodejs基础.assets/同步异步任务.png)
 
 - 同步进入主线程，异步进入Event Table并注册函数
 - 当指定的事情完成时，Event Table会将这个函数移入任务队列(Event Queue)
@@ -102,7 +102,7 @@ console.log(common) // {} // exports输出
 
 ### 2.2 宏任务-微任务
 
-![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/宏任务微任务.png)
+![redux原理图](nodejs基础.assets/宏任务微任务.png)
 
 - 所有的同步任务都在主线程上执行，行成一个执行栈。
 - 除了主线程之外，还存在一个任务列队，只要异步任务有了运行结果，就在任务列队中植入一个时间标记。

@@ -47,7 +47,7 @@
 
 - MongoDB 将数据存储为一个文档，数据结构由键值(key=>value)对组成。MongoDB 文档类似于 JSON 对象。字段值可以包含其他文档，数组及文档数组。
 
-![img](https://cdn.nlark.com/yuque/0/2020/png/152778/1604459344700-418329ca-3c73-4aa7-8ecf-c6cf93eb625d.png?x-oss-process=image%2Fwatermark%2Ctype_d3F5LW1pY3JvaGVp%2Csize_16%2Ctext_5ouJ5Yu-5pWZ6IKy%2Ccolor_FFFFFF%2Cshadow_50%2Ct_80%2Cg_se%2Cx_10%2Cy_10)
+![img](3_mongoDB.assets/1604459344700-418329ca-3c73-4aa7-8ecf-c6cf93eb625d.png)
 
 - MongoDB 的查询功能非常强大
 
@@ -60,7 +60,7 @@
 - 解压zip包，放到一个文件夹，复制其到bin文件夹下的路径
 - 把复制的路径用于编辑系统环境变量
 
-![image-20220211230626314](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220211230626314.png)
+![image-20220211230626314](3_mongoDB.assets/image-20220211230626314.png)
 
 ```
 PS C:\Users\way liu> mongod -version
@@ -154,7 +154,7 @@ Build Info: {
 
 - - db.users.insert({ name: 'Jack', age: 18 })
 
-![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213220847809.png)
+![image-20220213220847809](3_mongoDB.assets/image-20220213220847809.png)
 
 - 退出连接的三种方式
   - exit
@@ -287,7 +287,7 @@ Build Info: {
 
 ### 7.3 集合
 
-- 集合类似于关系数据库中的表，MongoDB 将文档存储在集合中![image-20220213225759618](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220213225759618.png)
+- 集合类似于关系数据库中的表，MongoDB 将文档存储在集合中![image-20220213225759618](3_mongoDB.assets/image-20220213225759618.png)
 
 **创建集合**
 
@@ -343,7 +343,7 @@ true
 - [BSON 规范](http://bsonspec.org/)
 - [BSON 支持的数据类型](https://docs.mongodb.com/manual/reference/bson-types/)
 
-![image-20220215224757850](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220215224757850.png)
+![image-20220215224757850](3_mongoDB.assets/image-20220215224757850.png)
 
 #### 7.4.1 文档结构
 
@@ -1891,7 +1891,7 @@ db.inventory.insertMany([
 - `db.collection.replaceOne(<filter>, <update>, <options>)`
 - https://docs.mongodb.com/manual/reference/method/js-collection/
 
-![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-18_17-37-56.png)
+![image-20220213220847809](3_mongoDB.assets/Snipaste_2022-02-18_17-37-56.png)
 
 #### 8.3.1 数据准备
 
@@ -1974,7 +1974,7 @@ db.inventory.replaceOne(
 - `db.collection.deleteMany()`
 - `db.collection.deleteOne()`
 
-![image-20220213220847809](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-18_19-16-00.png))
+![image-20220213220847809](3_mongoDB.assets/Snipaste_2022-02-18_19-16-00.png))
 
 #### 8.4.1 数据准备
 
@@ -2176,7 +2176,7 @@ run()
 - [理解 RESTful 架构](http://www.ruanyifeng.com/blog/2011/09/restful.html)
 - [RESTful API 设计指南](http://www.ruanyifeng.com/blog/2014/05/restful_api.html)
 
-![image-20220221214141728](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20220221214141728.png)
+![image-20220221214141728](3_mongoDB.assets/image-20220221214141728.png)
 
 #### 9.3.1 接口设计
 
