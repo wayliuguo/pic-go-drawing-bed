@@ -150,7 +150,7 @@ this.persons[0] = {id:'001',name:'马老师',age:50,sex:'男'}
 
 在开发者工具上可以观察，vm._data.persons[0]/ vm.persons[0]的数据虽然更新了，但页面没有更新。
 
-![image-20211215002458078](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215002458078.png)
+![image-20211215002458078](vue_briefing.assets/image-20211215002458078-16484521192452.png)
 
 #### 5.2vue.set的使用
 
@@ -176,7 +176,7 @@ data:{
 
 在控制台输入vm查看数据
 
-![image-20211215010047890](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215010047890.png)
+![image-20211215010047890](vue_briefing.assets/image-20211215010047890.png)
 
 可以看到，vue的初始化时每个属性都会被加上setter和getter。现在如果我们需要往student对象上增加一个sex属性，在控制台中输入
 
@@ -190,7 +190,7 @@ vm._data.student.sex="男"，视图将不会得到更新，重新查看vm发现�
 
 如果我们想往data身上添加新的属性leader
 
-![image-20211215011159883](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/image-20211215011159883.png)
+![image-20211215011159883](vue_briefing.assets/image-20211215011159883.png)
 
 #### 5.3数据监听总结
 
@@ -309,7 +309,7 @@ v-text渲染出来的dom内容就只有name对应的内容，“你好”会被�
 
 ### 8.生命周期
 
-![生命周期](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/生命周期.png)
+![生命周期](vue_briefing.assets/生命周期.png)
 
 ```
 const vm = new Vue({
@@ -884,7 +884,7 @@ this.$off('addTodo')
 
 #### 17.1 原理图
 
-![redux原理图](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/vuex.png)
+![redux原理图](vue_briefing.assets/vuex.png)
 
 - action: 响应组件中用户的动作,相当于redux中的异步action
 - mutations： 修改state中的数据，相当于redux中的同步action

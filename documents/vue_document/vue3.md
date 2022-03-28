@@ -1,6 +1,6 @@
 # Vue3快速上手
 
-<img src="https://user-images.githubusercontent.com/499550/93624428-53932780-f9ae-11ea-8d16-af949e16a09f.png" style="width:200px" />
+<img src="vue3.assets/93624428-53932780-f9ae-11ea-8d16-af949e16a09f.png" style="width:200px" />
 
 
 
@@ -85,7 +85,7 @@ vite官网：https://vitejs.cn
   - 真正的按需编译，不再等待整个应用编译完成。
 - 传统构建 与 vite构建对比图
 
-<img src="https://cn.vitejs.dev/assets/bundler.37740380.png" style="width:500px;height:280px;float:left" /><img src="https://cn.vitejs.dev/assets/esm.3070012d.png" style="width:480px;height:280px" />
+<img src="vue3.assets/bundler.37740380.png" style="width:500px;height:280px;float:left" /><img src="vue3.assets/esm.3070012d.png" style="width:480px;height:280px" />
 
 ```bash
 ## 创建工程
@@ -460,7 +460,7 @@ npm run dev
 
 ## 5.provide 与 inject
 
-<img src="https://v3.cn.vuejs.org/images/components_provide.png" style="width:300px" />
+<img src="vue3.assets/components_provide.png" style="width:300px" />
 
 - 作用：实现<strong style="color:#DD5145">祖与后代组件间</strong>通信
 
