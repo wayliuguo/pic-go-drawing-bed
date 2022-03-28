@@ -1029,7 +1029,7 @@ var detectCycle = function(head) {
 
 - 快慢指针
 
-![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/142_fig1.png)
+![142_fig1](ALG.assets/142_fig1.png)
 
 - 设链表中环外部分的长度为 **a**。**slow** 指针进入环后，又走了 **b** 的距离与 **fast** 相遇,则**slow走过距离=a+b**
 - **fast**已经走了n圈，则**fast走过距离=a+b+n(b+c) ==> *a*+(*n*+1)*b*+nc **
@@ -1298,7 +1298,7 @@ var removeNthFromEnd = function(head, n) {
 
 图示两个链表在节点 `c1` 开始相交**：**
 
-![](https://assets.leetcode-cn.com/aliyun-lc-upload/uploads/2018/12/14/160_statement.png)
+![160_statement](ALG.assets/160_statement.png)
 
 - 解法一
   - 哈希表
@@ -1929,11 +1929,11 @@ randomizedSet.getRandom(); // 由于 2 是集合中唯一的数字，getRandom �
 
   insert：
 
-  ![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_11-52-27.png)
+  ![Snipaste_2022-02-24_11-52-27](ALG.assets/Snipaste_2022-02-24_11-52-27.png)
 
 delete
 
-![142_fig1](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_11-52-43.png)
+![Snipaste_2022-02-24_11-52-43](ALG.assets/Snipaste_2022-02-24_11-52-43.png)
 
 ### 6.2 136.只出现一次的数字
 
@@ -1988,7 +1988,7 @@ delete
 - 除根节点外，每个节点都有并仅有唯一一个父节点
 - 节点间不能形成闭环
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/微信图片_20220224154215.png)
+![微信图片_20220224154215](ALG.assets/微信图片_20220224154215-16482741466431.png)
 
 树有几个概念：
 
@@ -1997,7 +1997,7 @@ delete
 - **节点的高度：节点到叶节点的最长路径**
 - 书的高度：根节点的高度
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_15-42-56.png)
+![](ALG.assets/Snipaste_2022-02-24_15-42-56.png)
 
 - B、C、D 互称为兄弟节点
 - 节点B 的高度为 2
@@ -2008,13 +2008,13 @@ delete
 
 最多仅有两个子节点的树
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-11-14.png)
+![](ALG.assets/Snipaste_2022-02-24_16-11-14.png)
 
 ### 7.3 平衡二叉树
 
 ⼆叉树中，每⼀个节点的左右⼦树的⾼度相差不能⼤于 1，称为平衡⼆叉树。
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-11-36.png)
+![](ALG.assets/Snipaste_2022-02-24_16-11-36.png)
 
 另外还有满⼆叉树、完全⼆叉树等：
 
@@ -2053,15 +2053,15 @@ function BinaryTree() {
 
 #### 7.5.1 前序遍历
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-33.png)
+![](ALG.assets/Snipaste_2022-02-24_16-50-33.png)
 
 #### 7.5.2 中序遍历
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-46.png)
+![](ALG.assets/Snipaste_2022-02-24_16-50-46-16484506078525.png)
 
 #### 7.5.3 后序遍历
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-58.png)
+![](ALG.assets/Snipaste_2022-02-24_16-50-58-16484506114507.png)
 
 #### 7.5.4 递归实现（前序为例）
 
@@ -2124,13 +2124,13 @@ const preorderTraversal = (root) => {
 - 左子节点值小于该节点值
 - 右⼦节点值⼤于等于该节点值
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_17-48-15.png)
+![Snipaste_2022-02-24_17-48-15](ALG.assets/Snipaste_2022-02-24_17-48-15.png)
 
 ### 7.7 94.二叉树的中序遍历
 
 给定一个二叉树的根节点 `root` ，返回它的 **中序** 遍历。
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-28_15-32-47.png)
+![Snipaste_2022-02-28_15-32-47](ALG.assets/Snipaste_2022-02-28_15-32-47.png)
 
 ```
 输入：root = [1,null,2,3]
@@ -2157,7 +2157,7 @@ const preorderTraversal = (root) => {
   };
   ```
 
-  ![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-46.png)
+  ![Snipaste_2022-02-24_16-50-46](ALG.assets/Snipaste_2022-02-24_16-50-46.png)
 
 - 入栈
 
@@ -2217,7 +2217,7 @@ const preorderTraversal = (root) => {
 
 给你一棵二叉树的根节点 `root` ，返回其节点值的 **后序遍历** 。
 
-![](https://gitee.com/wayliuhaha/pic-go-drawing-bed/raw/master/img/Snipaste_2022-02-24_16-50-58.png)
+![Snipaste_2022-02-24_16-50-58](ALG.assets/Snipaste_2022-02-24_16-50-58.png)
 
 - 递归遍历
 
