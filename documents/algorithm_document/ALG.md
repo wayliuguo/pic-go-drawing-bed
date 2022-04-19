@@ -2238,8 +2238,134 @@ const preorderTraversal = (root) => {
 
 
 - 迭代
+  - 先取出root节点，头插进入
+  - 由于后序是左右根，而且是头插，则入栈也是先左后右，出栈先出右再出左
 
 ```
+var postorderTraversal = function(root) {
+    let list = []
+    let stack = []
+    if (root) stack.push(root)
+    while (stack.length > 0) {
+        const node = stack.pop()
+        list.unshift(node.val)
+        if (node.left !== null) {
+            stack.push(node.left)
+        }
+        if (node.right !== null) {
+            stack.push(node.right)
+        }
+    }
+    return list
+};
+```
+
+### 7.9 102.二叉树的层序遍历
+
+给你二叉树的根节点 `root` ，返回其节点值的 **层序遍历** 。 （即逐层地，从左到右访问所有节点）。
+
+![image-20220418194709225](ALG.assets/image-20220418194709225.png)
 
 ```
+输入：root = [3,9,20,null,null,15,7]
+输出：[[3],[9,20],[15,7]]
+```
+
+- BFS: 广度优先遍历
+  - BFS 是按层层推进的⽅式，遍历每⼀层的节点
+  -  BFS 需要⽤队列作为辅助结构，我们先将根节点放到队列中，然后不断遍历队列
+
+```
+var levelOrder = function(root) {
+    // 如果节点为空
+    if (!root) return []
+    let res = [], queue = [root]
+    // 遍历当前层次
+    while (queue.length) {
+        // 使用curr接收当前层次，temp接收下一层次
+        let curr = [], temp = []
+        while(queue.length) {
+            const node = queue.shift()
+            curr.push(node.val)
+            if(node.left) {
+                temp.push(node.left)
+            }
+            if(node.right) {
+                temp.push(node.right)
+            }
+        }
+        res.push(curr)
+        queue = temp
+    }
+    return res
+};
+```
+
+- DFS深度优先遍历
+  - 为了让递归的过程中同⼀层的节点放到同⼀ 个列表中，在递归时要记录每个节点的深度 depth 。
+  - 为了让递归的过程中同⼀层的节点放到同⼀ 个列表中，在递归时要记录每个节点的深度 depth 。
+
+```
+var levelOrder = function(root) {
+    const res = []
+    const dep = (node, depth) => {
+        if (!node) return
+        res[depth] = res[depth] || []
+        res[depth].push(node.val)
+        if (node.left) dep(node.left, depth+1)
+        if(node.right) dep(node.right, depth+1)
+    }
+    dep(root, 0)
+    return res
+}
+```
+
+### 7.10 105.从前序与中序遍历序列构造二叉树
+
+给定两个整数数组 preorder 和 inorder ，其中 preorder 是二叉树的先序遍历， inorder 是同一棵树的中序遍历，请构造二叉树并返回其根节点。
+
+![image-20220419145858457](ALG.assets/image-20220419145858457.png)
+
+```
+输入: preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
+输出: [3,9,20,null,null,15,7]
+```
+
+- 递归
+
+  ```
+  function TreeNode(val) {
+      this.val = val
+      this.left = this.right = null
+  }
+  var buildTree = function(preorder, inorder) {
+      if(preorder.length) {
+          // 在前序中取出根节点
+          let head = new TreeNode(preorder.shift())
+          // 在中序中获取根节点位置index，其左边为左子树，右边为右子树
+          // index 可以推测出前序中的左子树为 [0, index)， 右子树为 [index, 末尾]
+          // index 可以推测出中序中的左子树为 [0, index)， 右子树为 [index + 1, 末尾]
+          let index = inorder.indexOf(head.val)
+          head.left = buildTree(
+              preorder.slice(0, index),
+              inorder.slice(0, index)
+          )
+          head.right = buildTree(
+              preorder.slice(index),
+              inorder.slice(index + 1)
+          )
+          return head
+      } else {
+          return null
+      }
+  };
+  ```
+
+  | head | preorder  | inorder     | index | 左子树        | 右子树                   |
+  | ---- | --------- | ----------- | ----- | ------------- | ------------------------ |
+  | 3    | 9,20,15,7 | 9,3,15,20,7 | 1     | 前：9 中：9   | 前: 20,15,7  中：15,20,7 |
+  | 9    |           | 9           | 0     | null          | null                     |
+  | 20   | 15,7      | 15,20,7     | 1     | 前：15 中：15 | 前: 7  中：7             |
+
+  
 
