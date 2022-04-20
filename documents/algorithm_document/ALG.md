@@ -2367,5 +2367,111 @@ var levelOrder = function(root) {
   | 9    |           | 9           | 0     | null          | null                     |
   | 20   | 15,7      | 15,20,7     | 1     | 前：15 中：15 | 前: 7  中：7             |
 
-  
 
+
+### 7.11 104.二叉树的最大深度
+
+给定一个二叉树，找出其最大深度。
+
+二叉树的深度为根节点到最远叶子节点的最长路径上的节点数。
+
+**说明:** 叶子节点是指没有子节点的节点。
+
+**示例：**
+给定二叉树 `[3,9,20,null,null,15,7]`
+
+![image-20220419154736954](ALG.assets/image-20220419154736954.png)
+
+- 递归
+  - 每次递归调用 maxDepth 且加上一层
+
+```
+var maxDepth = function(root) {
+    if (!root) return 0
+    return 1 + Math.max(maxDepth(root.left), maxDepth(root.right))
+};
+```
+
+
+
+### 7.12 110.平衡二叉树
+
+给定一个二叉树，判断它是否是高度平衡的二叉树。
+
+本题中，一棵高度平衡二叉树定义为：
+
+> 一个二叉树*每个节点* 的左右两个子树的高度差的绝对值不超过 1 。
+
+-  自顶向下暴力法 
+  - 依照前序遍历顺序，根左右
+
+```
+const depth = node => {
+    if (!node) return -1
+    return 1 + Math.max(depth(node.left), depth(node.right))
+}
+var isBalanced = function(root) {
+    if (!root) return true
+    return Math.max(depth(root.left), depth(root.right)) <= 1 && isBalanced(root.left) && isBalanced(root.right)
+};
+```
+
+
+
+
+
+### 7.13 路径总和
+
+给定⼀个⼆叉树和⼀个⽬标和，判断该树中是否存在根节点到叶⼦节点的路径，这条路径上所有节点 值相加等于⽬标和。
+
+说明: 叶⼦节点是指没有⼦节点的节点。 示例: 给定如下⼆叉树，以及⽬标和 sum = 22 
+
+![image-20220419193306816](ALG.assets/image-20220419193306816.png)
+
+- 递归实现
+
+  ```
+  var hasPathSum = function(root, targetSum) {
+      if (root === null) return false
+      // 如果是叶子节点，则是路径的末尾了，判断是否存在目标路径
+      if(root.left === null && root.right === null) return root.val === targetSum
+      // 递归判断是否存在路径
+      targetSum -= root.val
+      return hasPathSum(root.left, targetSum) || hasPathSum(root.right, targetSum)
+  };
+  ```
+
+- 迭代
+
+  - 利用两个栈存储节点与节点对应的总和
+  - 如果是叶子节点则进行判断
+  - 如果不是叶子节点则记录下一层节点及数值
+
+  ```
+  var hasPathSum = function(root, targetSum) {
+      if (!root) return false
+      let queue = []
+      let res = []
+  
+      queue.push(root)
+      res.push(root.val)
+      while(queue.length) {
+          let top = queue.pop()
+          let temp = res.pop()
+          if (top.left === null && top.right === null) {
+              if(temp === targetSum) return true
+          }
+          if(top.left) {
+              queue.push(top.left)
+              res.push(temp+top.left.val)
+          }
+          if(top.right) {
+              queue.push(top.right)
+              res.push(temp+top.right.val)
+          }
+      }
+      return false
+  };
+  ```
+
+  
