@@ -2474,4 +2474,57 @@ var isBalanced = function(root) {
   };
   ```
 
-  
+
+## 8. Top K 问题
+
+### 8.1 什么是Top k 问题？
+
+经典的 Top K 问题有：
+
+- 最⼤（⼩） K 个数
+- 前 K 个⾼频元素
+- 第 K 个最⼤（⼩）元素
+
+**题目**
+
+在未排序的数组中找到第 k 个最⼤的元素。请注意，你需要找的是数组排序后的第 k 个最⼤的元素
+
+**示例**
+
+```
+输⼊: [4,5,1,6,2,7,3,8] 和 k = 4
+输出: 5
+```
+
+#### 8.1.1 全局排序，取第k个数
+
+```
+let findKthLargest = (nums, k) => {
+    nums.sort((a, b) => b-a).slice(0, k)
+    return nums[k-1]
+}
+console.log(findKthLargest([4,5,1,6,2,7,3,8], 4)) // 5
+```
+
+#### 8.1.2 局部排序，冒泡
+
+```
+let findKthLargest = (nums, k) => {
+    bubbleSort(nums, k)
+    return nums[nums.length - k]
+
+}
+let bubbleSort = (arr, k) => {
+	// 遍历 k 次
+    for (let i=0; i<k; i++) {
+    	// 前后两两比较，大值右移
+        for (let j=0; j<arr.length-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                [arr[j], arr[j+1]] = [arr[j+1], arr[j]]
+            }
+        }
+    }
+}
+console.log(findKthLargest([4,5,1,6,2,7,3,8], 4)) // 5
+```
+
