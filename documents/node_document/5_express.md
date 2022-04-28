@@ -711,3 +711,677 @@ app.listen(PORT, () => {
 
 ![image-20220325234131054](5_express.assets/image-20220325234131054.png)
 
+### 3.3 路由设计
+
+- 在 app.js 中挂载路由
+
+```
+// 挂载路由
+app.use('/api', router)
+```
+
+- router文件夹 index.js 中引入路由
+
+```
+const express = require('express')
+const router = express.Router()
+
+// 用户相关模块
+router.use(require('./user'))
+// 用户资料相关模块
+router.use('/profiles', require('./profile'))
+// 文章相关路由
+router.use('/articles', require('./article'))
+// 标签相关路由
+router.use('/tag', require('./tag'))
+
+module.exports = router
+```
+
+- user.js
+
+```
+const express = require('express')
+const router = express.Router()
+
+// 用户登录
+router.post('/users/login', async (req, res, next) => {
+    try {
+        // 处理请求
+        res.send('post /users/login')
+    } catch (error) {
+        next(error)
+    }
+})
+
+...
+
+module.exports = router
+```
+
+### 3.4 提取控制器模块
+
+```
+// router/user.js
+
+const express = require('express')
+const router = express.Router()
+const userCtrl = require('../controller/user')
+
+// 用户登录
+router.post('/users/login', userCtrl.login)
+...
+module.exports = router
+```
+
+```
+// controller/user.js
+
+//  用户登录
+exports.login = async (req, res, next) => {
+    try {
+        // 处理请求
+        res.send('login')
+    } catch (error) {
+        next(error)
+    }
+}
+...
+```
+
+### 3.5 配置统一错误处理
+
+暴露一个方法，然后use执行此方法。
+
+```
+// middleware/error-handler.js
+
+const util = require('util')
+
+module.exports = () => {
+    return (err, req, res, next) => {
+        res.status(500).json({
+            error: util.format(err)
+        })
+    }
+}
+```
+
+```
+// app.js
+
+// 挂载路由
+app.use('/api', router)
+
+// 挂载统一处理服务端错误中间件
+app.use(errorHandler())
+```
+
+### 3.6 用户注册—将数据保存
+
+```
+npm i mongoose
+```
+
+- model/index.js ——连接数据库
+
+  ```
+  const mongoose = require('mongoose')
+  const { dbUri } = require('../config/config.default')
+  
+  // 连接 MongoDB 数据库
+  mongoose.connect(dbUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  
+  const db = mongoose.connection
+  
+  // 当连接失败的时候
+  db.on('error', err => {
+    console.log('MongoDB 数据库连接失败', err)
+  })
+  
+  // 当连接成功的时候
+  db.once('open', function () {
+    console.log('MongoDB 数据库连接成功')
+  })
+  
+  // 组织导出模型类
+  module.exports = {
+    User: mongoose.model('User', require('./user')),
+    Article: mongoose.model('Article', require('./article'))
+  }
+  ```
+
+- model/user.js
+
+  ```
+  const mongoose = require('mongoose')
+  const baseModel = require('./base-model')
+  const md5 = require('../util/md5')
+  
+  const userSchema = new mongoose.Schema({
+    ...baseModel,
+    username: {
+      type: String,
+      required: true
+    },
+    email: {
+      type: String,
+      required: true
+    },
+    password: {
+      type: String,
+      required: true,
+      set: value => md5(value),
+      select: false
+    },
+    bio: {
+      type: String,
+      default: null
+    },
+    image: {
+      type: String,
+      default: null
+    }
+  })
+  
+  module.exports = userSchema
+  ```
+
+- controller/user.js
+
+  ```
+  // 引入 user model
+  const { User } = require('../model')
+  ...
+  //  用户注册
+  exports.register = async (req, res, next) => {
+      try {
+          // 1. 获取请求体数据
+          // 2 数据验证
+          // 2.1 基本数据验证
+          // 2.2 业务数据验证
+          // 3.验证通过，将数据保存到数据库
+          const user = new User(req.body.user)
+          await user.save()
+          // 4.发送成功响应
+          res.status(201).json({
+              user
+          })
+      } catch (error) {
+          next(error)
+      }
+  }
+  ```
+
+### 3.7 数据验证 express-validator
+
+https://express-validator.github.io/docs/
+
+```
+npm install --save express-validator
+```
+
+```
+const { body, validationResult } = require('express-validator');
+const { User } = require('../model');
+...
+// 用户注册
+router.post('/users',[ // 1.配置验证规则
+    body('user.username')
+        .notEmpty().withMessage('用户名不能为空')
+        .custom(async username => {
+            const user = await User.findOne({ username })
+            if (user) {
+                return Promise.reject('用户名已存在')
+            }
+        }),
+    body('user.password').notEmpty().withMessage('密码不能为空'),
+    body('user.email')
+        .notEmpty().withMessage('邮箱不能为空')
+        .isEmail().withMessage('邮箱格式不正确')
+        .bail() // 前面两者都通过
+        .custom(async email => {
+            const user = await User.findOne({ email })
+            if (user) {
+                return Promise.reject('邮箱已存在')
+            }
+        })
+], (req, res, next) => { // 2. 判断验证结果
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+    }
+    next()
+},userCtrl.register)
+```
+
+### 3.8 提取验证中间件
+
+- middleware/validate.js
+
+  ```
+  const { validationResult } = require('express-validator')
+  
+  module.exports = validations => {
+      return async (req, res, next) => {
+          await Promise.all(validations.map(validation => validation.run(req)))
+  
+          const errors = validationResult(req)
+          if (errors.isEmpty()) {
+              return next()
+          }
+  
+          res.status(400).json({ errors: errors.array() })
+      }
+  }
+  ```
+
+- validator/user.js
+
+  ```
+  const validate = require('../middleware/validate')
+  const { body } = require('express-validator')
+  const { User } = require('../model')
+  
+  exports.register = validate([
+      body('user.username')
+          .notEmpty().withMessage('用户名不能为空')
+          .custom(async username => {
+              const user = await User.findOne({ username })
+              if (user) {
+                  return Promise.reject('用户名已存在')
+              }
+          }),
+      body('user.password').notEmpty().withMessage('密码不能为空'),
+      body('user.email')
+          .notEmpty().withMessage('邮箱不能为空')
+          .isEmail().withMessage('邮箱格式不正确')
+          .bail() // 前面两者都通过
+          .custom(async email => {
+              const user = await User.findOne({ email })
+              if (user) {
+                  return Promise.reject('邮箱已存在')
+              }
+          })
+  ])
+  ```
+
+- router/user.js
+
+  ```
+  const express = require('express')
+  const router = express.Router()
+  const userCtrl = require('../controller/user')
+  const userValidator = require('../validator/user')
+  
+  // 用户注册
+  router.post('/users', userValidator.register, userCtrl.register)
+  
+  module.exports = router
+  ```
+
+### 3.10 使用md5加密密码
+
+- util/md5.js
+
+  ```
+  const crypto = require('crypto')
+  
+  module.exports = str => {
+      return crypto.createHash('md5')
+          .update('lagou' + str)
+          .digest('hex')
+  }
+  ```
+
+- model/user.js
+
+  - 使用 select: false 保证了密码不会被查询返回
+
+  ```
+  const mongoose = require('mongoose')
+  const baseModel = require('./base-model')
+  const md5 = require('../util/md5')
+  
+  const userSchema = new mongoose.Schema({
+    ...
+    password: {
+      type: String,
+      required: true,
+      set: value => md5(value),
+      select: false
+    }
+    ...
+  })
+  
+  module.exports = userSchema
+  ```
+
+
+### 3.11 登录数据验证
+
+```
+exports.login = [
+  validate([
+    body('user.email').notEmpty().withMessage('邮箱不能为空'),
+    body('user.password').notEmpty().withMessage('密码不能为空')
+  ]),
+  validate([
+    body('user.email').custom(async (email, { req }) => {
+      const user = await User.findOne({ email })
+        .select(['email', 'username', 'bio', 'image', 'password'])
+      if (!user) {
+        return Promise.reject('用户不存在')
+      }
+
+      // 将数据挂载到请求对象中，后续的中间件也可以使用了
+      req.user = user
+    })
+  ]),
+  validate([
+    body('user.password').custom(async (password, { req }) => {
+      if (md5(password) !== req.user.password) {
+        return Promise.reject('密码错误')
+      }
+    })
+  ])
+]
+```
+
+### 3.12 基于JWT的身份认证
+
+**JSON Web Token(缩写JWT)是目前最流行的跨域认证解决方案。**
+
+- 跨域认证的问题
+
+  互联网服务离不开用户认证。一般流程是下面这样。
+
+  1. 用户向服务器发送用户名和密码。
+
+  2. 服务器验证通过后，在当前对话(session)里面保存相关数据，比如用户角色、登录时间等等。
+
+  3. 服务器向用户返回一个session_id，写入用户的Cookie。
+
+  4. 用户随后的每一次请求，都会通过Cookie，将session_id 传回服务器。
+
+  5. 服务器收到session_id，找到前期保存的数据，由此得知用户的身份。
+
+  6. 这种模式的问题在于，扩展性(scaling）不好。单机当然没有问题，如果是服务器集群，或者是跨域的服务导向架构，就要求session数据共享，每台服务器都能够读取session。
+
+     举例来说，A网站和B网站是同一家公司的关联服务。现在要求，用户只要在其中一个网站登录，再访问另一个网站就会自动登录，请问怎么实现?
+
+     一种解决方案是session 数据持久化，写入数据库或别的持久层。各种服务收到请求后，都向持久层请求数据。这种方案的优点是架构清晰，缺点是工程量比较大。另外，持久层万一挂了，就会单点失败。
+
+     另一种方案是服务器索性不保存session 数据了，所有数据都保存在客户端，每次请求都发回服务器。JWT 就是这种方案的一个代表。
+
+- JWT 原理
+
+  JWT的原理是，服务器认证以后，生成一个JSON对象，发回给用户，就像下面这样。
+
+  ```
+  {
+  	“姓名”: "张三",
+  	"角色": "管理员",
+  	"到期时间": "2018年7月1日0点0分"
+  }
+  ```
+
+  以后，用户与服务端通信的时候，都要发回这个JSON对象。服务器完全只靠这个对象认定用户身份。为了防止用户篡改数据，服务器在生成这个对象的时候，会加上签名（详见后文)。
+
+  服务器就不保存任何session数据了，也就是说，服务器变成无状态了，从而比较容易实现扩展。
+
+- JWT 的数据结构
+
+  实际的 JWT 大概就像下面这样
+
+  ```
+  eyJhbGci0iJIUzI1NiIsInR5cCT6IkpXvCJ9.
+  eyJzdWIi0iIxMjMNTY30DkwIiwibmFtZSI6IkpvaG4gRG91IiwiaXNTb2NpYWwiOnRydwV9.
+  eyJhbGci0iJIUzI1NiIsInR5cCT6IkpXvCJ9.
+  eyJzdWIi0iIxMjMNTY30DkwIiwibmFtZSI6IkpvaG4gRG91IiwiaXNTb2NpYWwiOnRydwV9.
+  4pcPyMD89o1PSyXnrXCjTwXyr4BsezdI1AVTmud2fU4
+  ```
+
+  它是一个很长的字符串，中间用点（.）分隔成三个部分。注意，JWT内部是没有换行的，这里只是为了便于展示，将它写成了几行。
+
+  JWT 的三部分依次如下
+
+  - Header(头部)
+  -  Payload(负载)
+  - Signature(签名)
+
+- Header
+
+  Header 部分是一个JSON对象，描述JWT 的元数据，通常是下面的样子。
+
+  ```
+  {
+  	" alg":“HS256,
+  	"type": "JWT"
+  }
+  ```
+
+  上面代码中，alg属性表示签名的算法（algorithm)，默认是HMAC SHA256(写成HS256) ; typ属性表示这个令牌(token)的类型(type),JWT令牌统一写为JWT。
+
+  最后，将上面的JSON对象使用Base64URL算法（详见后文）转成字符串。
+
+- pAyload
+
+  Payload 部分也是一个JSON对象，用来存放实际需要传递的数据。JWT规定了7个官方字段，供选用。
+
+  - iss (issuer):签发人
+  - exp (expiration time):过期时间
+  - sub (subject):主题
+  - aud (audience):受众
+  - nbf (Not Before):生效时间
+  - iat (lssued At):签发时间
+  - jti (JWT ID):编号
+
+  除了官方字段，你还可以在这个部分定义私有字段，下面就是例子。
+
+  ```
+  {
+  	"sub" : "123450/o,
+  	"name" : "Jonn voe,
+  	"admin" : true
+  }
+  ```
+
+  注意，JWT默认是不加密的，任何人都可以读到，所以不要把秘密信息放在这个部分。
+
+  这个JSON对象也要使用Base64URL 算法转成字符串。
+
+- Signature
+
+  Signature部分是对前两部分的签名，防止数据篡改。
+
+- jwt.io https://jwt.io/
+
+  ![image-20220426233420925](5_express.assets/image-20220426233420925.png)
+
+- Signature
+
+  Signature部分是对前两部分的签名，防止数据篡改。
+
+  首先，需要指定一个密钥(secret)。这个密钥只有服务器才知道,不能泄露给用户。然后，使用Header里面指定的签名算法（默认是HMAC SHA256)，按照下面的公式产生签名。
+
+  ```
+  1 HMACSHA256(
+  	base64UrlEncode ( header)+"."+
+  	base64UrlEncode( payload ),
+  	secret)
+  ```
+
+  算出签名以后，把Header、Payload、Signature 三个部分拼成一个字符串，每个部分之间用"点”(）分隔，就可以返回给用户。
+
+  **在JWT中，消息体是透明的，使用签名可以保证消息不被篡改。但不能实现数据加密功能。**
+
+- Base64URL
+
+  前面提到，Header和 Payload 串型化的算法是Base64URL。这个算法跟 Base64算法基本类似，但有一些小的不同。
+
+  JWT作为一个令牌(token)，有些场合可能会放到URL （比如api.example.com/?token=xxx)。Base64有三个字符+、/和=，在URL里面有特殊含义，所以要被替换掉:=被省略、+替换成-，/替换成_。这就是
+
+- JWT 的使用方式
+
+  客户端收到服务器返回的JWT，可以储存在Cookie 里面，也可以储存在localStorage。
+
+  此后，客户端每次与服务器通信，都要带上这个JWT。你可以把它放在Cookie里面自动发送，但是这样不能跨域，所以更好的做法是放在HTTP请求的头信息Authorization字段里面（也可以自定义字段入abc）。
+
+  ```
+  Authorization: Bearer <token>
+  ```
+
+  另一种做法是，跨域的时候，JWT就放在POST 请求的数据体里面。
+
+- JWT 的几个特点
+
+  ( 1) JWT 默认是不加密，但也是可以加密的。生成原始Token 以后，可以用密钥再加密一次。
+
+  (2)JWT不加密的情况下，不能将秘密数据写入JWT。
+
+  (3)JWT不仅可以用于认证，也可以用于交换信息。有效使用JWT,可以降低服务器查询数据库的次数。
+
+  (4)JWT的最大缺点是，由于服务器不保存session状态，因此无法在使用过程中废止某个token，或者更改token 的权限。也就是说，一旦JWT签发了，在到期之前就会始终有效，除非服务器部署额外的逻辑。
+
+  (5)JWT本身包含了认证信息，一旦泄露，任何人都可以获得该令牌的所有权限。为了减少盗用，JWT的有效期应该设置得比较短。对于一些比较重要的权限，使用时应该再次对用户进行认证。
+
+  (5)JWT本身包含了认证信息，一旦泄露，任何人都可以获得该令牌的所有权限。为了减少盗用，JWT的有效期应该设置得比较短。对于一些比较重要的权限，使用时应该再次对用户进行认证。
+
+- JWT 的解决方案 
+
+  - https://jwt.io
+
+- 在 Node.js 中使用 JWT
+
+  推荐： https://github.com/auth0/node-jsonwebtoken
+
+### 3.13 使用 jsonwebtoken
+
+```
+npm install jsonwebtoken
+```
+
+```
+const jwt = require('jsonwebtoken')
+
+/* jwt.sign({
+    foo: 'bar'
+}, 'abcdefghijklmn', (err, token) => {
+    if (err) {
+        return console.log('生成tocken 失败')
+    }
+    console.log(token) // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE2NTEwNzExNjZ9.DldZl60SJEanxZaNm30A80Sz9VF1Y9So9NZKIa48jtU
+}) */
+
+// 验证 jwt
+const ret = jwt.verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJpYXQiOjE2NTEwNzExNjZ9.DldZl60SJEanxZaNm30A80Sz9VF1Y9So9NZKIa48jtU',
+    'abcdefghijklmn',
+    (err, ret) => {
+        if (err) {
+            return console.log('token 认证失败')
+        }
+        console.log(ret) // { foo: 'bar', iat: 1651071166 }
+    }
+)
+```
+
+### 3.14 用户登录—生成token
+
+- utils/jwt.js
+
+  ```
+  const jwt = require('jsonwebtoken')
+  
+  const { promisify } = require('util')
+  
+  exports.sign = promisify(jwt.sign)
+  
+  exports.verify = promisify(jwt.verify)
+  
+  exports.decode = promisify(jwt.decode)
+  
+  ```
+
+- controller/user.js
+
+  ```
+  const { User } = require('../model')
+  const jwt = require('../util/jwt')
+  const { jwtSecret } = require('../config/config.default')
+  
+  //  用户登录
+  exports.login = async (req, res, next) => {
+      try {
+          // 1.数据验证
+          // 2. 生成 token
+          const user = req.user.toJSON()
+          const token = await jwt.sign({
+              userId: user._id
+          }, jwtSecret)
+          // 3. 发送成功响应（包含 token 的用户信息）
+          delete user.password
+          res.status(200).json({
+              ...user,
+              token
+          })
+      } catch (error) {
+          next(error)
+      }
+  }
+  ```
+
+  ![image-20220428231503791](5_express.assets/image-20220428231503791.png)
+
+### 3.15 使用中间件统一处理jwt身份认证
+
+- middleware/jwt.js
+
+  ```
+  const { verify } = require('../util/jwt')
+  const { jwtSecret } = require('../config/config.default')
+  const { User } = require('../model')
+  
+  module.exports = async (req, res, next) => {
+    // 从请求头获取 token 数据
+    let token = req.headers['authorization']
+    token = token
+      ? token.split('Bearer ')[1]
+      : null
+  
+    if (!token) {
+      return res.status(401).end()
+    }
+  
+    try {
+      const decodedToken = await verify(token, jwtSecret)
+      req.user = await User.findById(decodedToken.userId)
+      next()
+    } catch (err) {
+      return res.status(401).end()
+    }
+  
+    // 验证 token 是否有效
+    // 无效 -> 响应 401 状态码
+    // 有效 -> 把用户信息读取出来挂载到 req 请求对象上
+    //        继续往后执行
+  }
+  ```
+
+- router/user.js
+
+  ```
+  ...
+  const auth = require('../middleware/auth')
+  
+  // 获取当前登录用户
+  router.get('/user', auth, userCtrl.getCurrentUser)
+  
+  // 更新当前登录用户
+  router.put('/user', auth, userCtrl.updateCurrentUser)
+  ```
+
+  ![image-20220428234516060](5_express.assets/image-20220428234516060.png)
