@@ -508,3 +508,10 @@ git checkout -b feature-liuguowei-supportDeleteOnlineCustomer origin/release-4.5
 git push origin --delete feature-liuguowei-supportDeleteOnlineCustomer
 ```
 
+- 上传分支
+
+  ```
+  git push --set-upstream origin bugfix-liuguowei-fixDistributionSave
+  ```
+
+  
