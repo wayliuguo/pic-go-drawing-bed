@@ -1385,3 +1385,37 @@ const ret = jwt.verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJ
   ```
 
   ![image-20220428234516060](5_express.assets/image-20220428234516060.png)
+
+### 3.16 jwt 过期时间与postman统一设置token
+
+- controller/user.js
+
+  - expiresIn: '24h'
+
+  ```
+  //  用户登录
+  exports.login = async (req, res, next) => {
+      try {
+          // 1.数据验证
+          // 2. 生成 token
+          const user = req.user.toJSON()
+          const token = await jwt.sign({
+              userId: user._id
+          }, jwtSecret, {
+              expiresIn: '24h'
+          })
+          // 3. 发送成功响应（包含 token 的用户信息）
+          delete user.password
+          res.status(200).json({
+              ...user,
+              token
+          })
+      } catch (error) {
+          next(error)
+      }
+  }
+  ```
+
+- 统一设置
+
+  ![image-20220505224409376](5_express.assets/image-20220505224409376.png)
