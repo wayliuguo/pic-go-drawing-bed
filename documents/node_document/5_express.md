@@ -1419,3 +1419,75 @@ const ret = jwt.verify('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJiYXIiLCJ
 - 统一设置
 
   ![image-20220505224409376](5_express.assets/image-20220505224409376.png)
+
+## 4. express 实现原理
+
+### 4.1 源码结构
+
+![image-20220508114908437](5_express.assets/image-20220508114908437.png)
+
+常规入口文件为package.json 中 main 字段对应文件，由于此package.json 中没有此字段，默认入口文件为 index.js。
+
+- index.js
+
+  暴露lib/express
+
+  ```
+  'use strict';
+  module.exports = require('./lib/express');
+  ```
+
+- express.js
+
+  - const express = require('express') 引入的即是此app
+  - 通过 mixin 混合了其它， 关键在于 application.js
+
+  ```
+  ...
+  var mixin = require('merge-descriptors');
+  var proto = require('./application');
+  
+  function createApplication() {
+    var app = function(req, res, next) {
+      app.handle(req, res, next);
+    };
+    mixin(app, EventEmitter.prototype, false);
+    mixin(app, proto, false);
+  
+    // expose the prototype that will get set on requests
+    app.request = Object.create(req, {
+      app: { configurable: true, enumerable: true, writable: true, value: app }
+    })
+  
+    // expose the prototype that will get set on responses
+    app.response = Object.create(res, {
+      app: { configurable: true, enumerable: true, writable: true, value: app }
+    })
+  
+    app.init();
+    return app;
+  }
+  ...
+  ```
+
+- request.js
+
+  对 request进行了扩展
+
+- response.js
+
+  对 response 进行了扩展
+
+- router 文件夹
+
+  对 router 进行了处理
+
+- middleware 文件夹
+
+  内置中间件
+
+- utils.js
+
+  工具函数
+
+### 4.2 快速体验
