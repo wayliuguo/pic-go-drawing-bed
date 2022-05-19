@@ -71,3 +71,107 @@ console.log(AGE) // 18
 
 ```
 
+## 5.字符串的扩展方法
+
+- startsWith
+- endsWith
+- includes
+
+```
+const message = 'Error: foo is not defined.'
+
+console.log(message.startsWith('Error')) // true
+console.log(message.endsWith('.')) // true
+console.log(message.includes('foo')) // true
+```
+
+## 6.参数默认值
+
+```
+/* function foo (enable) {
+    enable = enable === undefined ? true : enable
+    console.log(enable)
+} */
+
+function foo (enable=true) {
+    console.log(enable)
+}
+foo()
+```
+
+## 7.剩余参数
+
+- arguments
+- 剩余参数
+
+```
+function foo () {
+    console.log(arguments) // 伪数组
+    // [Arguments] { '0': 1, '1': 2, '2': 3, '3': 4 }
+    console.log(arguments[0]) // 1
+}
+
+function face (first, ...args) {
+    console.log(args) // [ 2, 3, 4 ]
+} 
+
+foo(1,2,3,4)
+face(1,2,3,4)
+```
+
+## 8.展开数组
+
+- 以前的做法
+- 展开数组
+
+```
+const arr = [1, 2, 3]
+
+// log 方法是console 对象调用的，把log指向 console
+console.log.apply(console, arr) // 123
+
+console.log(...arr) // 123
+```
+
+## 9. 箭头函数
+
+- 没有this机制，不会改变this的指向
+- 箭头函数不会创建自己的`this,它只会从自己的作用域链的上一层继承this`
+
+```
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Document</title>
+   <script>
+
+
+      const age = 18
+
+      const A = {
+         age: 18,
+         sayHello: () => {
+            console.log(this.age) // undefined
+            console.log(this.name) // window 
+            console.log(this === window) // true
+         },
+         sayHi: function () {
+            console.log(this.age) // 18
+         }
+      }
+      A.sayHello()
+      A.sayHi()
+   </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
+```
+
