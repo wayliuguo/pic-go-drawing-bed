@@ -175,3 +175,288 @@ console.log(...arr) // 123
 </html>
 ```
 
+## 10. 对象字面量增强
+
+```
+const bar = 'well'
+
+const obj = {
+    foo: 123,
+    // bar: bar,
+    bar,
+    method1: function() {
+        console.log(123)
+    },
+    method2() {
+        console.log(123)
+    },
+    [bar]: 'liuguowei'
+}
+
+console.log(obj[bar]) // liuguowei
+```
+
+## 11. 对象扩展方法
+
+- Object.assign(target, source)
+
+  - 将多个源对象(source)中属性复制到一个目标对象(target)中
+  - 如果有相同的属性，source 覆盖 target的（优先级：从右往左）
+
+  ```
+  const source1 = {
+      a: 's1a',
+      b: 's1b'
+  }
+  const source2 = {
+      a: 's2a',
+      b: 's2b',
+      c: 's2c'
+  }
+  
+  const target = {
+      a: 'ta',
+      c: 'tc'
+  }
+  
+  // const result = Object.assign(target, source2, source1)
+  // console.log(result) // { a: 's1a', c: 's2c', b: 's1b' }
+  
+  const result = Object.assign(target, source1, source2)
+  console.log(result) // { a: 's2a', c: 's2c', b: 's2b' }
+  console.log(result ===  target) // true
+  ```
+
+## 12. proxy
+
+```
+const person = {
+    name: 'well',
+    age: 18
+}
+
+const personProxy = new Proxy(person, {
+    get (target, property) {
+        return property in target ? target[property] : 'undefined'
+    },
+    set (target, property, value) {
+        target[property] = value
+        console.log(target) // { name: 'well', age: 18, sex: 1 }
+    }
+})
+
+console.log(personProxy.name) // well
+personProxy.sex = 1
+
+// 重写数组方法
+const list = []
+
+const listProxy = new Proxy(list, {
+    set (target, property, value) {
+        console.log(target, property, value) // [ 100 ] length 1
+        target[property] = value
+        return true
+    }
+})
+listProxy.push(100)
+```
+
+**对比Object.defineProperty()**
+
+- 更多的操作方法
+- 重写数组方法
+- defineProperty 需要对对象的每个属性定义监听
+
+![image-20220522101317003](Es6新特性.assets/image-20220522101317003.png)
+
+## 13. Reflect
+
+- 统一的操作对象API
+- Reflect 内部封装了一系列对对象的底层操作
+- Reflect 成员方法就是 Proxy 处理对象的默认实现（方法名称也一样）
+
+```
+const obj = {
+    foo: 123,
+    bar: 456
+}
+
+const proxy = new Proxy(obj, {
+    get(target, property) {
+        return Reflect.get(target, property) // 默认
+    }
+})
+
+const user = {
+    name: 'well',
+    age: 18
+}
+
+/* console.log('name' in user)
+console.log(delete user['age'])
+console.log(Object.keys(user)) */
+console.log(Reflect.has(user, 'name')) // true
+console.log(Reflect.deleteProperty(user, 'age')) // true
+console.log(Reflect.ownKeys(user)) // [ 'name' ]
+```
+
+## 14. class 类
+
+- function 与 class
+- 实例方法 与 静态方法
+  - 实例方法： 通过实例去调用
+  - 静态方法：直接通过类本身去调用
+- 类的继承 extends
+
+```
+/* function Person(name) {
+    this.name = name
+    this.speak = function() {
+        return this.name
+    }
+}
+Person.prototype.say = function () {
+    return this.name
+}
+const person = new Person('liuguowei')
+person.name = 'well'
+console.log(person.speak())// well
+console.log(person.say()) // well
+ */
+
+class Person {
+    constructor(name) {
+        this.name = name
+    }
+    say () {
+        return this.name
+    }
+    // 静态方法， this 指向 类本身
+    static create(name) {
+        return new Person(name)
+    }
+}
+const p = new Person('well')
+console.log(p.say())
+const tom = Person.create('tom')
+console.log(tom.say()) // tom
+
+// 继承
+class Student extends Person {
+    constructor (name, number) {
+        super(name)
+        this.number = number
+    }
+    hello() {
+        return super.say()
+    }
+}
+const s = new Student('jack', 100)
+console.log(s.hello()) // jack
+```
+
+## 15. Set 数据结构
+
+```
+const s = new Set()
+
+// 链式调用
+s.add(1).add(2).add(3)
+// 遍历
+s.forEach( i => console.log(i))
+for (let i of s) {
+    console.log(i)
+}
+// size
+console.log(s.size) // 3
+// has
+console.log(s.has(100)) // false
+// delete
+s.delete(3)
+console.log(s) // Set(2) { 1, 2 }
+// clear
+s.clear() // Set(0) {} 
+console.log(s)
+
+// 数组去重
+const arr = [1,1,2,3,2]
+const result = [...new Set(arr)]
+console.log(result) // [ 1, 2, 3 ] 
+```
+
+## 16. Map 数据结构
+
+- 键值对集合，用于映射两个任意类型数据
+
+```
+const m = new Map()
+const tom = { name: 'tom'}
+
+m.set(tom, 90)
+console.log(m)
+console.log(m.get(tom))
+console.log(m.has(tom))
+console.log(m.delete(tom))
+m.clear()
+console.log(m)
+```
+
+## 17.Symbol
+
+```
+/* // shared.js
+const cache = {}
+// a.js
+cache['foo'] = 1
+// b.js
+cache['foo'] = 2
+ */
+
+// Symbol
+const obj = {}
+obj[Symbol('foo')] = '123'
+obj[Symbol('foo')] = '456'
+console.log(obj) // { [Symbol(foo)]: '123', [Symbol(foo)]: '456' }
+console.log(obj[Symbol('foo')] === obj[Symbol('foo')]) // true
+console.log(Symbol('foo') === Symbol('foo')) // false
+```
+
+## 18.for ... of 循环
+
+- 作为遍历所有数据结构的统一方法
+- 遍历的是value，可以 break 中断
+- 也可以遍历类数组，如arguments,set,map
+
+```
+const arr =  [1, 2, 3, 4, 5]
+
+for (const item of arr) {
+    if (item > 2) {
+        break
+    }
+    console.log(item) // 1 2
+}
+
+const m = new Map()
+m.set('foo', 123)
+m.set('bar', 456)
+
+for (const [key, value] of m) {
+    console.log(key, value)
+}
+```
+
+## 19. 可迭代接口（iterable）
+
+- 实现 iterable 接口 是 for ... of 的前提
+- 原型链上存在属性 Symbol.iterator
+
+```
+const arr =  ['foo', 'bar']
+
+const iterator = arr[Symbol.iterator]()
+console.log(iterator.next()) // { value: 'foo', done: false }
+console.log(iterator.next()) // { value: 'bar', done: false }   
+console.log(iterator.next()) // { value: undefined, done: true }
+```
+
