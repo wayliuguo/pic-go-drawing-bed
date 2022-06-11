@@ -281,3 +281,50 @@ module.exports = {
 
 ## 12. 开发一个loader
 
+![image-20220608233957281](webpack.assets/image-20220608233957281.png)
+
+```
+npm i marked -D
+npm i html-loader -D
+```
+
+- markdown-loader.js
+
+  ```
+  const marked = require('marked')
+  module.exports = source => {
+      const html = marked.parse(source)
+      // return `module.exports = ${JSON.stringify(html)}` 需要传回 js
+      return html // 传回给 下一个loader处理
+  }
+  ```
+
+- about.md
+
+  ```
+  # 关于我
+  
+  我是你爸爸
+  ```
+
+- main.js
+
+  ```
+  import about from './about.md'
+  
+  document.body.append(about)
+  ```
+
+- webpack.config.js
+
+  ```
+  {
+  	test: /.md$/,
+  	use: [
+  		'html-loader',
+  		'./markdown-loader'
+  	]
+  }
+  ```
+
+  

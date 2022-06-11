@@ -615,6 +615,19 @@ module.exports = __webpack_require__.p + "img/background.cbe08e.png";
 
 module.exports = __webpack_require__.p + "img/icon.06c26f.png";
 
+/***/ }),
+/* 17 */
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+// Module
+var code = "<h1 id=\"关于我\">关于我</h1>\n<p>我是你爸爸</p>\n";
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (code);
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -757,6 +770,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _heading_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var _main_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(12);
 /* harmony import */ var _icon_png__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(16);
+/* harmony import */ var _about_md__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(17);
+
 
 
 
@@ -765,6 +780,7 @@ document.body.append(heading);
 var img = new Image();
 img.src = _icon_png__WEBPACK_IMPORTED_MODULE_2__;
 document.body.append(img);
+document.body.append(_about_md__WEBPACK_IMPORTED_MODULE_3__["default"]);
 })();
 
 /******/ })()
