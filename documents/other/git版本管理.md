@@ -514,4 +514,10 @@ git push origin --delete feature-liuguowei-supportDeleteOnlineCustomer
   git push --set-upstream origin bugfix-liuguowei-fixDistributionSave
   ```
 
+- 提交到某个远程分支
+
+  ```
+  git push origin HEAD:远程分支名
+  ```
+
   
