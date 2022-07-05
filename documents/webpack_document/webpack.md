@@ -327,4 +327,18 @@ npm i html-loader -D
   }
   ```
 
-  
+
+
+
+## 13. 自动清除输出目录插件
+
+```
+npm i clean-webpack-plugin -D
+```
+
+```
+plugins: [
+  new CleanWebpackPlugin()
+]
+```
+
