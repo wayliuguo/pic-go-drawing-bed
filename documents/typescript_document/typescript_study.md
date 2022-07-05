@@ -1,108 +1,26 @@
-### tsconfig.json
+## 1.搭建学习环境
 
-[tsconfig.json](https://www.tslang.cn/docs/handbook/compiler-options.html)
+1. 安装最新版typescript
 
-```
-// 安装
-npm install -g typescript
-// 运行
-tsc ×××.ts
-```
+   ```
+   npm i -g typescript
+   ```
 
-- 在编译后如果没有tsconfig.json,则vscode会报相同声明的函数语法错误。
+2. 安装ts-node
 
-- const name: string 无法重新声明块范围变量“name”。ts(2451)
+   ```
+   npm i -g ts-node
+   ```
 
-  - 原因：在默认状态下，typescript 将 DOM typings 作为全局的运行环境，所以当我们声明 name时， 与 DOM 中的全局 window 对象下的 name 属性出现了重名
+3. 创建一个 tsconfig.json 文件
 
-  - 解决：
+   ```
+   tsc --init
+   ```
 
-    - 在tsconfig.json 中声明
+## 2.官方playground
 
-      ```
-      {
-          "compilerOptions": {
-              "lib": [
-                  "ES2015"
-              ]
-          }
-      }
-      ```
+https://www.typescriptlang.org/zh/play?#code/Q
 
-    - 在脚本文件最后一行，添加 `export {};`。将文件声明为模块， 变量`name`限制在了 模块作用域下，就不会与全局作用域下的`name`产生冲突。
+## 3.基础数据类型
 
-### 基础类型
-
-- boolean
-- string
-- Array
-- Tuple
-- enum
-- Any
-- Void
-- Null
-- Undefined
-- never
-- Object
-- 断言
-
-### 接口
-
-```
-
-```
-
-- 接口类型检查
-- 可选属性
-- 只读属性
-  - readonly
-  - ReadonlyArray<T>
-- 函数类型
-- 可索引类型
-- 类类型
-- 接口继承接口
-- 接口继承类
-
-
-
-### 类
-
-- 类的基本使用
-- 类的继承——super()
-- 公共、私有与受保护的修饰符
-  - public： 默认
-  - private: 私有——属性为私有属性,只能在该类中使用
-  - protected: 受保护——只能在该类和派生类中使用
-- readonly—只读属性
-- 存取器——getter、setter
-- 静态属性：static
-  - 静态属性属于类，访问静态属性时需要在属性前加上类名
-- 抽象类：abstract
-  - 作用：作为其他派生类的基类使用
-  - abstract：用于定义抽象类和抽象类内部定义的抽象方法
-
-### 函数
-
-- 函数定义类型
-- 可选参数和默认参数
-- 剩余参数
-- 函数重载
-
-### 泛型
-
-- 泛型与any类型对比
-- 泛型变量
-- 泛型类型
-  - 泛型函数类型
-  - 泛型接口
-  - 泛型类
-- 泛型约束
-
-### 枚举
-
-- 数字枚举
-- 字符串枚举
-
-
-
-### 
