@@ -101,4 +101,92 @@ let numNum: number = 6;
    ]
    ```
 
+
+### 4.2 函数
+
+1. 函数声明
+
+   ```
+   // 函数声明
+   function sum(x: number, y: number): number {
+       return x + y
+   }
+   ```
+
+2. 函数表达式
+
+   ```
+   // 完整表达式
+   const mySum: (x: number, y: number) => number =  (x: number, y: number): number => x + y
+   // 省略左边
+   const mySum1 = (x: number, y: number) => x + y
+   // 省略右边
+   const mySum2: (x: number, y: number) => number = (x, y) => x + y
+   ```
+
+3. 接口定义函数类型
+
+   ```
+   // 接口定义函数类型
+   interface myName {
+       (firstName: string, lastName: string): string
+   }
+   const myNameFn: myName = (firstName: string, lastName: string) => firstName + lastName
+   console.log(myNameFn('liu', 'guowei'))
+   ```
+
+4. 可选参数
+
+   注意点： 可选参数后面不允许再出现必须参数
+
+   ```
+   function buildName(firstName: string, lastName?: string) {
+       if (lastName) {
+           return firstName + ' ' + lastName
+       } else {
+           return firstName
+       }
+   }
+   console.log(buildName('well'))
+   ```
+
+5. 参数默认值
+
+   ```
+   function buildSpecialName(firstName: string, lastName: string = 'liu'): string {
+       return firstName + ' ' + lastName
+   }
+   ```
+
+6. 剩余参数
+
+   ```
+   function push(array: any[], ...items: any[]) {
+       items.forEach(item => array.push(item))
+       console.log(array)
+   }
+   console.log(push([], 1,2,3)) // [1,2,3]
+   ```
+
+7. 函数重载
+
+   ```
+   // 函数重载
+   type Types = number | string
+   function add(a:number,b:number):number;
+   function add(a: string, b: string): string;
+   function add(a: string, b: number): string;
+   function add(a: number, b: string): string;
+   function add(a:Types, b:Types) {
+     if (typeof a === 'string' || typeof b === 'string') {
+       return a.toString() + b.toString();
+     }
+     return a + b;
+   }
+   const result1 = add('Semlinker', ' Kakuqo');
+   const result2 = add(1, 2);
+   console.log(result1) // Semlinker Kakuqo
+   console.log(result2) // 3
+   ```
+
    
