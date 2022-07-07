@@ -189,4 +189,55 @@ let numNum: number = 6;
    console.log(result2) // 3
    ```
 
-   
+
+### 4.2 元组
+
+1. 元组定义
+
+   众所周知，数组一般由同种类型的值组成，但有时我们需要在单个变量中存储不同类型的值，这时候我们就可以使用元组。在 JavaScript 中是没有元组的，元组是 TypeScript 中特有的类型，其工作方式类似于数组。
+
+   元组最重要的特性是可以限制**数组元素的个数和类型**，它特别适合用来实现多值返回。
+
+   ```
+   let x: [string, number]
+   x = ['hello', 10]
+   // x = ['hello', 10, 10]
+   // x = [10, 'hello']
+   ```
+
+2. 元组类型的解构赋值
+
+   ```
+   let employee: [number, string] = [1, 'student']
+   let [id, username] = employee
+   console.log(id, username) // 1 student
+   ```
+
+3. 元组类型的可选元素
+
+   ```
+   let optionalTuple: [string, boolean?]
+   optionalTuple = ['well', true]
+   console.log(optionalTuple) // [ 'well', true ]
+   optionalTuple = ['well']
+   console.log(optionalTuple) // [ 'well' ]
+   ```
+
+4. 元组类型的剩余参数
+
+   自己尝试未见生效
+
+   ```
+   type RestTupleType = [number, ...string[]]
+   let restTuple: RestTupleType = [666, "Semlinker", "Kakuqo", "Lolo"]
+   console.log(restTuple[0]) // 666
+   console.log(restTuple[1]) // Semlinker
+   ```
+
+5. 只读的元组类型
+
+```
+const point: readonly [number, number] = [10, 10]
+// point[0] = 1 error
+```
+
