@@ -190,7 +190,7 @@ let numNum: number = 6;
    ```
 
 
-### 4.2 元组
+### 4.3 元组
 
 1. 元组定义
 
@@ -241,3 +241,73 @@ const point: readonly [number, number] = [10, 10]
 // point[0] = 1 error
 ```
 
+### 4.4 void
+
+- `void`表示没有任何类型，和其他类型是平等关系
+- 如果tsconfig.json 中 strictNullChecks 为 false，则可以赋值 null 和 undefined
+
+```
+let a: void
+a = null
+a = undefined
+```
+
+### 4.5 never
+
+`never`类型表示的是那些永不存在的值的类型。
+
+```
+let ne: never
+let nev: never
+let an: any
+
+ne = nev
+// ne = an // error
+```
+
+### 4.6 any
+
+任何类型都可以被归为 any 类型。这让 any 类型成为了类型系统的顶级类型
+
+```
+let param: any
+param = 1
+param = '123'
+
+```
+
+### 4.7 unknown
+
+unknown 与 any 一样，所有类型的值都可以赋值给它
+
+```
+let notSure: unknown = 4
+notSure = 'string'
+notSure = [1, 2, 3]
+```
+
+any 类型可以赋值给任何类型，unknown 类型只能赋值给 unknown 和 any
+
+```
+let nameString = 'well'
+// nameString = notSure // error
+let notSureA: unknown = 2
+notSure = notSureA
+let anyA: any = 2
+anyA = notSure
+```
+
+### 4.8 注意点
+
+原始类型与包装类型
+
+```
+// 原始类型和包装类型
+// 原始类型如： number、string、boolean、symbol
+// 包装类如： Number、String、Boolean、Symbol
+// 不要使用对象类型来注解值的类型，因为这没有任何意义
+let numA: number = 1
+let numB: Number = 2
+numB = numA
+// numA = numB // error
+```
