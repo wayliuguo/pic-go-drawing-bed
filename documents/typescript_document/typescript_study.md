@@ -311,3 +311,295 @@ let numB: Number = 2
 numB = numA
 // numA = numB // error
 ```
+
+## 5. 类型推断
+
+具有初始化值的变量、有默认值的函数参数、函数返回的类型都可以根据上下文推断出来。
+
+1. 如果声明变量有初始值
+
+   ```
+   let myStrA: string = '123'
+   // myStrA = 123 // error 不能将类型“number”分配给类型“string”
+   let myStrB = '123'
+   // myStrB = 123 // error 不能将类型“number”分配给类型“string”
+   ```
+
+2. 默认值函数类型、函数返回类型
+
+   ```
+   function add(a: number, b = 2) {
+       return a + b
+   }
+   const x1 = add(2)
+   const x2 = add(2, 1)
+   // const x3 = add(2, '1') error
+   ```
+
+## 6.类型断言
+
+1. 类型断言演示与语法
+
+   - <number>
+   - as number
+   - 更推荐 as 语法，尖括号语法在jsx上有冲突
+
+   ```
+   const arrayNumber: number[] = [1, 2, 3, 4]
+   // const greaterThan2: number = arrayNumber.find(num => num > 2)
+   // error 不能将类型“number | undefined”分配给类型“number”
+   // 因为在ts看来，可能不存在>2的情况为undefined
+   // 语法
+   const greaterThan2: number = arrayNumber.find(num => num > 2) as number
+   const greaterThan3: number = (<number>arrayNumber.find(num => num > 2))
+   ```
+
+2. 非空断言
+
+   ```
+   let mayNullOrUndefinedOrString: null | undefined | string
+   mayNullOrUndefinedOrString!.toString() // ok
+   // mayNullOrUndefinedOrString.toString() // error
+   ```
+
+3. 确定赋值断言
+
+   let x!: number, ts 编译器就会知道该属性被明确地赋值
+
+   ```
+   // let x: number
+   let x!: number
+   initialize()
+   console.log(x *2)
+   function initialize() {
+       x = 10
+   }
+   ```
+
+
+## 7.字面量类型
+
+TypeScript 支持 3 种字面量类型：字符串字面量类型、数字字面量类型、布尔字面量类型。
+
+1. 字符串字面量
+
+   ```
+   // 字符串字面量
+   let specifiedStr: 'this is string' = 'this is string'
+   let specifiedNum: 1 = 1
+   let specifiedBoolean: true = true
+   
+   // 字面量类型与子类型的区别,相当于父类与子类的区别
+   let str: string = 'any string'
+   str = specifiedStr
+   // specifiedStr = str // error 不能将类型“string”分配给类型“"this is string"”
+   
+   // 应用场景-字面量联合类型
+   type Direction = 'up' | 'down'
+   function move(dir: Direction) {
+       console.log(dir)
+   }
+   move('up')
+   // move('left') // 类型“"left"”的参数不能赋给类型“Direction”的参数
+   ```
+
+2. 数字字面量类型及不二字面量类型
+
+   ```
+   interface Config {
+       size: 'small' | 'big';
+       isEnable:  true | false;
+       margin: 0 | 2 | 4;
+   }
+   ```
+
+3.  let 和 const 分析
+
+   const 定义为一个不可变更的常量，在缺省类型注解的情况下，TypeScript 推断出它的类型直接由赋值字面量的类型决定
+
+   ```
+   {
+       const str = 'this is string' // str: "this is string"
+   }
+   {
+       let str = 'this is string' // str: string
+   }
+   ```
+
+   
+
+## 8. 联合类型、类型别名、交叉类型
+
+1. 联合类型
+
+   ```
+   let myFavoriteNumber: string | number
+   myFavoriteNumber = 'one'
+   myFavoriteNumber = 1
+   ```
+
+2. 类型别名
+
+   ```
+   type Message = string | string[]
+   let greet = (message: Message) => {
+       console.log(message)
+   }
+   greet('well')
+   greet(['liu', 'guo', 'wei'])
+   ```
+
+3. 交叉类型
+
+   交叉类型是将多个类型合并为一个类型
+
+   如果同名属性类型不兼容，则两个原子类型的交叉类型为 never，赋别的值会冲突
+
+   ```
+   // 合并原子类型没有意义，因为不存在，肯定为never
+   {
+       type Useless = string & number;
+   }
+   // 将多个接口类型合并成一个类型
+   type IntersectionType = { id: number; name: string; } & { age: number };
+   const mixed: IntersectionType = {
+     id: 1,
+     name: 'name',
+     age: 18
+   }
+   
+   // 类型冲突
+   /* type IntersectionTypeConfit = { id: number} & { id: string}
+   const mixedConfit: IntersectionTypeConfit = {
+       id: 1 // 不能将类型“number”分配给类型“never”
+   } */
+   ```
+
+## 9. 接口
+
+### 9.1 什么是接口
+
+面向对象语言中，接口（Interfaces）是对行为的抽象，而具体如何行动需要由类（classes）去实现（implement）。
+
+TypeScript 中的接口是一个非常灵活的概念，除了可用于[对类的一部分行为进行抽象]以外，也常用于对「对象的形状（Shape）」进行描述
+
+### 9.2 一个简单的例子
+
+```
+// 一个简单的例子
+interface Person {
+    name: string,
+    age: number
+}
+// 定义的变量属性必须为 name和age，不能多也不能少
+let tom: Person = {
+    name: 'tom',
+    age: 18,
+}
+```
+
+### 9.3 可选 | 只读属性
+
+```
+// 定义的变量属性必须为 name和age，不能多也不能少
+let tom: Person = {
+    name: 'tom',
+    age: 18,
+}
+
+// 可选 | 只读属性
+interface Animal {
+    readonly name: string,
+    age?: number
+}
+let mike: Animal = {
+    name: 'mike'
+}
+// mike.name = 'abc' // 无法分配到 "name" ，因为它是只读属性。
+```
+
+### 9.4 任意属性
+
+**一旦定义了任意属性，那么确定属性和可选属性的类型都必须是它的类型的子集**
+
+**任意属性只能有一个，如果接口中有多个类型的属性，则可以在任意属性中使用联合类型**
+
+```
+interface PersonB {
+    name: string;
+    age?: number; // error 类型“number | undefined”的属性“age”不能赋给“string”索引类型“string”。
+    [propName: string]: string;
+}
+```
+
+**由于任意类型是 string, 而上面确定属性和可选属性的类型不是string的子属性所以报错**
+
+```
+interface PersonB {
+    name: string;
+    age?: number; 
+    [propName: string]: string | number | undefined;
+}
+let peter: PersonB = {
+    name: 'peter',
+    age: 10,
+    gender: 'male',
+    length: 100
+}
+```
+
+### 9.5 鸭式辨形法
+
+```
+interface LabeledValue {
+    label: string;
+}
+function printLabel(labeledObj: LabeledValue) {
+console.log(labeledObj.label);
+}
+let myObj = { size: 10, label: "Size 10 Object" }
+printLabel(myObj); // OK
+// printLabel({ size: 10, label: "Size 10 Object" }) // error
+```
+
+在参数里写对象就相当于是直接给`labeledObj`赋值，这个对象有严格的类型定义，所以不能多参或少参。
+
+如果是在外面用另一个变量接收，则不会经过额外属性检查。
+
+### 9.6 绕开额外属性检查的方式
+
+1. 鸭式辨型法
+
+2. 类型断言
+
+3. 索引签名
+
+   ```
+   // 类型断言
+   interface Props { 
+   	name: string; 
+   	age: number; 
+   	money?: number;
+   }
+   let p: Props = {
+   	name: "兔神",
+   	age: 25,
+   	money: -100000,
+   	girl: false
+   } as Props; // OK
+   
+   // 索引签名
+   interface PropsB { 
+   	name: string; 
+   	age: number; 
+   	money?: number;
+   	[key: string]: any;
+   }
+   let b: PropsB = {
+   	name: "兔神",
+   	age: 25,
+   	money: -100000,
+   	girl: false
+   }; // OK
+   ```
+
