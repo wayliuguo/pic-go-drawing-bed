@@ -603,3 +603,100 @@ printLabel(myObj); // OK
    }; // OK
    ```
 
+
+
+## 10. 接口与类型别名的区别
+
+### 10.1 概念
+
+1. 接口
+   - TypeScript 的核心原则之一是对值所具有的结构进行类型检查
+   - 接口的作用就是为这些类型命名和为你的代码或第三方代码定义数据模型
+2. 别名
+   - type(类型别名)会给一个类型起个新名字，不会新建一个类型 - 它创建了一个新 名字来引用那个类型
+
+### 10.2 Objects/Functions
+
+两者都可以用来描述对象或函数的类型，但是语法不同
+
+```
+interface Point {
+    x: number,
+    y: number
+}
+interface SetPoint {
+    (x: number, y: number): void
+}
+type PointType = {
+    x: number;
+    y: number;
+}
+type SetPointType = (x: number, y:number) => void
+```
+
+### 10.3 Other Types
+
+与接口不同，类型别名还可以用于其他类型，如基本类型（原始值）、联合类型、元组
+
+```
+// object
+type PartialPointX = { x: number; };
+type PartialPointY = { y: number; };
+// union
+type PartialPoint = PartialPointX | PartialPointY;
+// tuple
+type Data = [number, string];
+```
+
+### 10.4 接口可以定义多次，类型别名不可以
+
+```
+interface Class {
+    name: string
+}
+interface Class {
+    no: number
+}
+```
+
+### 10.5 扩展
+
+- 接口可以扩展类型别名，类型别名也可以扩展接口
+
+- 接口的扩展通过继承，通过 extends 实现
+
+- 类型别名扩展就是交叉类型， 通过 & 实现
+
+  ```
+  // 扩展-接口扩展接口
+  interface PointX {
+      x: number
+  }
+  interface MyPoint extends PointX {
+      y: number
+  }
+  // 类型别名扩展类型别名
+  type PointY = {
+      X: number
+  }
+  type MyPointY = PointX & {
+      y: number
+  }
+  // 接口扩展类型别名
+  type PointZ = {
+      x: number
+  }
+  interface MyPointZ extends PointZ {
+      y: number
+  }
+  // 类型别名扩展接口
+  interface PointD {
+      x: number
+  }
+  type MyPointD = PointD & {
+      y: number
+  }
+  ```
+
+## 11.泛型
+
