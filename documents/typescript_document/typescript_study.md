@@ -700,3 +700,199 @@ interface Class {
 
 ## 11.泛型
 
+### 11.1 泛型介绍
+
+如果不使用泛型的话，函数的入参和返回值可以是任意类型，如果需要增加类型声明，则需要复制，重新命名。
+
+泛型是一个抽象类型，只有在调用的时候才确定它的值。
+
+不只是能定义一个类型变量，可以引入希望定义的任何数量的类型变量。
+
+![image-20220712235632503](typescript_study.assets/image-20220712235632503.png)
+
+```
+// 泛型介绍
+const identity:idBoolean = (arg) => arg
+type idBoolean = (arg: boolean) => boolean
+type idString = (arg: string) => string
+identity(false)
+// identity('123') // 类型“string”的参数不能赋给类型“boolean”的参数
+function identityT<T>(value: T): T {
+    return value
+}
+function myIdentity<T, U>(value: T, message: U): T {
+    console.log(message)
+    return value
+}
+myIdentity(68, "abc")
+```
+
+### 11.2 泛型约束
+
+假如我想打印出size属性，如果不进行约束会报错，报错的原因在于 T 理论上是任何类型的，不管使用它的什么方法都会报错（除非这个属性和方法是所有集合共有的）
+
+泛型约束：定义一个类型，让 T 实现这个接口即可
+
+```
+interface Sizeable {
+    size: number
+}
+function trace<T extends Sizeable>(value: T): T {
+    console.log(value.size)
+    return value
+}
+trace(1)
+```
+
+
+
+### 11.3 泛型工具类型
+
+#### 11.3.1 基础知识
+
+##### 11.3.1.1 typeof
+
+- 用途：在类型上下文中获取变量或者属性的类型
+
+```
+// 基础知识
+// 1. typeof
+// 获取类型结构
+interface Person {
+    name: string;
+    age: number;
+}
+const tom: Person = {
+    name: 'tom',
+    age: 18
+}
+type Tom = typeof tom
+const jerry: Tom = {
+    name: 'jerry',
+    age: 18
+}
+// 获取函数对象的类型
+function toArray(x: number): number[] {
+    return [x]
+}
+type Func = typeof toArray
+let myToArray: Func = (x) => [x]
+```
+
+##### 11.3.1.2 keyof
+
+获取某种类型的所有键，其返回类型是联合类型
+
+```
+type k1 = keyof Person //  // "name" | "age"
+// mike: 类型必须符合k1, 类型、属性缺一不可
+let mike: Person = {
+    name: 'mike',
+    age: 10
+}
+// 应用
+function myProp(obj: object, key: string) {
+    return (obj as any)[key];
+}
+function prop<T extends object, K extends keyof T>(obj: T, key: K) {
+return obj[key];
+}
+myProp(mike, "a")
+// prop(mike, "a") // 类型“"a"”的参数不能赋给类型“keyof Person”的参数
+```
+
+##### 11.3.1.3 in
+
+可以用来枚举类型
+
+```
+type keys = 'name' | 'count'
+type Animal = {
+    [p in keys]: any
+}
+/* type Animal = {
+    name: any;
+    count: any;
+} */
+let pig: Animal = {
+    name: 'pig',
+    count: 111
+}
+```
+
+##### 11.3.1.4 infer
+
+```
+type ReturnType<T> = T extends (
+  ...args: any[]
+) => infer R ? R : any;
+```
+
+以上代码中 `infer R` 就是声明一个变量来承载传入函数签名的返回值类型，简单说就是用它取到函数返回值的类型方便之后使用。
+
+```
+type ParamsType<T extends (...args: any) => any> = T extends (...args: infer R) => any ? R : any;
+const add = (a: number, b: string) => a + b
+type TypeAdd = typeof add // (a: number, b: string) => string
+type T1 = ParamsType<TypeAdd> // [number, string]
+// const arr: T1 = [1, 2] // Error: Type 'number' is not assignable to type 'string'.
+```
+
+##### 11.3.1.5 extends
+
+```
+interface Lengthwise {
+    length: number;
+}
+function loggingIdentity<T extends Lengthwise>(arg: T): T {
+    console.log(arg.length);
+    return arg;
+}
+// loggingIdentity(3)
+loggingIdentity({length: 10, value:3 })
+```
+
+### 11.4 索引类型
+
+```
+let person = {
+    name: 'mike',
+    age: 18
+}
+function getValues(person: any, keys: string[]) {
+    return keys.map(key => person[key])
+}
+console.log(getValues(person, ['name', 'age'])) // [ 'mike', 18 ]
+console.log(getValues(person, ['gender'])) // [undefined]
+
+function myGetValues<T, K extends keyof T>(person: T, keys: K[]): T[K][] {
+    return keys.map(key => person[key])
+}
+interface MyPerson {
+    name: string,
+    age: number
+}
+myGetValues(person, ['name'])
+// myGetValues(person, ['gender']) // 不能将类型“"gender"”分配给类型“"name" | "age"”
+```
+
+### 11.5 映射类型
+
+根据旧的类型创建出新的类型，我们称之为映射类型
+
+```
+interface TestInterface {
+    name: string,
+    age: number
+}
+// 我们还可以通过+/-指定添加还是删除
+type OptionalTestInterface<T> = {
+    [p in keyof T] +?:T[p]
+}
+type newTestInterface = OptionalTestInterface<TestInterface>
+/* type newTestInterface = {
+    name?: string | undefined;
+    age?: number | undefined;
+} */
+```
+
