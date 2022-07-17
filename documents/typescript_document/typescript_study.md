@@ -896,3 +896,349 @@ type newTestInterface = OptionalTestInterface<TestInterface>
 } */
 ```
 
+### 11.6 Partial
+
+Partial<T>将类型的属性变成可选。
+
+1. 自定义 Partial
+
+   ```
+   /**
+    * Partial 实现
+    * 1.通过 keyof 拿到 T 所有属性名
+    * 2.通过 in 便利属性名并赋值给 P
+    * 3.通过T[P]取得相应的属性值与类型
+    * 4.中间使用?,用于把属性变为可选
+    */
+   type myPartial<T> = {
+       [P in keyof T]?: T[P]
+   }
+   ```
+
+2. 举例说明
+
+   ```
+   interface UserInfo {
+       id: string;
+       name: string
+   }
+   /**
+    * 如果不使用 Partial，则必须属性名、属性个数，属性类型符合缺一不可
+    */
+   /* const mike: UserInfo = {
+       id: '1'
+   } */
+   
+   type NewUserInfo = Partial<UserInfo>
+   // 使用 Partial 后
+   /* type NewUserInfo = {
+       id?: string | undefined;
+       name?: string | undefined;
+   } */
+   const tom: NewUserInfo = {
+       name: 'tom'
+   }
+   ```
+
+3. DeepPartial
+
+   DeepPartial  只支持处理第一层的属性，如果需要处理多层，则需自己手动实现。
+
+   手动实现的，大于第一层的属性名和属性类型要一致，不能出现不存在的属性名。
+
+   ```
+   interface userInfoDeep {
+       name: string,
+       count: {
+           math: number,
+           english: number 
+       }
+   }
+   type NewUserInfoDeep = Partial<userInfoDeep>
+   /* const mike: NewUserInfoDeep = {
+       count: {
+           chinese: 100
+       }
+   } */
+   
+   type DeepPartial<T> = {
+       // 如果是 object， 则递归类型
+       [U in keyof T] ?: T[U] extends object
+           ? DeepPartial<T[U]>
+           : T[U]
+   } 
+   
+   type NewUserInfoDeepPar = DeepPartial<userInfoDeep>
+   /* type NewUserInfoDeepPar = {
+       name?: string | undefined;
+       count?: DeepPartial<{
+           math: number;
+           english: number;
+       }> | undefined;
+   } */
+   const mike: NewUserInfoDeepPar = {
+       count: {
+           math: 10
+       }
+   }
+   ```
+
+### 11.7 Required
+
+Required将类型的属性变成必选
+
+1.  自定义实现
+
+   ```
+   /**
+    * 自定义实现
+    * -? 是代表除 ? 这个 modifier 的标识
+    */
+   type MyRequired<T> = {
+       [P in keyof T] -?: T[P]
+   }
+   ```
+
+2. 举例说明
+
+   ```
+   interface Todo {
+       title: string
+   }
+   type TodoRequired = Required<Todo>
+   let todyTodo: TodoRequired = {
+       title: '学习'
+   }
+   ```
+
+### 11.8 Readonly
+
+`Readonly<T>` 的作用是将某个类型所有属性变为只读属性，也就意味着这些属性不能被重新赋值。
+
+```
+/**
+ * 自定义实现
+ */
+ type MyReadonly<T> = {
+    readonly[P in keyof T]: T[P]
+}
+
+interface List {
+    title: string
+}
+
+const listReadonly: Readonly<List> = {
+    title: 'abc'
+}
+// listReadonly.title = '123' // 无法分配到 "title" ，因为它是只读属性。
+```
+
+### 11.9 Pick
+
+Pick 从某个类型中挑出一些属性出来
+
+```
+type MyPick<T, K extends keyof T> = {
+    [P in K]: T[P]
+}
+
+interface subject {
+    title: string,
+    description: string,
+    completed: boolean
+}
+type subjectPreview = Pick<subject, "title" | "completed">
+/* type subjectPreview = {
+    title: string;
+    completed: boolean;
+} */
+const mySubject: subjectPreview = {
+    title: 'chinese',
+    completed: false,
+}
+```
+
+### 11.10 Record
+
+`Record<K extends keyof any, T>` 的作用是将 `K` 中所有的属性的值转化为 `T` 类型。
+
+```
+type MyRecord<K extends keyof any, T> = {
+    [P in K]: T
+}
+
+interface PageInfo {
+    title: string;
+}
+type Page = "home" | "about" | "contact"
+type pageRecord = Record<Page, PageInfo>
+/* type pageRecord = {
+    home: PageInfo;
+    about: PageInfo;
+    contact: PageInfo;
+} */
+const x: Record<Page, PageInfo> = {
+    about: {
+        title: "about"
+    },
+    home: {
+        title: "home"
+    },
+    contact: {
+        title: "contact"
+    },
+}
+```
+
+### 11.11 ReturnType
+
+用来得到一个函数的返回值类型
+
+```
+/**
+ * 自定义实现
+ * 1. infer 在这里用于提取函数类型的返回值
+ * 2.ReturnType<T> 只是将 infer R 从参数位置移动到返回值位置，因此此时 R 即是表示待推断的返回值类型
+ */
+type MyReturnType<T extends (...args: any[]) => any> = T extends (
+    ...args: any[]
+) => infer R
+    ? R
+    : any
+
+type Func = (value: number) => string
+type FuncReturnType = ReturnType<Func>
+// type FuncReturnType = string
+const foo: ReturnType<Func> = "1"
+```
+
+### 11.12 Exclude
+
+`Exclude<T, U>` 的作用是将某个类型中属于另一个的类型移除掉。
+
+```
+type MyExclude<T, U> = T extends U ? never : T
+
+type T0 = Exclude<"a" | "b" | "c", "a">
+// type T0 = "b" | "c"
+type T1 = Exclude<string | number | boolean, number>
+// type T1 = string | boolean
+// let t1: T1 = 1 // 不能将类型“1”分配给类型“T1”
+let t2: T1 = '1'
+```
+
+### 11.13 Omit
+
+`Omit<T, K extends keyof any>` 的作用是使用 `T` 类型中除了 `K` 类型的所有属性，来构造一个新的类型。
+
+```
+type MyOmit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
+
+interface Jobs {
+    title: string;
+    desc: string;
+    saray: number;
+}
+type JobsOmit = Omit<Jobs, "desc">
+/* type JobsOmit = {
+    title: string;
+    saray: number;
+} */
+const MyJob: JobsOmit = {
+    title: '切图仔',
+    saray: 200
+}
+```
+
+### 11.14 NonNullable
+
+`NonNullable<T>` 的作用是用来过滤类型中的 `null` 及 `undefined` 类型。
+
+```
+type MyNonNullable<T> = T extends null | undefined ? never : T
+
+type MyT = NonNullable<string | number | undefined>
+// type MyT = string | number
+```
+
+### 11.15 Parameters
+
+`Parameters<T>` 的作用是用于获得函数的参数类型组成的元组类型。
+
+```
+type MyParameters<T extends (...args: any) => any> = T extends (...args: infer P) => any
+? P : never;
+
+type A = Parameters<() =>void> // []
+type B = Parameters<typeof Array.isArray> // [any]
+type C = Parameters<typeof parseInt> // [string, (number | undefined)?]
+type D = Parameters<typeof Math.max> // number[]
+```
+
+## 12.tsconfig.json
+
+### 12.1 重要字段
+
+- files - 设置要编译的文件的名称。
+- include - 设置需要进行编译的文件，支持路径模式匹配。
+- exclude - 设置无需进行编译的文件，支持路径模式匹配。
+- compilerOptions - 设置与编译流程相关的选项。
+
+### 12.2 complierOptions 选项
+
+```
+{
+  "compilerOptions": {
+  
+    /* 基本选项 */
+    "target": "es5",                       // 指定 ECMAScript 目标版本: 'ES3' (default), 'ES5', 'ES6'/'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'
+    "module": "commonjs",                  // 指定使用模块: 'commonjs', 'amd', 'system', 'umd' or 'es2015'
+    "lib": [],                             // 指定要包含在编译中的库文件
+    "allowJs": true,                       // 允许编译 javascript 文件
+    "checkJs": true,                       // 报告 javascript 文件中的错误
+    "jsx": "preserve",                     // 指定 jsx 代码的生成: 'preserve', 'react-native', or 'react'
+    "declaration": true,                   // 生成相应的 '.d.ts' 文件
+    "sourceMap": true,                     // 生成相应的 '.map' 文件
+    "outFile": "./",                       // 将输出文件合并为一个文件
+    "outDir": "./",                        // 指定输出目录
+    "rootDir": "./",                       // 用来控制输出目录结构 --outDir.
+    "removeComments": true,                // 删除编译后的所有的注释
+    "noEmit": true,                        // 不生成输出文件
+    "importHelpers": true,                 // 从 tslib 导入辅助工具函数
+    "isolatedModules": true,               // 将每个文件做为单独的模块 （与 'ts.transpileModule' 类似）.
+
+    /* 严格的类型检查选项 */
+    "strict": true,                        // 启用所有严格类型检查选项
+    "noImplicitAny": true,                 // 在表达式和声明上有隐含的 any类型时报错
+    "strictNullChecks": true,              // 启用严格的 null 检查
+    "noImplicitThis": true,                // 当 this 表达式值为 any 类型的时候，生成一个错误
+    "alwaysStrict": true,                  // 以严格模式检查每个模块，并在每个文件里加入 'use strict'
+
+    /* 额外的检查 */
+    "noUnusedLocals": true,                // 有未使用的变量时，抛出错误
+    "noUnusedParameters": true,            // 有未使用的参数时，抛出错误
+    "noImplicitReturns": true,             // 并不是所有函数里的代码都有返回值时，抛出错误
+    "noFallthroughCasesInSwitch": true,    // 报告 switch 语句的 fallthrough 错误。（即，不允许 switch 的 case 语句贯穿）
+
+    /* 模块解析选项 */
+    "moduleResolution": "node",            // 选择模块解析策略： 'node' (Node.js) or 'classic' (TypeScript pre-1.6)
+    "baseUrl": "./",                       // 用于解析非相对模块名称的基目录
+    "paths": {},                           // 模块名到基于 baseUrl 的路径映射的列表
+    "rootDirs": [],                        // 根文件夹列表，其组合内容表示项目运行时的结构内容
+    "typeRoots": [],                       // 包含类型声明的文件列表
+    "types": [],                           // 需要包含的类型声明文件名列表
+    "allowSyntheticDefaultImports": true,  // 允许从没有设置默认导出的模块中默认导入。
+
+    /* Source Map Options */
+    "sourceRoot": "./",                    // 指定调试器应该找到 TypeScript 文件而不是源文件的位置
+    "mapRoot": "./",                       // 指定调试器应该找到映射文件而不是生成文件的位置
+    "inlineSourceMap": true,               // 生成单个 soucemaps 文件，而不是将 sourcemaps 生成不同的文件
+    "inlineSources": true,                 // 将代码与 sourcemaps 生成到一个文件中，要求同时设置了 --inlineSourceMap 或 --sourceMap 属性
+
+    /* 其他选项 */
+    "experimentalDecorators": true,        // 启用装饰器
+    "emitDecoratorMetadata": true          // 为装饰器提供元数据的支持
+  }
+}
+```
+
