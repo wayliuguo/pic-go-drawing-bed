@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        template: `
+            <website/>
+            <describe/>
+            <count/>
+        `
+    })
+    app.component('website', {
+        template: `
+            <h2>www.baidu.com</h2>
+        `
+    })
+    app.component('describe', {
+        template: `
+            <h2>百度</h2>
+        `
+    })
+    app.component('count', {
+        data () {
+            return {
+                count: 0
+            }
+        },
+        template: `
+            <div>
+                {{count}}
+                <button @click="count++">+1</button>    
+            </div>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        provide: {
+            house: '北京别墅一套'
+        },
+        template: `
+            <child></child>
+        `
+    })
+    app.component('child', {
+        template: `
+            <div>我是子组件</div>
+            <child-child></child-child>
+        `
+    })
+    app.component('child-child', {
+        inject: ['house'],
+        template: `
+            <div>我是孙组件</div>
+            <div>继承{{house}}</div>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

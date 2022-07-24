@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        template: `
+            <hello style="color: red;" msg="well" />
+        `
+    })
+    app.component('Hello', {
+        inheritAttrs: false,
+        template: `
+            <div>
+                <h2 v-bind="$attrs">Hello</h2>
+                <h2 :msg="$attrs.msg">{{$attrs.msg}}</h2>
+            </div>
+        `,
+        mounted () {
+            console.log(this.$attrs.msg) // well
+        } 
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

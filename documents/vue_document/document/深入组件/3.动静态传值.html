@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const son = ('son', {
+        props: ['name', 'cname', 'hello'],
+        template: `
+            <div>
+                <div @click="handleClick">打招呼</div>
+                <div>{{name}}</div>
+                <div>{{cname}}</div>
+            </div>
+        `,
+        methods: {
+            handleClick () {
+                this.hello()
+            }
+        }
+    })
+    const app = Vue.createApp({
+        data () {
+            return {
+                cname: '刘国威',
+                hello: () => {
+                    alert(`我是${this.cname}`)
+                }
+            }
+        },
+        components: {
+            son
+        },
+        template: `
+            <son name="well" :cname="cname" :hello="hello"  />
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

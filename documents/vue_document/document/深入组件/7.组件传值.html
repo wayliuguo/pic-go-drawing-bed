@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const count = ('count', {
+        props: {
+            count: {
+                type: Number,
+                required: false,
+                default: 0
+            },
+            show: {
+                type: Boolean,
+                required: false,
+                default: true
+            }
+        },
+        emits: ['update:count', 'update:show'],
+        template: `
+            <div>
+                {{count}}
+                <button @click="addOne">+1</button>
+                <button @click="showHide">{{show ? '隐藏' : '显示'}}</button>
+            </div>
+        `,
+        methods: {
+            addOne () {
+                this.$emit('update:count', this.count + 1)
+            },
+            showHide () {
+                this.$emit('update:show', !this.show)
+            }
+        }
+    })
+    const app = Vue.createApp({
+        components: {
+            count
+        },
+        data () {
+            return {
+                count: 0,
+                show: true
+            }
+        },
+        template: `
+            <div>{{count}}</div>
+            <count
+                v-model:show="show"
+                v-model:count="count"
+            />
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        template: `
+            <h2>欢迎光临红色浪漫-请选择您的技师</h2>
+            <ji-shi>
+                <template v-slot:one>
+                    <span>one 具名插槽</span>
+                </template>
+                <template #two>
+                    <span>two 具名插槽(简写)</span>
+                </template>
+            </ji-shi>
+        `
+    })
+    app.component('JiShi', {
+        template: `
+            <div>
+                你选择了
+                <slot>
+                    <span style="color: green">请选择（插槽默认值）</span>
+                </slot>    
+                <slot name="one"></slot>
+                <slot name="two"></slot>
+                <slot name="three"></slot>
+            </div>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>
