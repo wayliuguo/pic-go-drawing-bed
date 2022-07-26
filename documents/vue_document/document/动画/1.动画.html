@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @keyframes comein {
+            0% {
+                transform: translateX(-100px);
+            }
+            100% {
+                transform: translateX(0px);
+            }
+        }
+        @keyframes comeout {
+            0% {
+                transform: translateX(0px);
+            }
+            100% {
+                transform: translateX(-120px);
+            }
+        }
+        .v-enter-active {
+            animation: comein 1s;
+        }
+        .v-leave-active {
+            animation: comeout 1s;
+        }
+    </style>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        data () {
+            return {
+                isShow: false
+            }
+        },
+        methods: {
+            handleClick() {
+                this.isShow = !this.isShow
+            }
+        },
+        template: `
+            <transition>
+                <div v-if="isShow">well</div>
+            </transition>
+            <button @click="handleClick">
+                切换动画    
+            </button>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>

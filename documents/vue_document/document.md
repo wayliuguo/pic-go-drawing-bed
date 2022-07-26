@@ -721,9 +721,150 @@
 ```
 
 - provide 传递， inject 接收
-
 - 如果需要传 property 的值，如果值要响应式，则看下面文档即可
-
 - https://v3.cn.vuejs.org/guide/component-provide-inject.html#%E5%A4%84%E7%90%86%E5%93%8D%E5%BA%94%E6%80%A7
 
-  
+
+## 3. 过渡 & 动画
+
+### 3.1 动画
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @keyframes comein {
+            0% {
+                transform: translateX(-100px);
+            }
+            100% {
+                transform: translateX(0px);
+            }
+        }
+        @keyframes comeout {
+            0% {
+                transform: translateX(0px);
+            }
+            100% {
+                transform: translateX(-120px);
+            }
+        }
+        .v-enter-active {
+            animation: comein 1s;
+        }
+        .v-leave-active {
+            animation: comeout 1s;
+        }
+    </style>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        data () {
+            return {
+                isShow: false
+            }
+        },
+        methods: {
+            handleClick() {
+                this.isShow = !this.isShow
+            }
+        },
+        template: `
+            <transition>
+                <div v-if="isShow">well</div>
+            </transition>
+            <button @click="handleClick">
+                切换动画    
+            </button>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>
+```
+
+- 使用 transition 组件包裹
+- 声明动画 @keyframs，在 css 类名切换中使用animation
+- 类名如下
+  - v-enter-from：进入过渡开始
+  - v-enter-active：进入过渡生效
+  - v-enter-to：进入过渡结束
+  - v-leave-from:离开过渡开始
+  - v-leave-active:离开过渡生效
+  - v-leave-to: 离开过渡结束
+- v- 是class 的默认前缀，如果transition 使用了name=transiton,则v-enter-active会替换成transition-enter-active
+- ![image-20220726012159929](document.assets/image-20220726012159929.png)
+
+### 3.2 过渡
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .transition-enter-from,
+        .transition-leave-to {
+            opacity: 0;
+
+        }
+        .transition-enter-to,
+        .transition-leave-from {
+            opacity: 1;
+
+        }
+        .transition-enter-active,
+        .transition-leave-active {
+            transition: opacity 3s ease-out;
+        }
+    </style>
+    <script src="https://unpkg.com/vue@next"></script>
+</head>
+<body>
+    <div id='app'>
+    </div>
+</body>
+<script>
+    const app = Vue.createApp({
+        data () {
+            return {
+                isShow: false
+            }
+        },
+        methods: {
+            handleClick() {
+                this.isShow = !this.isShow
+            }
+        },
+        template: `
+            <transition name="transition">
+                <div v-if="isShow">
+                    well
+                </div>
+            </transition>
+            <button @click="handleClick">
+                切换动画    
+            </button>
+        `
+    })
+    const vm = app.mount('#app')
+</script>
+</html>
+```
+
+- v-enter-from、v-leave-from 类名切换开始
+- v-enter-active、v-leave-active 类名切换中
+- v-enter-to、v-leave-to 类名切换完成
