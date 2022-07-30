@@ -868,3 +868,16 @@
 - v-enter-from、v-leave-from 类名切换开始
 - v-enter-active、v-leave-active 类名切换中
 - v-enter-to、v-leave-to 类名切换完成
+
+## 4.生命周期
+
+![image-20220730095530182](document.assets/image-20220730095530182.png)
+
+- 父组件先onBeforeMount,后onMountd
+- 父组件onUpdated,upDated都先于子组件
+
+- watchEffect 在 onBeforeMount 和 onBeforeUpdate 先
+- flush模式时watchEffect会在onBeforeMount  和 onBeforeUpdate 
+
+## 5. 全局API
+
