@@ -879,5 +879,41 @@
 - watchEffect 在 onBeforeMount 和 onBeforeUpdate 先
 - flush模式时watchEffect会在onBeforeMount  和 onBeforeUpdate 
 
-## 5. 全局API
+## 5. setup
+
+### 5.1 props
+
+1. props 是响应式的，如果传入新的prop，他将被更新
+2. props是响应式的，不能使用ES6解构，它会消除prop的响应性。
+3. 如果需要解构prop，可以使用torefs还是完成。
+4. props 的值不需要return即可在模板中使用
+
+### 5.2 context
+
+- 普通的js对象，可以解构
+- attrs：Attribute（非响应式，有状态，避免解构）
+- slots: 插槽（非响应式，有状态，避免解构）
+- emit：触发方法
+- expose：暴露公共 property（函数）
+
+#### 5.2.1 attrs
+
+- 在父组件中传递过来，而没有在props中声明的值，则可以在attrs中获取
+
+```
+<div>{{attrs.desc}}</div>
+
+const {  attrs } = ctx
+return {
+	attrs
+}
+```
+
+#### 5.2.2 emit
+
+- 在emits中声明触发方法，通过ctx.emits.×××中触发
+- 如果通过v-model,可以通过update:×××
+- 多个v-model绑定的值，同样支持
+
+
 
