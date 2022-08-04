@@ -915,5 +915,29 @@ return {
 - 如果通过v-model,可以通过update:×××
 - 多个v-model绑定的值，同样支持
 
+## 6.应用配置
 
+### 6.1 errorHandler
+
+```js
+app.config.errorHandler = (err, vm, info) => {
+  // 处理错误
+  // `info` 是 Vue 特定的错误信息，比如错误所在的生命周期钩子
+}
+```
+
+### 6.2 globalProperties
+
+- 添加一个可以在应用的任何组件实例中访问的全局 property。
+- 组件的 property 在命名冲突时具有优先权。
+
+```
+// 之前 (Vue 2.x)
+Vue.prototype.$http = () => {}
+
+// 之后 (Vue 3.x)
+const app = createApp({})
+app.config.globalProperties.$http = () => {}
+
+```
 

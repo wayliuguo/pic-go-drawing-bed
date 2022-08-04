@@ -2,6 +2,7 @@
   <nav>
     <router-link to="/">Home</router-link> |
     <router-link to="/setupLearn">setupLearn</router-link>
+    <router-link to="/appConfig">appConfig</router-link>
   </nav>
   <router-view/>
 </template>

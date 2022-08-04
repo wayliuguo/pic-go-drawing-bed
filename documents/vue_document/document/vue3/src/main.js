@@ -1,5 +1,8 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import * as utils from './libs/utils'
 
-createApp(App).use(router).mount('#app')
+const app = createApp(App)
+app.config.globalProperties.utils = utils
+app.use(router).mount('#app')
