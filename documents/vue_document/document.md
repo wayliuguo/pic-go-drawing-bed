@@ -941,3 +941,5 @@ app.config.globalProperties.$http = () => {}
 
 ```
 
+## 7.use、plugins
+

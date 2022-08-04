@@ -19,6 +19,11 @@ const routes = [
     path: '/appConfig',
     name: 'appConfig',
     component: () => import('../views/AppConfig.vue')
+  },
+  {
+    path: '/usePlugin',
+    name: 'usePlugin',
+    component: () => import('../views/usePlugin.vue')
   }
 ]
 
