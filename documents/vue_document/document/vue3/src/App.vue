@@ -4,6 +4,7 @@
     <router-link to="/setupLearn">setupLearn</router-link> |
     <router-link to="/appConfig">appConfig</router-link> |
     <router-link to="/usePlugin">usePlugin</router-link> |
+    <router-link to="/ApiLearn">ApiLearn</router-link> |
   </nav>
   <router-view/>
 </template>

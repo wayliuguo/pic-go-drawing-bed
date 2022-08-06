@@ -24,6 +24,11 @@ const routes = [
     path: '/usePlugin',
     name: 'usePlugin',
     component: () => import('../views/usePlugin.vue')
+  },
+  {
+    path: '/ApiLearn',
+    name: 'ApiLearn',
+    component: () => import('../views/ApiLearn.vue')
   }
 ]
 
