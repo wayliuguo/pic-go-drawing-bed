@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { reactive, readonly, ref, computed } from 'vue'
+import { reactive, readonly, ref, computed, watchEffect, watch } from 'vue'
 // reactive —— 深层响应式对象
 const proxyObj = reactive({
   a: 1,
@@ -58,12 +58,66 @@ const superSentenceAll = computed({
 })
 superSentenceAll.value = '已修改'
 
+// watchEffect
+const effectCount = ref(0)
+const stop = watchEffect(async (onInvalidate) => {
+  console.log('watchEffect>>>', effectCount.value)
+  await getData()
+  // watchEffect>>> 0
+  // watchEffect>>> 1
+  onInvalidate(() => {
+    console.log('watchEffect>>>清除副作用函数执行')
+  })
+}, {
+  onTrack (e) {
+    console.log('onTrack>>>', e)
+  },
+  onTrigger (e) {
+    console.log('onTrigger>>>', e)
+  }
+})
+function getData () {
+  return new Promise(resolve => {
+    resolve(520)
+  })
+}
+effectCount.value = 1
+setTimeout(() => {
+  stop() // 手动清除了，不会打印2
+  effectCount.value = 2
+  console.log('watchEffect>>>', 'watchEffect is stopped')
+}, 1000)
+
+// watch
+const watchCount = ref(0)
+const watchState = reactive({
+  count: 0
+})
+setTimeout(() => {
+  watchCount.value++
+  watchState.count += 2
+}, 1000)
+// 侦听数据源是ref写法
+watch(watchCount, (cur, prev) => {
+  console.log('watch>>>', cur, prev) // watch>>> 1 0
+})
+// 侦听数据源是 返回值的getter函数或者ref写法
+watch(() => {
+  return watchState.count
+}, (cur, prev) => {
+  console.log('watch>>>', cur, prev) // watch>>> 2 0
+})
+watch([() => watchState.count, watchCount], ([watchStateCount, watchCount], [cur, prev]) => {
+  console.log('watch多个数据源>>>', watchStateCount, watchCount)
+  console.log('watch多个数据源>>>', cur, prev)
+})
+
 console.log('reactive>>>', proxyObj.a) // reactive>>> 1
 console.log('reactive>>>', h) // reactive>>> 500
 console.log('readonly>>>', newProxyObj.a) // 警告——1
 console.log('ref>>>', myName.value) // ref>>> 刘国威
-console.log('ref>>>', myNameArrReactive[0].value) // ref>>> 刘国威
 console.log('ref>>>', refObj) // RefImpl{...}
+console.log('ref>>>', myNameArrReactive[0].value) // ref>>> 刘国威
 console.log('ref>>>', myNameReactive.myName) // ref>>> 刘国威
 console.log('computed>>>', superSentence.value) // computed>>> well
 console.log('computed>>>', superSentenceAll.value) // computed>>> liuguowei已修改

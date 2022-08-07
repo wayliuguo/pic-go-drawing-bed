@@ -1014,3 +1014,58 @@ app.use(router).mount('#app')
 - plugin 即是可以通过导出一个对象，对象中有install方法，此方法接受app实例和use的传参
 - plugin 中可以做一系列的事情，如自定义指令，组件注册等
 - 通过app.use(插件, 参数)使用
+
+## 8.apis
+
+### 8.1reactive
+
+- 深层响应式对象
+- 解构会丢失响应性别
+
+### 8.2 readonly 
+
+- 只读，不可修改
+
+### 8.3 ref
+
+- 返回一个响应式且可变的 ref 对象
+- 如果 ref 传入一个对象，则其被 reactive 处理为深层响应式对象,(其value 变成 Proxy)
+- ref 作为响应式对象的property 被访问或更改时，自动解包
+- 其仅仅发生在 Object 嵌套的时候，如果是数组或者其他原生集合如Map都不会自动解包，需要.value
+
+### 8.4 computed
+
+- 简写与全写
+
+### 8.5 watchEffect
+
+- 自动收集依赖，在依赖变更自动执行，在组件卸载自动停止
+
+- 如果需要显式调用停止，可以
+
+  ```
+  const stop = watchEffect(() => {
+  })
+  stop()
+  ```
+
+- 清除副作用函数
+
+- 副作用刷新时机
+
+  - 默认：flush: pre，在onBeforeUpdate前
+  - flush: post, 在onBeforeUpdate后
+
+- 调试
+
+  - `onTrack` 将在响应式 property 或 ref 作为依赖项被追踪时被调用
+  - `onTrigger` 将在依赖项变更导致副作用被触发时被调用
+
+### 8.6 watch
+
+- 监听数据源为ref的写法
+- 监听数据源为getter函数或者ref写法
+- 监听多个数据源写法
+
+### 8.7 toRef、toRefs、isRef
+
