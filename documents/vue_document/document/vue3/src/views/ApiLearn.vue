@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import { reactive, readonly, ref, computed, watchEffect, watch } from 'vue'
+import { reactive, readonly, ref, computed, watchEffect, watch, toRef, toRefs, isRef } from 'vue'
 // reactive —— 深层响应式对象
 const proxyObj = reactive({
   a: 1,
@@ -112,13 +112,36 @@ watch([() => watchState.count, watchCount], ([watchStateCount, watchCount], [cur
   console.log('watch多个数据源>>>', cur, prev)
 })
 
+// toRef
+const state = reactive({
+  name: 'well',
+  age: 30
+})
+const nameRef = toRef(state, 'name')
+nameRef.value = '李四'
+
+// toRefs
+const stateRefs = toRefs(state)
+// 可以解构了
+const { name } = stateRefs
+
 console.log('reactive>>>', proxyObj.a) // reactive>>> 1
 console.log('reactive>>>', h) // reactive>>> 500
+
 console.log('readonly>>>', newProxyObj.a) // 警告——1
+
 console.log('ref>>>', myName.value) // ref>>> 刘国威
 console.log('ref>>>', refObj) // RefImpl{...}
 console.log('ref>>>', myNameArrReactive[0].value) // ref>>> 刘国威
 console.log('ref>>>', myNameReactive.myName) // ref>>> 刘国威
+
 console.log('computed>>>', superSentence.value) // computed>>> well
 console.log('computed>>>', superSentenceAll.value) // computed>>> liuguowei已修改
+
+console.log('toRef>>>', nameRef.value) // 李四
+console.log('toRef>>>', state.name)// 李四
+
+console.log('toRefs>>>', name.value)
+
+console.log('isRef>>>', isRef(name))
 </script>
