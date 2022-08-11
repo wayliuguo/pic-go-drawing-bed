@@ -1,4 +1,4 @@
-一、数据类型
+# 一、数据类型
 
 ## 1.数据类型
 
@@ -211,3 +211,171 @@ console.log(Object.keys({})) // []
 console.log(Object.keys({}).length) // 0
 ```
 
+
+
+# 二、ES6
+
+## 12.let、const、var的区别
+
+![image-20220811013531668](document.assets/image-20220811013531668.png)
+
+## 13. const 对象的属性可以修改吗
+
+- const保证的并不是变量的值不能改，而是变量指向的那个内存地址不能改动。对于基本类型的数据（数值、字符串、布尔值），其值就保存在变量指向的那个内存地址，因此等同于常量。
+- 但对于引用类型的数据（主要是对象和数组）来说，变量指向数据的内存地址，保存的只是一个指针，const只能保证这个指针是固定不变的，至于它指向的数据结构是不是可变的，就完全不能控制了。
+
+
+
+## 14. 箭头函数与普通函数的区别
+
+1. **箭头函数比普通函数更加简洁**
+
+2. **箭头函数没有自己的this**
+
+   箭头函数不会创建自己的this， 所以它没有自己的this，它只会在自己作用域的上一层继承this。所以箭头函数中this的指向在它在定义时已经确定了，之后不会改变。
+
+3. **箭头函数继承来的this指向永远不会改变**
+
+4. **call()、apply()、bind()等方法不能改变箭头函数中this的指向**
+
+5. **箭头函数不能作为构造函数使用**
+
+6. **箭头函数没有自己的arguments**
+
+7. **箭头函数没有prototype**
+
+8. **箭头函数没有自己的arguments**
+
+```
+var id = 'GLOBAL';
+var obj = {
+  id: 'OBJ',
+  a: function(){
+    console.log(this.id);
+  },
+  b: () => {
+    console.log(this.id);
+  }
+};
+obj.a();    // 'OBJ'
+obj.b();    // 'GLOBAL'
+new obj.a()  // undefined
+new obj.b()  // Uncaught TypeError: obj.b is not a constructor
+```
+
+对象obj的方法b是使用箭头函数定义的，这个函数中的this就永远指向它定义时所处的全局执行环境中的this，即便这个函数是作为对象obj的方法调用，this依旧指向Window对象。需要注意，定义对象的大括号`{}`是无法形成一个单独的执行环境的，它依旧是处于全局执行环境中。
+
+## 15.扩展运算符的作用及使用场景
+
+### 15.1 对象扩展运算符
+
+```
+// 对象的扩展运算符
+let bar = {
+    a: 1,
+    b: 2
+}
+console.log({...bar})
+```
+
+- 用于取出参数对象中的所有**可遍历属性**，拷贝到当前对象之中。
+
+### 15.2 数组的扩展运算函数
+
+```
+// 数组的扩展运算符
+const arr = [1,2,3]
+console.log(...arr) // 1,2,3
+```
+
+- 可以将一个数组**转为用逗号分隔的参数序列**，且每次只能展开一层数组
+
+```
+// 作用——复制数组
+const arrCopy = [...arr]
+console.log(arrCopy) // [ 1, 2, 3 ]
+// 作用——合并数组
+const arr1 = ['one', 'two', ...arr]
+console.log(arr1) // [ 'one', 'two', 1, 2, 3 ]
+// 与解构赋值结合，用于生成数组
+const [first, ...rest] = arr1
+console.log(first) // one
+console.log(rest) // [ 'two', 1, 2, 3 ]
+```
+
+## 16. Proxy 可以实现什么功能？
+
+```
+let p = new Proxy(target, handler)
+```
+
+```
+/**
+ * obj: 源对象
+ * setBind: set回调
+ * getLogger: get 回调
+ */
+let onWatch = (obj, setBind, getLogger) => {
+    let handler = {
+        set (target, property, value, receiver) {
+            setBind(target, property, value, receiver)
+            return Reflect.set(target, property, value)
+        },
+        get (target, property, receiver) {
+            getLogger(target, property, receiver)
+            return Reflect.get(target, property, receiver)
+        }
+    }
+    return new Proxy(obj, handler)
+}
+
+let obj = {
+    a: 1
+}
+let p = onWatch(
+    obj,
+    (target, property, value, receiver) => {
+        console.log(target, property, value, receiver) // { a: 1 } a 2 { a: 1 }
+    },
+    (target, property, receiver) => {
+       console.log(target, property, receiver) // { a: 2 } a { a: 2 }
+    }
+)
+
+p.a = 2
+p.a
+```
+
+## 17. 对象与数组的解构
+
+```
+// 数组解构
+const [a, b, c] = [1, 2, 3]
+
+// 对象解构
+const stu = {
+    name: 'well',
+    age: 15
+}
+const { name } = stu
+```
+
+## 18. 对 rest 参数的理解
+
+扩展运算符被用在函数形参上时，**它还可以把一个分离的参数序列整合成一个数组**
+
+```
+const mutiple = (...args) => {
+    let result = 1
+    for (let value of args) {
+        result *= value
+    }
+    return result
+}
+
+console.log(mutiple(1,2,3,4)) // 24
+```
+
+# 三、JavaScript 基础
+
+### 19. new 操作符的实现原理
