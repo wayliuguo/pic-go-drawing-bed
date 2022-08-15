@@ -376,6 +376,121 @@ const mutiple = (...args) => {
 console.log(mutiple(1,2,3,4)) // 24
 ```
 
-# 三、JavaScript 基础
+# 三、this/call/apply/bind
 
-### 19. new 操作符的实现原理
+## 19. 对this 对象的理解
+
+- this 是执行上下文中的一个属性，它指向最后一次调用这个方法的对象。
+
+- 在实际开发中，this 的指向可以通过四种调用模式来判断。
+
+  1. 第一种是**函数调用模式**，当一个函数不是一个对象的属性时，直接作为函数来调用时，this 指向全局对象。
+  2. 第二种是**方法调用模式**，如果一个函数作为一个对象的方法来调用时，this 指向这个对象。
+  3. 第三种是**构造器调用模式**，如果一个函数用 new 调用时，函数执行前会新创建一个对象，this 指向这个新创建的对象。
+  4. 第四种是 **apply 、 call 和 bind 调用模式**，这三个方法都可以显示的指定调用函数的 this 指向。
+
+- apply、call、bind的区别？
+
+  - apply、call不仅改变this指向，还可以接受参数。其中apply接收的是数组，call接受的非 数组。
+  - bind 方法通过传入一个对象，返回一个 this 绑定了传入对象的新函数。这个函数的 this 指向除了使用 new 时会被改变，其他情况下都不会改变。
+
+  ```
+  global.name = 'liuguowei'
+  global.age = 18
+  
+  // 函数调用模式
+  const sayName = function () {
+      return this.name
+  }
+  console.log('函数调用模式:', sayName()) // 函数调用模式: liuguowei
+  
+  // 方法调用模式
+  const nameObj = {
+      name: 'well',
+      sayName () {
+          return this.name
+      }
+  }
+  console.log('方法调用模式:', nameObj.sayName()) // 方法调用模式: well
+  
+  // 构造器调用模式 
+  function AgeFun (age) {
+      this.age = age
+      this.sayAge = function () {
+          return this.age
+      }
+  } 
+  const ageInstance = new AgeFun(25)
+  console.log('构造器调用模式:', ageInstance.sayAge()) // 构造器调用模式: 25
+  ```
+
+
+
+## 20. apply、call、bind 
+
+```
+const foo = {
+    a: 1,
+    fn (x, y) {
+        console.log(this.a, x, y)
+    }
+}
+
+const obj = {
+    a: 10
+}
+
+// apply
+foo.fn.apply(obj, [2, 3]) // 10 2 3
+// call
+foo.fn.call(obj, 2, 3) // 10 2 3
+// bind
+foo.fn.bind(obj, 2, 3)() // 10 2 3
+```
+
+## 21. apply 函数的实现及步骤
+
+1. 判断调用对象是否为函数
+2. 获取参数
+3. 判断 context 是否传入，如果不传入则设置为 window
+4. 将函数设为此对象的方法（把调用函数作为传入对象的属性）
+5. 调用函数
+6. 返回结果
+
+```
+Function.prototype.MyCall = function (context) {
+    console.log('this>>>', this) // this>>> [Function: log]
+    // 判断调用对象
+    if (typeof this !== 'function') {
+        console.error('type error')
+    }
+    // 获取参数
+    const args = [...arguments].slice(1)
+    let result = null
+    // 判断 context 是否传入， 如果未传入则设置为window
+    context = context || window
+    // 将调用函数设为此对象的方法
+    context.fn = this
+    // 调用函数
+    result = context.fn(...args)
+    return result
+}
+
+const foo = {
+    a: 1,
+    log (x, y) {
+        console.log(this.a, x, y)
+    }
+}
+const obj = {
+    a: 10
+}
+
+foo.log.MyCall(obj, 5, 6) // 10, 5, 6
+```
+
+
+
+# 四、JavaScript 基础
+
+## 24. new 操作符的实现原理
