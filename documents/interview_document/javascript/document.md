@@ -448,7 +448,7 @@ foo.fn.call(obj, 2, 3) // 10 2 3
 foo.fn.bind(obj, 2, 3)() // 10 2 3
 ```
 
-## 21. apply 函数的实现及步骤
+## 21. call 函数的实现及步骤
 
 1. 判断调用对象是否为函数
 2. 获取参数
@@ -473,6 +473,8 @@ Function.prototype.MyCall = function (context) {
     context.fn = this
     // 调用函数
     result = context.fn(...args)
+    // 将属性删除
+    delete context.fn
     return result
 }
 
@@ -489,8 +491,130 @@ const obj = {
 foo.log.MyCall(obj, 5, 6) // 10, 5, 6
 ```
 
+## 22. apply 函数的实现
+
+```
+Function.prototype.MyApply = function (context) {
+    // 判断调用对象是否为函数
+    if (typeof this !== 'function') {
+        throw new TypeError('Error')
+    }
+    let result = null
+    // 判断 context 是否传入，如果为传入则设置window
+    context = context || window
+    context.fn = this
+    // 判断是否有传参
+    if (arguments[1]) {
+        result = context.fn(...arguments[1])
+    } else {
+        result = context.fn()
+    }
+    // 将属性删除
+    delete context.fn
+    return result
+}
+
+const foo = {
+    a: 1,
+    log (x, y) {
+        console.log(this.a, x, y)
+    }
+}
+const obj = {
+    a: 10
+}
+
+foo.log.MyApply(obj, [5, 6]) // 10, 5, 6
+```
+
+## 23. bind 函数的实现及步骤
+
+```
+Function.prototype.myBind = function (context) {
+    // 判断调用对象是否为函数
+    if (typeof this !== 'function') {
+        throw new TypeError('Error')
+    }
+    // 获取参数
+    const args = [...arguments].slice(1)
+    const fn = this
+    return function Fn () {
+        // 根据调用方式，传入不同绑定值
+        return fn.apply(
+            this instanceof Fn ? this : context,
+            args.concat(...arguments)
+        )
+    }
+}
+
+const foo = {
+    a: 1,
+    log (x, y) {
+        console.log(this.a, x, y)
+    }
+}
+const obj = {
+    a: 10
+}
+
+foo.log.myBind(obj, 5, 6)() // 10, 5, 6
+```
+
+# 四、原型与原型链
+
+## 24.对原型链的理解
+
+在JavaScript中是使用构造函数来新建一个对象的，每一个构造函数的内部都有一个 prototype 属性，它的属性值是一个对象，这个对象包含了可以由该构造函数的所有实例共享的属性和方法。当使用构造函数新建一个对象后，在这个对象的内部将包含一个指针，这个指针指向构造函数的 prototype 属性对应的值，在 ES5 中这个指针被称为对象的原型。一般来说不应该能够获取到这个值的，但是现在浏览器中都实现了 __proto__ 属性来访问这个属性，但是最好不要使用这个属性，因为它不是规范中规定的。ES5 中新增了一个 Object.getPrototypeOf() 方法，可以通过这个方法来获取对象的原型。
+
+当访问一个对象的属性时，如果这个对象内部不存在这个属性，那么它就会去它的原型对象里找这个属性，这个原型对象又会有自己的原型，于是就这样一直找下去，也就是原型链的概念。原型链的尽头一般来说都是 Object.prototype 所以这就是新建的对象为什么能够使用 toString() 等方法的原因。
+
+![img](document.assets/1615475711487-c474af95-b5e0-4778-a90b-9484208d724d.png)
+
+- 每个构造函数都有一个prototype属性，其指向对象的原型。
+- 对象的原型包含了可以由该构造函数的所有实例共享的属性和方法。而且其还有一个constructor 属性，其指向对应的构造函数。
+- 通过构造函数实例化一个对象后，这个对象包含 一个指针`__proto__:非标准，由浏览器实现`，指向构造函数的 prototype 属性对应的值，即对象的原型。
+- 原型链的尽头一般来说都是 Object.prototype(对象)来获取。
+
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function Person (age) {
+            this.age = age
+        }
+        const well = new Person(18)
+        /**
+         * {constructor: ƒ}
+            constructor: ƒ Person(age)
+            [[Prototype]]: Object
+         */
+        console.log(Object.getPrototypeOf(well))
+        /**
+         * {constructor: ƒ}
+            constructor: ƒ Person(age)
+            [[Prototype]]: Object
+         */
+        console.log(well.__proto__)
+        /**
+         * {constructor: ƒ}
+            constructor: ƒ Person(age)
+            [[Prototype]]: Object
+         */
+        console.log(Person.prototype)
+    </script>
+</body>
+</html>
+```
 
 
-# 四、JavaScript 基础
+
+# 五、JavaScript 基础
 
 ## 24. new 操作符的实现原理

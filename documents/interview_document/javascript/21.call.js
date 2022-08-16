@@ -13,6 +13,8 @@ Function.prototype.MyCall = function (context) {
     context.fn = this
     // 调用函数
     result = context.fn(...args)
+    // 将属性删除
+    delete context.fn
     return result
 }
 
