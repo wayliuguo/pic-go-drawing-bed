@@ -613,8 +613,108 @@ foo.log.myBind(obj, 5, 6)() // 10, 5, 6
 </html>
 ```
 
+## 25. 原型链指向
 
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        function Person(name) {
+            this.name = name
+        }
+        const p = new Person('well')
+        console.log('p.__proto__>>>', p.__proto__) // // Person.prototype
+        console.log('p.__proto__.constructor>>>', p.__proto__.constructor) // f Person(name)
+        console.log('Person.prototype.__proto__>>>', Person.prototype.__proto__) // Object.prototype
+        console.log('p.__proto__.__proto__>>>', p.__proto__.__proto__) // // Object.prototype
+        console.log('p.__proto__.constructor.prototype.__proto__>>>', p.__proto__.constructor.prototype.__proto__) // Object.prototype
+        console.log('Person.prototype.constructor.prototype.__proto__>>>', Person.prototype.constructor.prototype.__proto__) // Object.prototype
+        console.log('Person.prototype.constructor>>>', Person.prototype.constructor) // f Person(name)
+    </script>
+</body>
+</html>
+```
 
-# 五、JavaScript 基础
+## 26.原型链的终点是什么？null
+
+```
+console.log(Object.prototype.__proto__) // 
+```
+
+## 27.如何获得对象非原型链上的属性？
+
+**`hasOwnProperty()`** 方法会返回一个布尔值，指示对象自身属性中是否具有指定的属性（也就是，是否有指定的键）。
+
+```
+function iterate(obj) {
+	const res = []
+    for (let key in obj) {
+    	if (obj.hasOwnProperty(key)) {
+        	res.push(`${key}:${obj[key]}`)
+         }
+     }
+     return res
+}
+function Person (name) {
+	this.name = name
+}
+console.log(iterate(new Person('well'))) // ['name:well']
+```
+
+# 五、闭包、作用域链、执行上下文
+
+## 28. 对闭包的理解
+
+- **闭包是指有权访问另一个函数作用域中变量的函数**
+- 闭包有两个常用的用途：
+  - 闭包的第一个用途是使我们在函数外部能够访问到函数内部的变量。通过使用闭包，可以通过在外部调用闭包函数，从而在外部访问到函数内部的变量，可以使用这种方法来创建私有变量。
+  - 闭包的另一个用途是使已经运行结束的函数上下文中的变量对象继续留在内存中，因为闭包函数保留了这个变量对象的引用，所以这个变量对象不会被回收。
+
+```
+const name = 'well'
+const age = 25
+
+function showName () {
+    const name = 'liuguowei'
+    return function () {
+        return name
+    } 
+}
+console.log(showName()()) // liuguowei
+
+function myAge () {
+    return age
+}
+function showAge (fn) {
+    const age = 18
+    return fn()
+}
+console.log(showAge(myAge)) // 25
+
+```
+
+## 29.对作用域、作用域链的理解
+
+- 全局作用域
+  - 最外层函数和最外层函数外面定义的变量拥有全局作用域
+  - 所有未定义直接赋值的变量自动声明为全局作用域
+  - 所有window对象的属性拥有全局作用域
+  - 全局作用域有很大的弊端，过多的全局作用域变量会污染全局命名空间，容易引起命名冲突。
+- 函数作用域
+  - 函数作用域声明在函数内部的变零，一般只有固定的代码片段可以访问到
+  - 作用域是分层的，内层作用域可以访问外层作用域，反之不行
+- 块级作用域
+  - 使用ES6中新增的let和const指令可以声明块级作用域，块级作用域可以在函数中创建也可以在一个代码块中的创建（由`{ }`包裹的代码片段）
+  - let和const声明的变量不会有变量提升，也不可以重复声明
+  - 在循环中比较适合绑定块级作用域，这样就可以把声明的计数器变量限制在循环内部。
+
+# 六、JavaScript 基础
 
 ## 24. new 操作符的实现原理
