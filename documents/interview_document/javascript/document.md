@@ -715,6 +715,68 @@ console.log(showAge(myAge)) // 25
   - let和const声明的变量不会有变量提升，也不可以重复声明
   - 在循环中比较适合绑定块级作用域，这样就可以把声明的计数器变量限制在循环内部。
 
+## 30.对执行上下文的理解
+
+- 执行上下文类型
+
+  - **全局执行上下文**
+
+    任何不在函数内部的都是全局执行上下文，它首先会创建一个全局的window对象，并且设置this的值等于这个全局对象，一个程序中只有一个全局执行上下文。
+
+  - **函数执行上下文**
+
+    当一个函数被调用时，就会为该函数创建一个新的执行上下文，函数的上下文可以有任意多个。
+
+  - **eval函数执行上下文**
+
+    执行在eval函数中的代码会有属于他自己的执行上下文，不过eval函数不常使用。
+
+- 执行上下文栈
+
+  - JavaScript引擎使用执行上下文栈来管理执行上下文
+  - 当JavaScript执行代码时，首先遇到全局代码，会创建一个全局执行上下文并且压入执行栈中，每当遇到一个函数调用，就会为该函数创建一个新的执行上下文并压入栈顶，引擎会执行位于执行上下文栈顶的函数，当函数执行完成之后，执行上下文从栈中弹出，继续执行下一个上下文。当所有的代码都执行完毕之后，从栈中弹出全局执行上下文。
+
 # 六、JavaScript 基础
 
-## 24. new 操作符的实现原理
+## 31. new 操作符的实现原理
+
+**new 操作符的执行过程**
+
+- 首先创建一个新的空对象
+- 设置原型，将对象的原型设置为函数的prototype 对象。（实例的原型执行构造函数的原型）
+- 让函数的this指向这个对象，执行构造函数的代码（为这个新对象添加属性）
+- 判断函数的返回值类型，如果是值类型，返回创建的对象。如果是引用类型，就返回这个引用类型的对象。
+
+```
+function objectFactory () {
+    // 声明要创建的对象
+    let newObject = null
+    // 取出构造函数
+    let constructor = Array.prototype.shift.call(arguments)
+    console.log('constructor>>>', constructor) // constructor>>> [Function: Person]
+    let result = null
+    // 判断参数是否是函数
+    if (typeof constructor !== 'function') {
+        throw TypeError('error')
+    }
+    // 新建一个空对象，对象的原型为构造函数的 prototype 对象
+    newObject = Object.create(constructor.prototype)
+    console.log('newObject>>>', newObject) // newObject>>> Person {}
+    // 将 this 指向新建对象，并指向函数
+    result = constructor.apply(newObject, arguments)
+    console.log('result>>>', result)
+    console.log('newObject>>>', newObject) // newObject>>> Person { name: 'well', age: 18 }
+    // 判断返回对象
+    let flag = result && (typeof result === 'object' || typeof result === 'function')
+    // 判断返回结果
+    return flag ? result : newObject
+}
+
+function Person (name, age) {
+    this.name = name
+    this.age = age
+}
+const well = objectFactory(Person, 'well', 18)
+console.log(well.name)
+```
+
