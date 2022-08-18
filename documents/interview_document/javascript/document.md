@@ -780,3 +780,168 @@ const well = objectFactory(Person, 'well', 18)
 console.log(well.name)
 ```
 
+## 32.map
+
+### 1. Map 与 object 的区别？
+
+|          | Map                                                          | Object                                                       |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 意外的键 | Map默认情况不包含任何键，只包含显式插入的键。                | Object 有一个原型, 原型链上的键名有可能和自己在对象上的设置的键名产生冲突。 |
+| 键的类型 | Map的键可以是任意值，包括函数、对象或任意基本类型。          | Object 的键必须是 String 或是Symbol。                        |
+| 键的顺序 | Map 中的 key 是有序的。因此，当迭代的时候， Map 对象以插入的顺序返回键值。 | Object 的键是无序的                                          |
+| Size     | Map 的键值对个数可以轻易地通过size 属性获取                  | Object 的键值对个数只能手动计算                              |
+| 迭代     | Map 是 iterable 的，所以可以直接被迭代。                     | 迭代Object需要以某种方式获取它的键然后才能迭代。             |
+| 性能     | 在频繁增删键值对的场景下表现更好。                           | 在频繁添加和删除键值对的场景下未作出优化。                   |
+
+### 2. Map
+
+- **size**： `map.size` 返回Map结构的成员总数。
+- **set(key,value)**：设置键名key对应的键值value，然后返回整个Map结构，如果key已经有值，则键值会被更新，否则就新生成该键。（因为返回的是当前Map对象，所以可以链式调用）
+- **has(key)**：该方法返回一个布尔值，表示某个键是否在当前Map对象中。
+- **delete(key)**：该方法删除某个键，返回true，如果删除失败，返回false。
+- **clear()**：map.clear()清除所有成员，没有返回值。
+- **keys()**：返回键名的遍历器。
+- **values()**：返回键值的遍历器。
+- **entries()**：返回所有成员的遍历器。
+- **forEach()**：遍历Map的所有成员。
+
+```
+const map = new Map()
+// map.set(key, value)
+map.set('a', 1).set({a: 1}, 2)
+// map.get(key)
+console.log(map.get('a')) // 1
+console.log(map.size) // 2
+// map.has(key)
+console.log(map.has('a')) // true
+// map.delete(key)
+console.log(map.delete('a')) // true
+console.log(map) // Map(1) { { a: 1 } => 2 }
+// map.clear()
+map.clear()
+console.log(map) // Map(0) {}
+
+// 验证遍历器
+map.set('foo', 1).set('bar', 2)
+for(let key of map.keys()){
+    console.log(key);  // foo bar
+}
+for(let value of map.values()){
+    console.log(value); // 1 2
+}
+for(let items of map.entries()){
+   console.log(items);  // ["foo",1]  ["bar",2]
+}
+map.forEach( (value,key,map) => {
+    console.log(key,value); // foo 1    bar 2
+})
+```
+
+### 3.WeakMap
+
+- **set(key,value)**：设置键名key对应的键值value，然后返回整个Map结构，如果key已经有值，则键值会被更新，否则就新生成该键。（因为返回的是当前Map对象，所以可以链式调用）
+- **get(key)**：该方法读取key对应的键值，如果找不到key，返回undefined。
+- **has(key)**：该方法返回一个布尔值，表示某个键是否在当前Map对象中。
+- **delete(key)**：该方法删除某个键，返回true，如果删除失败，返回false。
+
+```
+const weakmap = new WeakMap()
+const a = {
+    a: 1
+}
+const b = {
+    b: 2
+}
+weakmap.set(a, 1).set(b, 2)
+console.log(weakmap) // WeakMap { <items unknown> }
+console.log(weakmap.get(a)) // 1
+console.log(weakmap.has(a)) // true
+weakmap.delete(a)
+console.log(weakmap.has(a)) // false
+```
+
+- Map 数据结构。它类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键。
+- WeakMap 结构与 Map 结构类似，也是用于生成键值对的集合。但是 WeakMap 只接受对象作为键名（ null 除外），不接受其他类型的值作为键名。而且 WeakMap 的键名所指向的对象，不计入垃圾回收机制。
+
+## 33. 为什么函数的 arguments 参数是类数组而不是数组？如果遍历类数组
+
+`arguments`是一个对象，它的属性是从 0 开始依次递增的数字，还有`callee`和`length`等属性，与数组相似；但是它却没有数组常见的方法属性，如`forEach`, `reduce`等，所以叫它们类数组。
+
+```
+function foo () {
+    Array.prototype.forEach.call(arguments, a=> console.log(a)) // 1 2 3 4 5
+}
+function foo1 () {
+    const arrArgs = Array.from(arguments)
+    console.log(arrArgs) // [ 1, 2, 3, 4, 5 ]
+}
+function foo2 () {
+    const arrArgs = [...arguments]
+    console.log(arrArgs) // [ 1, 2, 3, 4, 5 ]
+}
+
+foo(1,2,3,4,5)
+foo1(1,2,3,4,5)
+foo2(1,2,3,4,5)
+```
+
+## 34. XMLHttpRequest
+
+```
+const SERVER_URL = 'http://localhost:3000/todos'
+const xhr = new XMLHttpRequest()
+// 创建 Http 请求
+xhr.open('GET', SERVER_URL, true)
+// 设置状态监听函数
+xhr.onreadystatechange = function () {
+    if (this.readyState !== 4) return
+    // 当请求成功时
+    if (this.status === 200) {
+        console.log(this.response)
+    } else {
+        console.error(this.statusText)
+    }
+}
+// 设置请求失败时的监听函数
+xhr.onerror = function () {
+	console.error(this.statusText)
+}
+// 设置请求头信息
+xhr.responseType = 'json'
+xhr.setRequestHeader('Accept', 'application/json')
+xhr.send()
+```
+
+## 35 XMLHttpRequest Promise
+
+```
+function getJSON (url) {
+	let promise = new Promise(function (resolve, reject) {
+		const xhr = new XMLHttpRequest()
+		// 创建 Http 请求
+		xhr.open('GET', url, true)
+		// 设置状态监听函数
+		xhr.onreadystatechange = function () {
+        if (this.readyState !== 4) return
+            // 当请求成功时
+            if (this.status === 200) {
+                resolve(this.response)
+            } else {
+                reject(new Error(this.statusText))
+            }
+        }
+        // 设置请求失败时的监听函数
+        xhr.onerror = function () {
+            reject(new Error(this.statusText))
+        }
+        // 设置请求头信息
+        xhr.responseType = 'json'
+        xhr.setRequestHeader('Accept', 'application/json')
+        xhr.send()
+	})
+	return promise
+}
+const SERVER_URL = 'http://localhost:3000/todos'
+getJSON(SERVER_URL)
+```
+
