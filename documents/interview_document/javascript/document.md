@@ -945,3 +945,125 @@ const SERVER_URL = 'http://localhost:3000/todos'
 getJSON(SERVER_URL)
 ```
 
+# 七、异步编程
+
+## 36.对 Promise 的理解
+
+Promise是异步编程的一种解决方案，它是一个对象，可以获取异步操作的消。
+
+- Promise 实例有三个状态
+  - Pendding (进行中)
+  - Resolved(已完成)
+  - Rejected(已拒绝)
+  - 当把一件事交给promise时，它的状态就是 Pending，任务完成了状态就成了Resolved，失败就成了Rejected。
+- Promise的实例有两个过程
+  - pending -> fulfilled: Resolved(已完成)
+  - pending -> rejected: Rejected(已拒绝)
+  - 注意：旦从进行状态变成为其他状态就永远不能更改状态了。
+- Promise 的缺点
+  - 无法取消 Promise，旦新建它就会立即执行，无法中途取消
+  - 旦新建它就会立即执行，无法中途取消
+  - 当处于pending状态时，无法得知目前进展到哪一个阶段（刚刚开始还是即将完成）。
+
+## 37.Promise 的 基本用法
+
+- then、catch、finally
+
+- all：全部resolve 才 执行then，否则执行 catch
+
+- race：“竞赛”，最先resolve的作为then，使用场景：当一件事超过一定时间就不做了
+
+  ```
+  Promise.race([promise1,timeOutPromise(5000)]).then(res=>{})
+  ```
+
+```
+// new Promise() promise.then() promise.catch
+function getData (success) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            if (success) {
+                resolve(1)
+            } else {
+                reject(0)
+            }
+        })
+    })
+}
+getData(1).then((res) => console.log('promise.then()>>>', res)) // promise.then()>>> 1
+getData().then((res) => console.log(res)).catch(err => console.log('promise.catch()>>>', err)) // promise.catch()>>> 0
+// promise.all()、 promise.race()
+let promise1 = new Promise((resolve,reject)=>{
+	setTimeout(()=>{
+       resolve(1);
+	},2000)
+});
+let promise2 = new Promise((resolve,reject)=>{
+	setTimeout(()=>{
+       resolve(2);
+	},1000)
+});
+let promise3 = new Promise((resolve,reject)=>{
+	setTimeout(()=>{
+       resolve(3);
+	},3000)
+});
+Promise.all([promise1,promise2,promise3]).then(res=>{
+    console.log('promise.all>>>', res); // promise.all>>> [ 1, 2, 3 ]
+})
+Promise.race([promise1,promise2,promise3]).then(res=>{
+    console.log('promise.race>>>', res); // promise.race>>> 2
+})
+```
+
+## 38. async & await
+
+### 1. async 函数
+
+- async 函数返回的是一个 Promise 对象。
+- 联想一下Promise 的特点——无等待，所以在没有await 的情况下执行 async 函数，它会立即执行，返回一个Promise 对象，绝不会阻塞后面的语句。
+- async 的返回值会作为：Promise.resolve(返回值)，如果没有返回值则相当于：Promise.resolve(undefined)
+
+```
+// async 返回的是什么？
+const testAsync = async () => {
+    return 'hello world'
+}
+let result = testAsync()
+console.log('async 返回值>>>', result) // Promise { 'hello world' }
+result.then(res => console.log(res)) // hello world
+```
+
+### 2.await 在等待什么？
+
+- await 等待的是一个表达式，这个表达式的计算结果是Promise对象或者其他值（即没有特殊限定）
+- 如果它等到不是一个Promise对象，那么 await 表达式的运算结果就是它等到的东西
+- 如果它等到的是一个Promise对象，await 就忙起来了，它会阻塞后面的代码，等着 Promise 对象 resolve，然后得到 resolve 的值，作为 await 表达式的运算结果。
+
+```
+// await 在等待什么？
+function getSomething () {
+    return 'something'
+}
+async function asyncFn () {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve('hello async')
+        }, 3000)
+    })
+}
+async function test () {
+    const v1 = await getSomething()
+    const v2 = await asyncFn()
+    console.log('await 等到非Promise>>>', v1) // await 等到非Promise>>> something
+    console.log('await 等到Promise>>>', v2) // await 等到Promise>>> hello async
+}
+test()
+console.log('不在async 函数里的不会被阻塞') // 不在async 函数里的不会被阻塞
+```
+
+**输出顺序**
+
+- 不在async 函数里的不会被阻塞
+- await 等到非Promise>>> something
+- await 等到Promise>>> hello async
