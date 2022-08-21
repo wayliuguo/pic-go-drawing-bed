@@ -8,6 +8,7 @@ result.then(res => console.log(res)) // hello world
 
 // await 在等待什么？
 function getSomething () {
+    console.log('await 会阻塞后面的代码，执行外面的同步代码')
     return 'something'
 }
 async function asyncFn () {

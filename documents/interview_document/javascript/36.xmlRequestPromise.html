@@ -37,9 +37,13 @@
         const SERVER_URL = 'http://localhost:3000/todos'
         getJSON(SERVER_URL)
         const getData = async () => await getJSON(SERVER_URL)
+        const getDataById = async () => await getJSON(`${SERVER_URL}/1`)
+        const getDataByIdFn = async () => await getDataById()
         const onLoad = async () => {
             const ret = await getData()
             console.log('ret>>>', ret)
+            const idRet = await getDataByIdFn()
+            console.log('idRet>>>', idRet)
         }
         onLoad()
     </script>

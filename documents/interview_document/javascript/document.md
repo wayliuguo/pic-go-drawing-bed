@@ -1043,6 +1043,7 @@ result.then(res => console.log(res)) // hello world
 ```
 // await 在等待什么？
 function getSomething () {
+    console.log('await 会阻塞后面的代码，执行外面的同步代码')
     return 'something'
 }
 async function asyncFn () {
@@ -1064,6 +1065,16 @@ console.log('不在async 函数里的不会被阻塞') // 不在async 函数里�
 
 **输出顺序**
 
+- await 会阻塞后面的代码，执行外面的同步代码
+
 - 不在async 函数里的不会被阻塞
 - await 等到非Promise>>> something
 - await 等到Promise>>> hello async
+
+**遇到await会阻塞后面的代码，先执行async外面的同步代码，同步代码执行完，再回到async内部，继续执行await后面的代码。**
+
+**await 后面的代码进入了微任务队列**
+
+1. 先进入 test()函数，进入getSomething, 打印**await 会阻塞后面的代码，执行外面的同步代码**
+2. 阻塞后面的代码，执行async外面的代码，打印**不在async 函数里的不会被阻塞**
+3. ......
