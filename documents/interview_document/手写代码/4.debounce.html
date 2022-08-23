@@ -8,6 +8,7 @@
 </head>
 <body>
     <button onclick="addOneDebounce(1)">加一</button>
+    <button onclick="addOnewDebounceArrow()">加一（箭头函数）</button>
     <script>
         function debounce (fn, wait) {
             let timer = null
@@ -27,12 +28,25 @@
                 }, wait);
             }
         }
+        function debounceArrow (fn, wait) {
+            let timer = null
+            return (...args) => {
+                if (timer) {
+                    clearTimeout(timer)
+                    timer = null
+                }
+                timer = setTimeout(() => {
+                    fn.apply(this, args)
+                }, wait)
+            }
+        } 
         let count = 0
         const addOne = function () {
             count++
             console.log(count)
         }
         const addOneDebounce = debounce(addOne, 500)
+        const addOnewDebounceArrow = debounceArrow(addOne, 500)
     </script>
 </body>
 </html>

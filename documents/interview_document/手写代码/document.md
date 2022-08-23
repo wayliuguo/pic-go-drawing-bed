@@ -59,3 +59,140 @@ console.log(well)
 Person { name: 'well' }
 ```
 
+## 3. instanceof
+
+1. 首先获取类型的原型
+2. 然后获得对象的原型
+3. 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为 `null`，因为原型链最终为 `null`
+
+```
+function myInstanceof (left, right) {
+    let proto = Object.getPrototypeOf(left)
+    let constructor = right.prototype
+    while (true) {
+        if (!proto) return false
+        if (proto === constructor) return true
+        proto = Object.getPrototypeOf(proto)
+    }
+}
+
+console.log([] instanceof Array) // true
+console.log(2 instanceof Number) // fasle
+console.log(myInstanceof([], Array)) // true
+console.log(myInstanceof(2, Number)) // true
+```
+
+## 4. debounce
+
+函数防抖是指在事件被触发 n 秒后再执行回调，如果在这 n 秒内事件又被触发，则重新计时。这可以使用在一些点击请求的事件上，避免因为用户的多次点击向后端发送多次请求。
+
+```
+function debounce (fn, wait) {
+	let timer = null
+	return function () {
+		let context = this
+		console.log('context>>>', context)
+		args = arguments;
+		console.log('args>>>', args)
+		// 如果此时存在定时器的话，则取消之前的定时器重新记时
+		if (timer) {
+			clearTimeout(timer);
+            timer = null;
+		}
+		// 设置定时器，使事件间隔指定事件后执行
+		timer = setTimeout(() => {
+			fn.apply(context, args);
+		}, wait);
+	}
+}
+```
+
+```
+function debounceArrow (fn, wait) {
+	let timer = null
+	return (...args) => {
+		if (timer) {
+			clearTimeout(timer)
+			timer = null
+		}
+		timer = setTimeout(() => {
+			fn.apply(this, args)
+		}, wait)
+	}
+} 
+```
+
+## 5. throttle
+
+函数节流是指规定一个单位时间，在这个单位时间内，只能有一次触发事件的回调函数执行，如果在同一个单位时间内某事件被触发多次，只有一次能生效。节流可以使用在 scroll 函数的事件监听上，通过事件节流来降低事件调用的频率。
+
+```
+function throttle (fn, delay) {
+	let curTime = new Date()
+	return function () {
+        const context = this
+        const args = arguments
+        let nowTime = Date.now()
+		if (nowTime - curTime >= delay) {
+			curTime = nowTime
+			return fn.apply(context, args)
+		}
+	}
+}
+```
+
+## 6.类型判断
+
+主要是通过typeof 和 Object.prototype.toString.call()来判断，由于typeof null 也等于 'object',所以才做了多一步的处理
+
+```
+function getType (value) {
+    // 如果是null则返回
+    if (value === null) {
+        return value + ''
+    }
+    // 如果是数组、对象
+    if (typeof value === 'object') {
+        // [object Array]
+        let valueClass = Object.prototype.toString.call(value)
+        let type = valueClass.split(' ')[1].split('')
+        type.pop()
+        // ['A', 'r', 'r', 'a', 'y']
+        return type.join('').toLowerCase()
+    } else {
+        return typeof value
+    }
+}
+
+console.log(getType([])) // array
+console.log(getType(2)) // number
+```
+
+## 7.call
+
+核心思想：把调用方法contex的属性去执行，并把得到的结果返回
+
+```
+Function.prototype.MyCall = function (context) {
+    if (typeof this !== 'function') {
+        throw new Error('error')
+    }
+    // 获取参数
+    let args = [...arguments].slice(1)
+    let result = null
+    // 核心思想：把调用方法contex的属性去执行，并把得到的结果返回
+    context.fn = this
+    result = context.fn(args)
+    delete context.fn
+    return result
+}
+
+const Person = {
+    name: 'well'
+}
+function sayName (age) {
+    return `name:${this.name},age:${age}`
+}
+console.log(sayName.MyCall(Person, 18)) // name:well,age:18
+```
+
