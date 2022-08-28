@@ -1,3 +1,5 @@
+# 一、JavaScript基础
+
 ## 1. Object.create
 
 思路：将传入的对象作为原型
@@ -254,3 +256,149 @@ Function.prototype.myBind = function(context) {
 };
 ```
 
+## 10. 实现浅拷贝
+
+浅拷贝是指，一个新的对象对原始对象的属性值进行精确地拷贝，如果拷贝的是基本数据类型，拷贝的就是基本数据类型的值，如果是引用数据类型，拷贝的就是内存地址。如果其中一个对象的引用内存地址发生改变，另一个对象也会发生变化。
+
+- Object.assign()
+- 扩展运算符
+- 数组方法实现数组浅拷贝
+
+### 10.1 Object.assign()
+
+```
+let target = {a: 1};
+let object2 = {b: 2};
+let object3 = {c: 3};
+Object.assign(target,object2,object3);  
+console.log(target);  // {a: 1, b: 2, c: 3}
+```
+
+### 10.2 扩展运算符
+
+```
+let obj4 = {a:1,b:{c:1}}
+let obj5 = {...obj4} // { a: 1, b: { c: 1 } }
+console.log(obj5)
+```
+
+### 10.3 数组方法实现数组浅拷贝
+```
+// Array.prototype.slice
+let arr = [1,2,3,4];
+console.log(arr.slice()); // [1,2,3,4]
+console.log(arr.slice() === arr); //false
+
+// Array.prototype.concat
+let arr2 = [1,2,3,4];
+console.log(arr2.concat()); // [1,2,3,4]
+console.log(arr2.concat() === arr); //false
+```
+
+### 10.4 浅拷贝的实现
+
+```
+function shallowCopy(object) {
+    // 只拷贝对象
+    if (!object || typeof object !== 'object') return
+    // 根据object 的类型判断新建的是数组还是对象
+    let newObject = Array.isArray(object) ? [] : {}
+    // 遍历object，判断是object的属性才拷贝
+    for (let key in object) {
+        if (object.hasOwnProperty(key)) {
+            newObject[key] = object[key]
+        }
+    }
+    return newObject
+}
+const myObject = [1,2,3,4,5]
+const newShallowObject = shallowCopy(myObject)
+console.log(newShallowObject) // [ 1, 2, 3, 4, 5 ]
+```
+
+## 11. 实现深拷贝
+
+深拷贝相对浅拷贝而言，如果遇到属性值为引用类型的时候，它新建一个引用类型并将对应的值复制给它，因此对象获得的一个新的引用类型而不是一个原有类型的引用。深拷贝对于一些对象可以使用 JSON 的两个函数来实现，但是由于 JSON 的对象格式比 js 的对象格式更加严格，所以如果属性值里边出现函数或者 Symbol 类型的值时，会转换失败。
+
+- JSON.stringify
+- lodash的_.cloneDeep
+- 手动实现深拷贝函数
+
+```
+const obj1 = {
+    a: 1,
+    b: { f: { g: 1 } },
+    c: [1, 2, 3]
+}
+// JSON.stringfy
+const obj2 = JSON.parse(JSON.stringify(obj1))
+obj2.b.e =2
+console.log(obj1) // { a: 1, b: { f: { g: 1 } }, c: [ 1, 2, 3 ] }
+console.log(obj2) // { a: 1, b: { f: { g: 1 }, e: 2 }, c: [ 1, 2, 3 ] }
+
+// 深拷贝的实现
+function deepCopy (object) {
+    // 只拷贝对象
+    if (!object || typeof object !== 'object') return
+    // 根据object 的类型判断新建的是数组还是对象
+    let newObject = Array.isArray(object) ? [] : {}
+    // 遍历 object
+    for (let key in object) {
+        if (object.hasOwnProperty(key)) {
+            newObject[key] = typeof object[key] === 'object' ? deepCopy(object[key]) : object[key]
+        }
+    }
+    return newObject
+}
+const obj3 = deepCopy(obj1)
+obj3.b.f.g = 5
+console.log(obj1) // { a: 1, b: { f: { g: 1 } }, c: [ 1, 2, 3 ] }
+console.log(obj3) // { a: 1, b: { f: { g: 5 } }, c: [ 1, 2, 3 ] }
+```
+
+## 13.实现 sleep 函数
+
+```
+function sleep (wait) {
+    return new Promise(resolve => {
+        setTimeout(resolve, wait)
+    })
+}
+const curTime = Date.now()
+sleep(3000).then(() => {
+    console.log(Date.now() - curTime) // 3000
+})
+```
+
+## 14. 实现 Object.assign
+
+```
+Object.myAssign = function (target, ...source) {
+    if (target === null) {
+        throw new TypeError('error')
+    }
+    let ret = Object(target)
+    source.forEach(obj => {
+        if (obj !== null) {
+            for (let key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    ret[key] = obj[key]
+                }
+            }
+        }
+    })
+    return ret
+}
+
+let target = {a: 1}
+let object2 = {b: 2}
+let object3 = {c: 3}
+Object.myAssign(target,object2,object3)
+console.log(target);  // {a: 1, b: 2, c: 3}
+```
+
+## 15.手写 Promise
+
+# 二、数据处理
+
+## 16.
