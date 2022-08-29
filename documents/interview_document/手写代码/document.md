@@ -402,3 +402,51 @@ console.log(target);  // {a: 1, b: 2, c: 3}
 # 二、数据处理
 
 ## 15.实现日期格式化函数
+
+```
+const dateFormat = function (dateInput, format) {
+    const day = dateInput.getDate()
+    const month = dateInput.getMonth() + 1
+    const year = dateInput.getFullYear()
+    format = format.replace(/yyyy/, year)
+    format = format.replace(/MM/, month)
+    format = format.replace(/dd/, day)
+    return format
+}
+
+console.log(dateFormat(new Date('2020-12-01'), 'yyyy/MM/dd')) // 2020/12/01
+console.log(dateFormat(new Date('2020-04-01'), 'yyyy/MM/dd')) // 2020/04/01
+console.log(dateFormat(new Date('2020-04-01'), 'yyyy年MM月dd日')) // 2020年04月01日
+```
+
+## 16. 实现数组的乱序输出
+
+```
+const arr = [1,2,3,4,5,6,7,8,9,10]
+
+let length = arr.length
+let randomIndex
+while (length) {
+    randomIndex = Math.floor(Math.random() * length)
+    length--
+    [arr[length], arr[randomIndex]] = [arr[randomIndex], arr[length]]
+}
+console.log(arr)
+```
+
+## 17.实现数组元素的求和
+
+```
+let arr = [1,2,3,4,5,6,7,8,9,10]
+// reduce
+let sum = arr.reduce((total, i) => total += i, 0)
+console.log(sum) // 5
+
+// 递归
+function add (arr) {
+    if (arr.length === 1) return arr[0]
+    return arr[0] + add(arr.slice(1)) 
+}
+console.log(add(arr)) // 5
+```
+
