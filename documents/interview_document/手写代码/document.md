@@ -356,7 +356,7 @@ console.log(obj1) // { a: 1, b: { f: { g: 1 } }, c: [ 1, 2, 3 ] }
 console.log(obj3) // { a: 1, b: { f: { g: 5 } }, c: [ 1, 2, 3 ] }
 ```
 
-## 13.实现 sleep 函数
+## 12.实现 sleep 函数
 
 ```
 function sleep (wait) {
@@ -370,7 +370,7 @@ sleep(3000).then(() => {
 })
 ```
 
-## 14. 实现 Object.assign
+## 13. 实现 Object.assign
 
 ```
 Object.myAssign = function (target, ...source) {
@@ -397,8 +397,8 @@ Object.myAssign(target,object2,object3)
 console.log(target);  // {a: 1, b: 2, c: 3}
 ```
 
-## 15.手写 Promise
+## 14.手写 Promise
 
 # 二、数据处理
 
-## 16.
+## 15.实现日期格式化函数
