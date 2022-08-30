@@ -551,7 +551,7 @@ console.log(arr.flat(1)) // [ 1, 2, [ 3, 4, 5 ] ]
 ## 21. push 实现
 
 ```
-Function.prototype.myPush = function (...args) {
+Array.prototype.myPush = function (...args) {
     for (let i=0; i<args.length; i++) {
         this[this.length] = args[i]
     }
@@ -561,5 +561,67 @@ const arr = [1, 2, 3]
 const ret = arr.push(4, 5, 6)
 console.log(ret) // 6
 console.log(arr) // [ 1, 2, 3, 4, 5, 6 ]
+```
+
+## 22. filter 实现
+
+```
+Array.prototype.myFilter = function (fn) {
+    if (typeof fn !== 'function') {
+        throw TypeError('参数必须是一个函数')
+    }
+    let res = []
+    for (let i=0; i<this.length; i++) {
+        fn(this[i]) && res.push(this[i])
+    }
+    return res
+}
+
+const arr = [1, 2, 3, 4, 5, 6]
+console.log(arr.myFilter(item => item>3)) // [ 4, 5, 6 ]
+```
+
+## 23. map 实现
+
+```
+Array.prototype.myMap = function (fn) {
+    if (typeof fn !== 'function') {
+        throw TypeError('参数必须是一个函数')
+    }
+    const res = []
+    for (let i=0; i<this.length; i++) {
+        res.push(fn(this[i]))
+    }
+    return res
+}
+
+const arr = [1, 2, 3, 4, 5, 6]
+console.log(arr.myMap(item => item * item)) // [ 1, 4, 9, 16, 25, 36 ]
+```
+
+## 24.repeat 实现
+
+- 冒泡实现
+- 迭代实现
+
+```
+function repeat(s, n) {
+    if (n > 0) {
+        return s + repeat(s, --n)
+    } else {
+        return ''
+    }
+}
+
+function repeatReduce (s, n) {
+    while (n > 1) {
+        s += s
+        n--
+    }
+    return s
+}
+
+console.log(repeat('abc', 2)) // abcabc
+console.log(repeatReduce('abc', 2)) // abcabc
 ```
 

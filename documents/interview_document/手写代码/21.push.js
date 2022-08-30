@@ -1,4 +1,4 @@
-Function.prototype.myPush = function (...args) {
+Array.prototype.myPush = function (...args) {
     for (let i=0; i<args.length; i++) {
         this[this.length] = args[i]
     }
