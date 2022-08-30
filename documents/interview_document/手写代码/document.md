@@ -450,3 +450,116 @@ function add (arr) {
 console.log(add(arr)) // 5
 ```
 
+## 18.数组扁平化
+
+- 递归实现
+- 迭代实现
+- 扩展运算符实现
+- split 和 toString
+- ES6 flat
+
+```
+let arr = [1, [2, [3, 4, 5]]]
+// 递归实现
+function flatten (arr) {
+    let result = []
+    for (let i=0; i<arr.length; i++) {
+        if (Array.isArray(arr[i])) {
+            result = result.concat(flatten(arr[i]))
+        } else {
+            result.push(arr[i])
+        }
+    }
+    return result
+}
+console.log(flatten(arr)) // [ 1, 2, 3, 4, 5 ]
+
+// 迭代实现
+function flattenReduce (arr) {
+    return arr.reduce((previousValue, currentValue) => {
+        return previousValue.concat(Array.isArray(currentValue) ? flattenReduce(currentValue) : currentValue)
+    }, [])
+}
+console.log(flattenReduce(arr)) // [ 1, 2, 3, 4, 5 ]
+
+// 扩展运算符实现
+function flattenExtension (arr) {
+    while(arr.some(item => Array.isArray(item))) {
+        arr = [].concat(...arr)
+    }
+    return arr
+}
+console.log(flattenExtension(arr)) // [ 1, 2, 3, 4, 5 ]
+
+// split 和 toString 
+function flattenByString (arr) {
+    return arr.toString().split(",")
+}
+console.log(flattenByString(arr)) // [ '1', '2', '3', '4', '5' ]
+
+// ES6 flat
+console.log(arr.flat(Infinity)) // [ 1, 2, 3, 4, 5 ]
+```
+
+## 19. 数组去重
+
+- set
+- map
+
+```
+const array = [1, 2, 3, 5, 1, 5, 9, 1, 2, 8]
+
+// Array.from(new Set(arr))
+console.log(Array.from(new Set(array))) // [ 1, 2, 3, 5, 9, 8 ]
+
+// map
+function uniqueArray (arr) {
+    let map = new Map()
+    let res = []
+    for (let i=0; i<arr.length; i++) {
+        if (!map.has(arr[i])) {
+            map.set(arr[i], 1)
+            res.push(arr[i])
+        }
+    }
+    return res
+}
+console.log(uniqueArray(array)) // [ 1, 2, 3, 5, 9, 8 ]
+```
+
+## 20. flat 实现
+
+```
+function _flat (arr, depth) {
+    if (!Array.isArray(arr) || depth <= 0) {
+        return arr
+    }
+    return arr.reduce((previousVal, currentVal) => {
+        if (Array.isArray(currentVal)) {
+            return previousVal.concat(_flat(currentVal, depth - 1))
+        } else {
+            return previousVal.concat(currentVal)
+        }
+    }, [])
+}
+
+let arr = [1, [2, [3, 4, 5]]]
+console.log(_flat(arr, 1)) // [ 1, 2, [ 3, 4, 5 ] ]
+console.log(arr.flat(1)) // [ 1, 2, [ 3, 4, 5 ] ]
+```
+
+## 21. push 实现
+
+```
+Function.prototype.myPush = function (...args) {
+    for (let i=0; i<args.length; i++) {
+        this[this.length] = args[i]
+    }
+    return this.length
+}
+const arr = [1, 2, 3]
+const ret = arr.push(4, 5, 6)
+console.log(ret) // 6
+console.log(arr) // [ 1, 2, 3, 4, 5, 6 ]
+```
+
