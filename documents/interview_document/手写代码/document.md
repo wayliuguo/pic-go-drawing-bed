@@ -798,3 +798,95 @@ const stepRunner = async () => {
 stepRunner()
 ```
 
+## 29.间隔打印
+
+```
+for (let i=0; i<5; i++) {
+    setTimeout(() => {
+        console.log(i)
+    }, i * 1000)
+}
+```
+
+## 30.ES6创建类
+
+```
+class Employee {
+    constructor (name, dept) {
+        this.name = name
+        this.dept = dept
+    }
+    // 静态方法
+    static fun () {
+        console.log('static')
+    }
+    getName () {
+        console.log(this.name)
+    }
+}
+
+Employee.fun() // static
+
+const well  = new Employee('well', 'dev')
+console.log(well) // Employee { name: 'well', dept: 'dev' } 
+// well.fun() // well.fun is not a function
+well.getName()
+
+// extends继承父类创建子类
+class Manager extends Employee {
+    constructor (name, dept, reports) {
+        super(name, dept)
+        this.reports = reports
+    }
+}
+const wellManager = new Manager('wellManager', 'dev', 1)
+Manager.fun() // static
+console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', reports: 1 }
+wellManager.getName() // wellManager
+```
+
+- constructor：构造函数，相当于ES5的构造函数
+- static：静态属性，不会随着实例化给对象，但是可以通过extends继承。
+- 非 static 方法可以随着实例化给对象。
+
+## 31.ES5 创建类
+
+```
+function Employee (name, dept) {
+    this.name =  name
+    this.dept = dept
+}
+// 静态方法
+Employee.fun = function () {
+    console.log('static')
+}
+Employee.prototype.getName = function (name) {
+    console.log(this.name)
+}
+const well = new Employee('well', 'dev')
+console.log(well) // Employee { name: 'well', dept: 'dev' }
+Employee.fun() // static
+// well.fun() // Employee.fun is not a function
+well.getName()
+
+// 继承
+function Manager(name, dept, reports) {
+    // 调用 Employee 函数，并把this执行Manger，所以完成了
+    // this.name = name
+    // this.dept = dept
+    Employee.call(this, name, dept)
+    this.reports = reports
+}
+
+const wellManager = new Manager('wellManager', 'dev', 1)
+// Manager.fun() // Manager.fun is not a function
+console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', reports: 1 }
+// wellManager.getName() // wellManager.getName is not a function
+
+```
+
+- 静态属性添加
+- 原型属性添加
+- 继承实现
+  - 继承不了原型属性
+  - 继承不了静态属性
