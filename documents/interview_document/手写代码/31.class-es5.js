@@ -1,16 +1,17 @@
 function Employee (name, dept) {
     this.name =  name
     this.dept = dept
+    this.age = 18
 }
 // 静态方法
 Employee.fun = function () {
     console.log('static')
 }
-Employee.prototype.getName = function (name) {
+Employee.prototype.getName = function () {
     console.log(this.name)
 }
 const well = new Employee('well', 'dev')
-console.log(well) // Employee { name: 'well', dept: 'dev' }
+console.log(well) // Employee { name: 'well', dept: 'dev', age: 18 }
 Employee.fun() // static
 // well.fun() // Employee.fun is not a function
 well.getName()
@@ -26,6 +27,6 @@ function Manager(name, dept, reports) {
 
 const wellManager = new Manager('wellManager', 'dev', 1)
 // Manager.fun() // Manager.fun is not a function
-console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', reports: 1 }
+console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', age: 18, reports: 1 } 
 // wellManager.getName() // wellManager.getName is not a function
 

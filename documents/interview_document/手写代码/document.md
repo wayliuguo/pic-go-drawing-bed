@@ -815,6 +815,7 @@ class Employee {
     constructor (name, dept) {
         this.name = name
         this.dept = dept
+        this.age = 18
     }
     // 静态方法
     static fun () {
@@ -828,7 +829,7 @@ class Employee {
 Employee.fun() // static
 
 const well  = new Employee('well', 'dev')
-console.log(well) // Employee { name: 'well', dept: 'dev' } 
+console.log(well) // Employee { name: 'well', dept: 'dev', age: 18 } 
 // well.fun() // well.fun is not a function
 well.getName()
 
@@ -841,11 +842,11 @@ class Manager extends Employee {
 }
 const wellManager = new Manager('wellManager', 'dev', 1)
 Manager.fun() // static
-console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', reports: 1 }
+console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', age: 18, reports: 1 } 
 wellManager.getName() // wellManager
 ```
 
-- constructor：构造函数，相当于ES5的构造函数
+- constructor：构造函数，相当于ES5的构造函数，里面的this.×××的属性可以实例化给对象
 - static：静态属性，不会随着实例化给对象，但是可以通过extends继承。
 - 非 static 方法可以随着实例化给对象。
 
@@ -855,16 +856,17 @@ wellManager.getName() // wellManager
 function Employee (name, dept) {
     this.name =  name
     this.dept = dept
+    this.age = 18
 }
 // 静态方法
 Employee.fun = function () {
     console.log('static')
 }
-Employee.prototype.getName = function (name) {
+Employee.prototype.getName = function () {
     console.log(this.name)
 }
 const well = new Employee('well', 'dev')
-console.log(well) // Employee { name: 'well', dept: 'dev' }
+console.log(well) // Employee { name: 'well', dept: 'dev', age: 18 }
 Employee.fun() // static
 // well.fun() // Employee.fun is not a function
 well.getName()
@@ -880,9 +882,8 @@ function Manager(name, dept, reports) {
 
 const wellManager = new Manager('wellManager', 'dev', 1)
 // Manager.fun() // Manager.fun is not a function
-console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', reports: 1 }
+console.log(wellManager) // Manager { name: 'wellManager', dept: 'dev', age: 18, reports: 1 } 
 // wellManager.getName() // wellManager.getName is not a function
-
 ```
 
 - 静态属性添加
