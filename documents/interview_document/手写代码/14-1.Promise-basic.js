@@ -45,5 +45,15 @@ class myPromise {
 const promise = new myPromise ((resolve, reject) => {
     resolve(1)
 })
-console.log(promise)
-promise.then((res) => console.log(res))
+console.log(promise) // myPromise { state: 'fulfilled', value: 1, reason: undefined }
+promise.then((res) => console.log(res)) // 1
+
+// 漏洞
+const promiseError = new myPromise((resolve, reject) => {
+    console.log('执行')
+    setTimeout(() => {
+        reject(3)
+    })
+})
+console.log(promiseError) // myPromise { state: 'pengding', value: undefined, reason: undefined } 
+promiseError.then(res => console.log(res), err => console.log(err))

@@ -399,6 +399,225 @@ console.log(target);  // {a: 1, b: 2, c: 3}
 
 ## 14.手写 Promise
 
+### 14.1声明 Promise 类 & then 的基础构建
+
+```
+const PENDING = 'pengding'
+const FULFILLED = 'fulfilled'
+const REJECTED = 'rejected'
+
+class myPromise {
+    constructor (executor) {
+        // 保存 promise 的状态
+        this.state = PENDING
+        // 成功结果
+        this.value = undefined
+        // 失败结果
+        this.reason = undefined
+        // resolve 方法
+        const resolve = (value) => {
+            if (this.state = PENDING) {
+                this.state = FULFILLED
+                this.value = value
+            }
+        }
+        const reject = (reason) => {
+            if (this.state = PENDING) {
+                this.state = REJECTED
+                this.reason = reason
+            }
+        }
+        try {
+            executor(resolve, reject)
+        } catch (e) {
+            reject(e)
+        }
+    }
+    // then 方法
+    then (onFulfilled, onRejected) {
+        // 如果状态是 fulfilled，则执行then传入的 onFulfilled 函数
+        if (this.state === FULFILLED) {
+            typeof onFulfilled === 'function' && onFulfilled(this.value)
+        }
+        // 如果状态是 fulfilled，则执行then传入的 onRejected 函数
+        if (this.state === REJECTED) {
+            typeof onRejected === 'function' && onRejected(this.reason)
+        }
+    }
+}
+
+const promise = new myPromise ((resolve, reject) => {
+    resolve(1)
+})
+console.log(promise) // myPromise { state: 'fulfilled', value: 1, reason: undefined }
+promise.then((res) => console.log(res)) // 1
+
+// 漏洞
+const promiseError = new myPromise((resolve, reject) => {
+    console.log('执行')
+    setTimeout(() => {
+        reject(3)
+    })
+})
+console.log(promiseError) // myPromise { state: 'pengding', value: undefined, reason: undefined } 
+promiseError.then(res => console.log(res), err => console.log(err))
+```
+
+- resolve: 把state 变为 fulfilled， 改变value
+- reject：把state 变为 rejected，改变reason
+- 由于setTimeout是宏任务，放入宏任务队列，执行了下面的then，由于还没有resolve或者reject，所以状态还是pending。
+
+### 14.2 then 进一步优化
+
+**参考发布订阅模式，在执行then的时候，如果当时还是 pending 状态，就把回调函数寄存到一个数组中，当状态发生改变时，去数组中取出回调函数。**
+
+```
+class myPromise {
+    constructor (executor) {
+    	...
+    	// 成功的回调
+        this.onFulfilled = []
+        // 失败的回调
+        this.onRejected = []
+        // resolve 方法
+        const resolve = (value) => {
+            if (this.state = PENDING) {
+                this.state = FULFILLED
+                this.value = value
+                // 执行成功的回调
+                this.onFulfilled.forEach(fn => fn(value))
+            }
+        }
+        const reject = (reason) => {
+            if (this.state = PENDING) {
+                this.state = REJECTED
+                this.reason = reason
+                // 执行失败的回调
+                this.onRejected.forEach(fn => fn(reason))
+            }
+        }
+    }
+    then (onFulfilled, onRejected) {
+    	...
+    	// 如果状态是 pending，不是马上执行回调函数，而是将其存储起来
+        if (this.state === PENDING) {
+            typeof onFulfilled === 'function' && this.onFulfilled.push(onFulfilled)
+            typeof onRejected === 'function' && this.onRejected.push(onRejected)
+        }
+    }
+}
+```
+
+```
+const promise = new myPromise((resolve, reject) => {
+    setTimeout(() => {
+        resolve(1)
+    }, 1000)
+})
+promise.then(res => console.log(res)) // 1
+promise.then(res => console.log(res)) // 1
+```
+
+**原生的promise.then()中的代码是异步执行的，所以需要进一步优化，否则出现下面代码执行顺序**
+
+```
+const promise = new myPromise((resolve, reject) => {
+    resolve(1)
+})
+promise.then(res => console.log(res)) // 1
+promise.then(res => console.log(res)) // 1
+console.log(2)
+```
+
+- 1
+- 1
+- 2
+
+```
+then (onFulfilled, onRejected) {
+        if(typeof onFulfilled !== 'function') onFulfilled = () => {}
+        if(typeof onRejected !== 'function') onRejected = () => {}
+
+        // 如果状态是 pending，不是马上执行回调函数，而是将其存储起来
+        if (this.state === PENDING) {
+            this.onFulfilled.push(
+                () => {
+                    setTimeout(() => onFulfilled(this.value))
+                }
+            )
+            this.onRejected.push(
+                () => {
+                    setTimeout(() => onRejected(this.reason))
+                }
+            )
+        }
+        // 如果状态是 fulfilled，则执行then传入的 onFulfilled 函数
+        if (this.state === FULFILLED) {
+            setTimeout(() => onFulfilled(this.value))
+        }
+        // 如果状态是 fulfilled，则执行then传入的 onRejected 函数
+        if (this.state === REJECTED) {
+            setTimeout(() => onRejected(this.reason))
+        }
+    }
+```
+
+### 14.3 链式调用
+
+- promise 是支持链式调用的，就是 .then() 之后还可以继续 .then()
+- 所以then 返回的应该还是一个 promise 对象，并且改变这个返回的 promise 对象的状态的 resolve 和 reject 方法应该在当前的 promise 中被调用，并且将当前 promise 的 value 或 reason 作为参数传入，这样下一个 promise 的 then 方法中就可以拿到上一个 promise 传过来的值
+
+```
+then (onFulfilled, onRejected) {
+        if(typeof onFulfilled !== 'function') onFulfilled = () => {}
+        if(typeof onRejected !== 'function') onRejected = () => {}
+        return new myPromise((resolve, reject) => {
+            // 如果状态是 pending，不是马上执行回调函数，而是将其存储起来
+            if (this.state === PENDING) {
+                this.onFulfilled.push(
+                    () => {
+                        setTimeout(() => resolve(onFulfilled(this.value)))
+                    }
+                )
+                this.onRejected.push(
+                    () => {
+                        setTimeout(() => resolve(onRejected(this.reason)))
+                    }
+                )
+            }
+            // 如果状态是 fulfilled，则执行then传入的 onFulfilled 函数
+            if (this.state === FULFILLED) {
+                setTimeout(() => resolve(onFulfilled(this.value)))
+            }
+            // 如果状态是 fulfilled，则执行then传入的 onRejected 函数
+            if (this.state === REJECTED) {
+                setTimeout(() => resolve(onRejected(this.reason)))
+            }
+        })
+    }
+```
+
+```
+const promise = new myPromise((resolve, reject) => {
+    resolve(1)
+})
+promise
+    .then(res => {
+        console.log(res)
+        return res
+    })
+    .then(res => console.log(res))
+// 输出： 1 1
+```
+
+**处理then 穿透**
+
+原生：promise.then().then(res => console.log(res))中依然可以拿到前面传递过来的参数，这里就是then的穿透。
+
+实现 then 的穿透也非常简单，更改一下 onFulfilled 和 onRejected 不是函数的情况的处理即可：
+
+
+
 # 二、数据处理
 
 ## 15.实现日期格式化函数
