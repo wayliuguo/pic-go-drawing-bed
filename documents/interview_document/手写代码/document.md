@@ -616,7 +616,9 @@ promise
 
 实现 then 的穿透也非常简单，更改一下 onFulfilled 和 onRejected 不是函数的情况的处理即可：
 
+**异常处理**
 
+如果是 fulfilled 那就直接返回原来的 value，如果是 rejected，就直接抛出错误。
 
 # 二、数据处理
 
