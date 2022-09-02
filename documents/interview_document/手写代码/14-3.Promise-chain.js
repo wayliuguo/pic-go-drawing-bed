@@ -106,13 +106,13 @@ promise
 promise.then().then(res => console.log(res)) // 1
 
 // 测试中途catch
-const promise2 = new Promise((resolve, reject) => {
+const promise2 = new myPromise((resolve, reject) => {
     resolve(2)
 })
 promise2
     .then(res => {
         throw new Error('error')
     })
-    .catch(e => {
+    .then(res => console.log(res),e => {
         console.log(e.message) // error
     })
