@@ -565,7 +565,9 @@ then (onFulfilled, onRejected) {
 ### 14.3 链式调用
 
 - promise 是支持链式调用的，就是 .then() 之后还可以继续 .then()
-- 所以then 返回的应该还是一个 promise 对象，并且改变这个返回的 promise 对象的状态的 resolve 和 reject 方法应该在当前的 promise 中被调用，并且将当前 promise 的 value 或 reason 作为参数传入，这样下一个 promise 的 then 方法中就可以拿到上一个 promise 传过来的值
+- 所以 then 返回的应该还是一个 promise 对象，并且在这个返回的promise 中就调用了 resolve 或者 reject方法，改变了state，这样的话下一个then 的回调就可以获取到 value 或者 reason
+- 由于promise 可以穿透，即前面的then不传入回调，后面的then的回调依然能接收到 value 或者 reason，所以 then 的实现中，如果没有传入回调函数，则定义一下回调函数即可
+- 如果在 then 中发生了错误，则返回的promise对象的状态应该是调用了 reject 方法，把 state 改成了 rejected 状态的。
 
 ```
 then (onFulfilled, onRejected) {
@@ -616,9 +618,71 @@ promise
 
 实现 then 的穿透也非常简单，更改一下 onFulfilled 和 onRejected 不是函数的情况的处理即可：
 
+```
+then (onFulfilled, onRejected) {
+	if(typeof onFulfilled !== 'function') onFulfilled = value => value
+    if(typeof onRejected !== 'function') onRejected = reason => {throw reason}
+    ...
+}
+```
+
 **异常处理**
 
-如果是 fulfilled 那就直接返回原来的 value，如果是 rejected，就直接抛出错误。
+如果在then中出现了错误，需要返回的下一个promise 的 state 变为 rejected，所以需要添加异常处理
+
+```
+try {
+	resolve(onFulfilled(this.value))
+} catch(e) {
+	reject(e)
+}
+```
+
+### 14-4 封装 resolvePromise 来处理 promise
+
+在前面我们已经基本完成了 then，而一些特殊情况依旧会造成问题：
+
+1. 循环引用自身
+
+   在原生Promise中，如果一个promise的onResolved返回了自身，比如这样
+
+   ```
+   const promise =  new Promise((resolve, reject) => {
+     resolve()
+   })
+   const p = promise.then(() => p)
+   // Uncaught (in promise) TypeError: A promise cannot be resolved with itself. 
+   ```
+
+2. onResolved 返回了一个 promise 对象
+
+   ```
+   new Promise((resolve, reject) => {
+     resolve()
+   }).then(() => {
+   	return new Promise((resolve, reject) => {
+       resolve('hi')
+     })
+   }).then(res => console.log(res)) 
+   ```
+
+   在原生 Promise 中，当 onResolved 返回了一个 promise 对象时，会将其 resolve 或 reject 的值传递到下一个 then, 所以打印结果是 ‘hi’
+
+3. onResolved 返回了一个嵌套的 promise 对象
+
+   ```
+   new Promise((resolve, reject) => {
+     resolve()
+   }).then(() => {
+     return new Promise((resolve, reject) => {
+       resolve(new Promise((resolve, reject) => {
+         resolve('hi')
+       }))
+     })
+   }).then(res => console.log(res)) // hi
+   ```
+
+
 
 # 二、数据处理
 
