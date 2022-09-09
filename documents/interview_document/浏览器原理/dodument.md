@@ -706,3 +706,32 @@ sessionStorage.key(index)
 - **cookie：**其实最开始是服务器端用于记录用户状态的一种方式，由服务器设置，在客户端存储，然后每次发起同源请求时，发送给服务器端。cookie 最多能存储 4 k 数据，它的生存时间由 expires 属性指定，并且 cookie 只能被同源的页面访问共享。
 - **sessionStorage：**html5 提供的一种浏览器本地存储的方法，它借鉴了服务器端 session 的概念，代表的是一次会话中所保存的数据。它一般能够存储 5M 或者更大的数据，它在当前窗口关闭后就失效了，并且 sessionStorage 只能被同一个窗口的同源页面所访问共享。
 - **localStorage：**html5 提供的一种浏览器本地存储的方法，它一般也能够存储 5M 或者更大的数据。它和 sessionStorage 不同的是，除非手动删除它，否则它不会失效，并且 localStorage 也只能被同源页面所访问共享。
+
+# 六、浏览器同源策略
+
+## 1.什么是同源策略？
+
+**同源策略：protocol（协议）、domain（域名）、port（端口）三者必须一致。**
+
+**同源政策主要限制了三个方面：**
+
+- 当前域下的 js 脚本不能够访问其他域下的 cookie、localStorage 和 indexDB。
+- 当前域下的 js 脚本不能够操作访问操作其他域下的 DOM。
+- 当前域下 ajax 无法发送跨域请求。
+
+**同源策略的目的：**
+
+同源政策的目的主要是为了保证用户的信息安全，它**只是对 js 脚本的一种限制**，并不是对浏览器的限制，对于一般的 img、或者script 脚本请求都不会有跨域的限制，这是因为这些操作都不会通过响应结果来进行可能出现安全问题的操作。
+
+## 2.如何解决跨域问题？
+
+1. CORS
+2. JSONP
+3. postMessage
+4. nginx 代理
+5. nodejs 中间件代理
+6. document.domain
+7. location.hash + iframe
+8. window.name + iframe
+9. WebSocket 协议跨域
+
