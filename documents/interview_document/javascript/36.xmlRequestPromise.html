@@ -8,11 +8,11 @@
 </head>
 <body>
     <script>
-        function getJSON (url) {
+        function getJSON (url, method="GET", body) {
             let promise = new Promise(function (resolve, reject) {
                 const xhr = new XMLHttpRequest()
                 // 创建 Http 请求
-                xhr.open('GET', url, true)
+                xhr.open(method, url, true)
                 // 设置状态监听函数
                 xhr.onreadystatechange = function () {
                     if (this.readyState !== 4) return
@@ -30,7 +30,9 @@
                 // 设置请求头信息
                 xhr.responseType = 'json'
                 xhr.setRequestHeader('Accept', 'application/json')
-                xhr.send()
+                // 随便设置一个头信息,使成为非简单请求
+                xhr.setRequestHeader('X-Custom-Header', 'value')
+                xhr.send(body)
             })
             return promise
         }
@@ -39,11 +41,18 @@
         const getData = async () => await getJSON(SERVER_URL)
         const getDataById = async () => await getJSON(`${SERVER_URL}/1`)
         const getDataByIdFn = async () => await getDataById()
+        const body = JSON.stringify({
+            "id": 1,
+            "title": "吃饭123456"
+        })
+        const patchUserFn = async () => await getJSON(`${SERVER_URL}/1`, 'PATCH', body)
         const onLoad = async () => {
             const ret = await getData()
             console.log('ret>>>', ret)
             const idRet = await getDataByIdFn()
             console.log('idRet>>>', idRet)
+            // 会有一个预检请求
+            console.log(await patchUserFn())
         }
         onLoad()
     </script>

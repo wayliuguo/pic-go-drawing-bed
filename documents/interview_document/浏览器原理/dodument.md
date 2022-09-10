@@ -735,3 +735,352 @@ sessionStorage.key(index)
 8. window.name + iframe
 9. WebSocket 协议跨域
 
+### 2.1 CORS
+
+下面是MDN对于CORS的定义：
+
+跨域资源共享(CORS) 是一种机制，它使用额外的 HTTP 头来告诉浏览器  让运行在一个 origin (domain)上的Web应用被准许访问来自不同源服务器上的指定的资源。当一个资源从与该资源本身所在的服务器不同的域、协议或端口请求一个资源时，资源会发起一个跨域HTTP 请求。
+
+CORS需要浏览器和服务器同时支持，整个CORS过程都是浏览器完成的，无需用户参与。因此实现**CORS的关键就是服务器，只要服务器实现了CORS请求**，就可以跨源通信了。
+
+浏览器将CORS分为两类：
+
+- 简单请求
+- 非简单请求: **不会触发CORS预检请求**
+
+#### **简单请求**
+
+- 请求的方法是以下三种方法之一：
+  - HEAD
+  - GET
+  - POST
+- HTTP 的头信息不超出以下几种字段
+  - Accept
+  - Accept-Language
+  - Content-Language
+  - Last-Event-ID
+  - Content-Type：只限于三个值application/x-www-form-urlencoded、multipart/form-data、text/plain
+
+#### 简单请求过程
+
+- 浏览器直接发出CORS请求，它会在请求的头信息中增加一个**Orign**字段，该字段用来说明本次请求来自哪个源（协议+端口+域名），服务器会根据这个值来决定是否同意这次请求。
+
+- 如果Orign指定的域名在许可范围之内，服务器返回的响应就会多出以下信息头：
+
+  ```
+  Access-Control-Allow-Origin（访问控制允许源）: http://api.bob.com  // 和Orign一直
+  Access-Control-Allow-Credentials（访问控制允许凭据）: true   // 表示是否允许发送Cookie
+  Access-Control-Expose-Headers(访问控制公开标头): FooBar   // 指定返回其他字段的值
+  Content-Type: text/html; charset=utf-8   // 表示文档类型
+  ```
+
+- 如果Orign指定的域名不在许可范围之内，**服务器会返回一个正常的HTTP回应，浏览器发现没有上面的Access-Control-Allow-Origin头部信息，就知道出错了**。这个错误无法通过状态码识别，因为返回的状态码可能是200。
+
+**在简单请求中，在服务器内，至少需要设置字段：**`**Access-Control-Allow-Origin**`****
+
+#### 非简单请求过程
+
+**非简单请求会在正式通信前进行一次HTTP查询请求，称为预检请求**
+
+浏览器会询问服务器，当前所在的网页是否在服务器允许访问的范围内，以及可以使用哪些HTTP请求方式和头信息字段，只有得到肯定的回复，才会进行正式的HTTP请求，否则就会报错。
+
+##### 浏览器请求头部关键信息
+
+- origin：请求来自哪个源
+- **Access-Control-Request-Method(访问控制请方法)**：该字段是必须的，用来列出浏览器的CORS请求会用到哪些HTTP方法。
+- **Access-Control-Request-Headers（访问控制请求头）**： 该字段是一个逗号分隔的字符串，指定浏览器CORS请求会额外发送的头信息字段。
+
+##### 服务器接收
+
+- 服务器在收到浏览器的预检请求之后，会根据头信息的三个字段来进行判断，如果返回的头信息在中有Access-Control-Allow-Origin这个字段就是允许跨域请求，如果没有，就是不同意这个预检请求，就会报错。
+
+```
+Access-Control-Allow-Origin: http://api.bob.com  // 允许跨域的源地址
+Access-Control-Allow-Methods: GET, POST, PUT // 服务器支持的所有跨域请求的方法
+Access-Control-Allow-Headers: X-Custom-Header  // 服务器支持的所有头信息字段
+Access-Control-Allow-Credentials: true   // 表示是否允许发送Cookie
+Access-Control-Max-Age: 1728000  // 用来指定本次预检请求的有效期，单位为秒
+```
+
+只要服务器通过了预检请求，在以后每次的CORS请求都会自带一个Origin头信息字段。服务器的回应，也都会有一个Access-Control-Allow-Origin头信息字段。
+
+##### 至少需要设置以下字段
+
+```
+'Access-Control-Allow-Origin'  
+'Access-Control-Allow-Methods'
+'Access-Control-Allow-Headers'
+```
+
+![image-20220910104113269](dodument.assets/image-20220910104113269.png)
+
+##### **减少OPTIONS请求次数**
+
+OPTIONS请求次数过多就会损耗页面加载的性能，降低用户体验度。所以尽量要减少OPTIONS请求次数，可以后端在请求的返回头部添加：Access-Control-Max-Age：number。它表示预检请求的返回结果可以被缓存多久，单位是秒。该字段只对完全一样的URL的缓存设置生效，所以设置了缓存时间，在这个时间范围内，再次发送请求就不需要进行预检请求了。
+
+##### CORS中Cookie相关问题
+
+在CORS请求中，如果想要传递Cookie，就要满足以下三个条件：
+
+- **在请求中设置** `**withCredentials**`
+
+  默认情况下在跨域请求，浏览器是不带 cookie 的。但是我们可以通过设置 withCredentials 来进行传递 cookie.
+
+  ```
+  // 原生 xml 的设置方式
+  var xhr = new XMLHttpRequest();
+  xhr.withCredentials = true;
+  // axios 设置方式
+  axios.defaults.withCredentials = true;
+  ```
+
+- **Access-Control-Allow-Credentials 设置为 true**
+
+- **Access-Control-Allow-Origin 设置为非***
+
+### 2.2 JSONP
+
+#### 原理
+
+利用script标签没有跨域限制，通过script标签src属性，，发送带有callback参数的GET请求，服务端将接口返回数据拼凑到callback函数中，返回给浏览器，浏览器解析执行，从而前端拿到callback函数返回的数据。
+
+#### 实现
+
+- 前端实现
+
+  - 原生js
+
+    ```
+    <script>
+            let script = document.createElement('script');
+            script.type = 'text/javascript';
+            // 传参一个回调函数名给后端，方便后端返回时执行这个在前端定义的回调函数
+            script.src = 'http://localhost:8080/login?user=admin&callback=handleCallback';
+            document.head.appendChild(script);
+            // 回调执行函数
+            function handleCallback(res) {
+                alert(JSON.stringify(res));
+            }
+    </script>
+    ```
+
+  - Vue axios
+
+    ```
+    this.$http = axios;
+    this.$http.jsonp('http://www.domain2.com:8080/login', {
+        params: {},
+        jsonp: 'handleCallback'
+    }).then((res) => {
+        console.log(res); 
+    })
+    ```
+
+- 后端实现
+
+  ```
+  var querystring = require('querystring');
+  var http = require('http');
+  var server = http.createServer();
+  server.on('request', function(req, res) {
+      var params = querystring.parse(req.url.split('?')[1]);
+      var fn = params.callback;
+      // jsonp返回设置
+      res.writeHead(200, { 'Content-Type': 'text/javascript' });
+      res.write(fn + '(' + JSON.stringify(params) + ')');
+      res.end();
+  });
+  server.listen('8080');
+  console.log('Server is running at port 8080...');
+  ```
+
+  - Content-Type: text/javascript
+  - res.write(执行callback函数)
+#### 缺点
+
+- 具有局限性， 仅支持get方法
+- 不安全，可能会遭受XSS攻击
+
+### 2.3 postMessage
+
+postMessage是HTML5 XMLHttpRequest Level 2中的API，且是为数不多可以跨域操作的window属性之一，它可用于解决以下方面的问题：
+
+- 页面和其打开的新窗口的数据传递
+- 多窗口之间消息传递
+- 页面与嵌套的iframe消息传递
+- 上面三个场景的跨域数据传递
+
+#### 使用方法
+
+postMessage(data,origin)方法接受两个参数：
+
+- **data**： html5规范支持任意基本类型或可复制的对象，但部分浏览器只支持字符串，所以传参时最好用JSON.stringify()序列化。
+- **origin**： 协议+主机+端口号，也可以设置为"*"，表示可以传递给任意窗口，如果要指定和当前窗口同源的话设置为"/"。
+
+![image-20220910221534489](dodument.assets/image-20220910221534489.png)
+
+- 浏览器原理/3.postMessage1.html
+
+  ```
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta http-equiv="X-UA-Compatible" content="IE=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document</title>
+  </head>
+  <body>
+      <div>我是postMessage1</div>
+      <iframe id="iframe" src="http://127.0.0.1:8081/3.postMessage2.html" style="display:none;"></iframe>
+      <script>       
+          const iframe = document.getElementById('iframe');
+          iframe.onload = function() {
+              const data = {
+                  name: 'aym'
+              };
+              // 向domain2传送跨域数据
+              iframe.contentWindow.postMessage(JSON.stringify(data), 'http://127.0.0.1:8081/3.postMessage2.html');
+          };
+          // 接受domain2返回数据
+          window.addEventListener('message', function(e) {
+              alert('data from domain2 ---> ' + e.data);
+          }, false);
+      </script>
+  </body>
+  </html>
+  ```
+
+- 浏览器原理/postMessage/3.postMessage2.html
+
+  ```
+  <script>
+          // 接收domain1的数据
+          window.addEventListener('message', function(e) {
+              alert('data from domain1 ---> ' + e.data);
+              var data = JSON.parse(e.data);
+              if (data) {
+                  data.number = 16;
+                  // 处理后再发回domain1
+                  window.parent.postMessage(JSON.stringify(data), 'http://127.0.0.1:8080/3.postMessage1.html');
+              }
+          }, false);
+  </script>
+  ```
+
+  ![image-20220910223235720](dodument.assets/image-20220910223235720.png)
+
+#### 实现过程
+
+```
+npm i -g http-server
+
+PS E:\working\pic-go-drawing-bed\documents\interview_document\浏览器原理> http-server ./ -o
+
+PS E:\working\pic-go-drawing-bed\documents\interview_document\浏览器原理\postMessage> http-server ./ -p 8081
+```
+
+### 2.4 nginx 代理跨域
+
+nginx代理跨域，实质和CORS跨域原理一样，通过配置文件设置请求响应头Access-Control-Allow-Origin…等字段。
+
+#### 配置解决iconfont跨域
+
+浏览器跨域访问js、css、img等常规静态资源被同源策略许可，但iconfont字体文件(eot|otf|ttf|woff|svg)例外，此时可在nginx的静态资源服务器中加入以下配置。
+
+```
+location / {
+  add_header Access-Control-Allow-Origin *;
+}
+```
+
+#### 反向代理接口跨域
+
+跨域问题：同源策略仅是针对浏览器的安全策略。服务器端调用HTTP接口只是使用HTTP协议，不需要同源策略，也就不存在跨域问题。
+
+实现思路：通过Nginx配置一个代理服务器域名与domain1相同，端口不同）做跳板机，反向代理访问domain2接口，并且可以顺便修改cookie中domain信息，方便当前域cookie写入，实现跨域访问。
+
+```
+#proxy服务器
+server {
+    listen       81;
+    server_name  www.domain1.com;
+    location / {
+        proxy_pass   http://www.domain2.com:8080;  #反向代理
+        proxy_cookie_domain www.domain2.com www.domain1.com; #修改cookie里域名
+        index  index.html index.htm;
+        # 当用webpack-dev-server等中间件代理接口访问nignx时，此时无浏览器参与，故没有同源限制，下面的跨域配置可不启用
+        add_header Access-Control-Allow-Origin http://www.domain1.com;  #当前端只跨域不带cookie时，可为*
+        add_header Access-Control-Allow-Credentials true;
+    }
+}
+```
+
+### 2.5 nodejs中间件代理跨域
+
+node中间件实现跨域代理，原理大致与nginx相同，都是通过启一个代理服务器，实现数据的转发，也可以通过设置cookieDomainRewrite参数修改响应头中cookie中域名，实现当前域的cookie写入，方便接口登录认证。
+
+#### 非vue框架的跨域
+
+使用node + express + http-proxy-middleware搭建一个proxy服务器。
+
+- 前端代码
+
+  ```
+  var xhr = new XMLHttpRequest();
+  // 前端开关：浏览器是否读写cookie
+  xhr.withCredentials = true;
+  // 访问http-proxy-middleware代理服务器
+  xhr.open('get', 'http://www.domain1.com:3000/login?user=admin', true);
+  xhr.send();
+  ```
+
+- 中间件服务器代码
+
+  ```
+  var express = require('express');
+  var proxy = require('http-proxy-middleware');
+  var app = express();
+  app.use('/', proxy({
+      // 代理跨域目标接口
+      target: 'http://www.domain2.com:8080',
+      changeOrigin: true,
+      // 修改响应头信息，实现跨域并允许带cookie
+      onProxyRes: function(proxyRes, req, res) {
+          res.header('Access-Control-Allow-Origin', 'http://www.domain1.com');
+          res.header('Access-Control-Allow-Credentials', 'true');
+      },
+      // 修改响应信息中的cookie域名
+      cookieDomainRewrite: 'www.domain1.com'  // 可以为false，表示不修改
+  }));
+  app.listen(3000);
+  console.log('Proxy server is listen at port 3000...');
+  ```
+
+#### **vue框架的跨域**
+
+node + vue + webpack + webpack-dev-server搭建的项目，跨域请求接口，直接修改webpack.config.js配置。开发环境下，vue渲染服务和接口代理服务都是webpack-dev-server同一个，所以页面与代理接口之间不再跨域。
+
+webpack.config.js部分配置：
+
+```
+module.exports = {
+    entry: {},
+    module: {},
+    ...
+    devServer: {
+        historyApiFallback: true,
+        proxy: [{
+            context: '/login',
+            target: 'http://www.domain2.com:8080',  // 代理跨域目标接口
+            changeOrigin: true,
+            secure: false,  // 当代理某些https服务报错时用
+            cookieDomainRewrite: 'www.domain1.com'  // 可以为false，表示不修改
+        }],
+        noInfo: true
+    }
+}
+```
+
+# 七、浏览器事件机制
+
