@@ -4,10 +4,11 @@ Function.prototype.MyCall = function (context) {
     }
     // 获取参数
     let args = [...arguments].slice(1)
+    console.log(args) // [18]
     let result = null
     // 核心思想：把调用方法contex的属性去执行，并把得到的结果返回
     context.fn = this
-    result = context.fn(args)
+    result = context.fn(...args)
     delete context.fn
     return result
 }

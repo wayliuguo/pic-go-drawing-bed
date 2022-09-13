@@ -15,3 +15,4 @@ foo.fn.apply(obj, [2, 3]) // 10 2 3
 foo.fn.call(obj, 2, 3) // 10 2 3
 // bind
 foo.fn.bind(obj, 2, 3)() // 10 2 3
+foo.fn.bind(obj, 2)(3) // 10 2 3

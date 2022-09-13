@@ -8,9 +8,10 @@
 </head>
 <body>
     <button onclick="addOneThrottle(1)">加一</button>
+    <button onclick="addOneArrowThrottle(1)">箭头函数加一</button>
     <script>
         function throttle (fn, delay) {
-            let curTime = new Date()
+            let curTime = Date.now()
             return function () {
                 const context = this
                 const args = arguments
@@ -21,12 +22,23 @@
                 }
             }
         }
+        function throttleArrow (fn, delay) {
+            let curTime = Date.now()
+            return (...args) => {
+                let nowTime = Date.now()
+                if (nowTime - curTime >= delay) {
+                    curTime = nowTime
+                    return fn.apply(this, args)
+                }
+            }
+        }
         let count = 0
         const addOne = function () {
             count++
             console.log(count)
         }
         const addOneThrottle = throttle(addOne, 1000)
+        const addOneArrowThrottle = throttleArrow(addOne, 1000)
     </script>
 </body>
 </html>

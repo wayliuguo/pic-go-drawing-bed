@@ -30,7 +30,7 @@
         }
         function debounceArrow (fn, wait) {
             let timer = null
-            return (...args) => {
+            return function (...args) {
                 if (timer) {
                     clearTimeout(timer)
                     timer = null
