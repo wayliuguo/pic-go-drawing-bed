@@ -52,7 +52,7 @@ let sym: symbol = Symbol('me')
   nameString = undefined
   ```
 
-#### 3.2.2 null 和 bigint
+#### 3.2.2 number 和 bigint
 
 ```
 // null 和 bigint 都表示数字，但是这两个类型不兼容
