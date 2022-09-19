@@ -1,3 +1,5 @@
+![JavaScript](document.assets/JavaScript.png)
+
 # 一、数据类型
 
 ## 1.数据类型
@@ -390,7 +392,7 @@ console.log(mutiple(1,2,3,4)) // 24
 
 - apply、call、bind的区别？
 
-  - apply、call不仅改变this指向，还可以接受参数。其中apply接收的是数组，call接受的非 数组。
+  - apply接收的是数组，call、bind接受的非数组。
   - bind 方法通过传入一个对象，返回一个 this 绑定了传入对象的新函数。这个函数的 this 指向除了使用 new 时会被改变，其他情况下都不会改变。
 
   ```
@@ -1077,3 +1079,67 @@ console.log('不在async 函数里的不会被阻塞') // 不在async 函数里�
 1. 先进入 test()函数，进入getSomething, 打印**await 会阻塞后面的代码，执行外面的同步代码**
 2. 阻塞后面的代码，执行async外面的代码，打印**不在async 函数里的不会被阻塞**
 3. ......
+
+### 3.深刻理解await
+
+```
+function sumTimeOUt  (a,b) {
+  console.log('timeoutStart')
+  setTimeout(() => {
+    console.log('timeoutEnd')
+    return a + b
+  })
+}
+
+async function testAsync () {
+  console.log('start')
+  const ret = await sumTimeOUt(1,2)
+  console.log(ret)
+  console.log('await end')
+}
+testAsync()
+console.log('end')
+
+```
+
+- start
+- timeoutStart
+- end
+- undefined
+- await end
+- timeoutEnd
+
+
+
+```
+function sumTimeOUt  (a,b) {
+  console.log('timeoutStart')
+  return new Promise(resolve => {
+    setTimeout(() => {
+      console.log('timeoutEnd')
+      resolve(a+b)
+    })
+  })
+}
+
+async function testAsync () {
+  console.log('start')
+  const ret = await sumTimeOUt(1,2)
+  console.log(ret)
+  console.log('await end')
+}
+testAsync()
+console.log('end')
+```
+
+- start
+- timeoutStart
+- end
+- timeoutEnd
+- 3
+- await end
+
+**结论：**
+
+- 如果它等到的不是一个 Promise 对象，那 await 表达式的运算结果就是它等到的东西。
+- 如果它等到的是一个 Promise 对象，await 就忙起来了，它会阻塞后面的代码，等着 Promise 对象 resolve，然后得到 resolve 的值，作为 await 表达式的运算结果。
