@@ -11,7 +11,6 @@
   - Symbol
   - BigInt
 - 引用数据类型
-  - Function
   - Object
   - Array
 - 两种类型的区别在与存储位置的不同
@@ -360,7 +359,7 @@ const stu = {
 const { name } = stu
 ```
 
-## 18. 对 rest 参数的理解
+## 18. 
 
 扩展运算符被用在函数形参上时，**它还可以把一个分离的参数序列整合成一个数组**
 
