@@ -196,3 +196,55 @@ metaEl.setAttribute('content', `width=device-width,user-scalable=no,initial-scal
 ```
 
 这样解决了，但这样做的副作用也很大，整个页面被缩放了。这时 1px 已经被处理成物理像素大小，这样的大小在手机上显示边框很合适。但是，一些原本不需要被缩小的内容，比如文字、图片等，也被无差别缩小掉了。
+
+## 12.width 100% 与 auto 的区别？
+
+### 12-1 width: 100%
+
+```
+.father {
+            width: 500px;
+            padding: 20px;
+            border: 1px solid black;
+            height: 200px;
+            background-color: red;
+        }
+.son {
+       width: 100%;
+       padding: 20px;
+       height: 200px;
+       background-color: yellow;
+}
+```
+
+![image-20221013194441922](css.assets/image-20221013194441922.png)
+
+![image-20221013194510155](css.assets/image-20221013194510155.png)
+
+子元素的宽度如果设置了100%，则子元素的content一定等于父元素的content。
+
+### 12-2 width: auto
+
+```
+.father {
+            width: 500px;
+            padding: 20px;
+            border: 1px solid black;
+            height: 200px;
+            background-color: red;
+        }
+.son {
+       width: auto;
+       padding: 20px;
+       height: 200px;
+       background-color: yellow;
+}
+```
+
+![image-20221013195454825](css.assets/image-20221013195454825.png)
+
+子元素设置了width: auto，则父元素的content等于子元素的border+padding+content
+
+## 13.怎样实现居中
+
+## 14.flex布局了解过吗？
