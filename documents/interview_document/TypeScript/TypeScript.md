@@ -679,5 +679,33 @@ const user = new UserInfo('TypeScript')
 // user.name = 'haha' // 无法分配到 "name" ，因为它是只读属性
 ```
 
-### 3.类的类型
+### 3.类的使用
+
+#### 抽象类
+
+```
+abstract class People {
+    constructor(public name: string) {}
+    abstract printName(): void
+}
+class Man extends People {
+    constructor(name: string) {
+        super(name)
+        this.name = name
+    }
+
+    printName(): void {
+        console.log(this.name)   
+    }
+}
+// const m = new Man() // 应有 1 个参数，但获得 0 个
+const m = new Man('mike')
+m.printName()
+// const pike = new People('pike') // 无法创建抽象类的实例
+```
+
+- 定义了一个抽象类People，在抽象类里定义contructor方法必须传入一个字符串类型参数
+- 使用**abstract**关键字定义的方法，在继承时必须自身实现。
+
+## 6.接口类型
 

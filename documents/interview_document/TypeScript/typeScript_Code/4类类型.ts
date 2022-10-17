@@ -100,3 +100,25 @@ class UserInfo {
 }
 const user = new UserInfo('TypeScript')
 // user.name = 'haha' // 无法分配到 "name" ，因为它是只读属性
+
+// 5.类的使用-抽象类
+abstract class People {
+    constructor(public name: string) {}
+    abstract printName(): void
+}
+class Man extends People {
+    constructor(name: string) {
+        super(name)
+        this.name = name
+    }
+
+    printName(): void {
+        console.log(this.name)   
+    }
+}
+// const m = new Man() // 应有 1 个参数，但获得 0 个
+const m = new Man('mike')
+m.printName()
+// const pike = new People('pike') // 无法创建抽象类的实例
+
+
