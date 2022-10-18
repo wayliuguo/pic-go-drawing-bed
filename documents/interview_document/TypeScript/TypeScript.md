@@ -709,3 +709,205 @@ m.printName()
 
 ## 6.接口类型
 
+### 1.接口定义
+
+- **TypeScript 的核心原则之一：对值所具有的结构进行类型检查,并且只要两个对象的结构一致，属性和方法的类型一致，则它们的类型是一致的 **
+- **接口的作用：为这些类型命名和为代码或第三方代码定义契约**
+
+TypeScript 接口定义形式如下：
+
+```
+interface interface_name {}
+```
+
+**例子：**
+
+```
+const getFullName = ({ firstName, lastName }) => {
+    return `${firstName}${lastName}`
+}
+```
+
+默认 getFullName 的类型
+
+```
+const getFullName: ({ firstName, lastName }: {
+    firstName: any;
+    lastName: any;
+}) => string
+```
+
+![image-20221017235520904](TypeScript.assets/image-20221017235520904.png)
+
+传入不想要的格式，则会导致错误
+
+```
+getFullName({firstName: 'hello', lastName: 'world'}) // sucess
+getFullName() // error
+getFullName({firstName: 'hello'}) // error
+```
+
+完整类型定义
+
+```
+const getFullName = ({ firstName, lastName }: {
+    firstName: string;
+    lastName: string;
+}) => {
+    return `${firstName}${lastName}`
+}
+```
+
+**使用interface定义接口**
+
+```
+// 接口定义
+interface Info {
+    firstName: string
+    lastName: string
+}
+
+const getFullName = ({ firstName, lastName }: Info) => {
+    return `${firstName}${lastName}`
+}
+```
+
+**{}包裹的是一个代码块，里面是声明语句，只不过声明的不是变量而是类型**
+
+### 2.接口属性
+
+#### 可选属性
+
+```
+interface Vegetables {
+    color?: string
+    type: string
+}
+const getVegetables = ({ color, type }: Vegetables) => {
+    return `${color ? color + ' ' : ''}${type}`
+}
+getVegetables({color: 'red', type: 'long'})
+```
+
+#### 只读属性
+
+```
+interface Role {
+    readonly 0: string
+    readonly 1: string
+}
+const role: Role = {
+    0: 'super_admin',
+    1: 'admin'
+}
+console.log(role[1]) // admin
+```
+
+#### 多余属性检查
+
+##### 使用类型断言
+
+```
+getVegetables({
+    type: 'tomato',
+    size: 12,
+    price: 6
+} as Vegetables)
+```
+
+##### 添加索引签名
+
+```
+interface VegetablesProps {
+    color: string
+    type: string
+    [prop: string]: string | number
+}
+const getVegetablesProps = ({ color, type }: VegetablesProps) => {
+    return `${color ? color + ' ' : ''}${type}`
+}
+getVegetablesProps({
+    color: 'red',
+    type: 'tomato',
+    size: 12,
+    price: 6
+})
+```
+
+### 3.接口使用
+
+#### 定义函数类型
+
+```
+interface AddFunc {
+    (x: number, y: number): number
+}
+// 类型别名
+type AddFuncType = (x: number, y: number) => number
+```
+
+#### 定义索引类型
+
+```
+interface RoleDic {
+    [id: string]: string
+}
+
+const roleDic: RoleDic = {
+    0: 'super_admin',
+    1: 'admin'
+}
+```
+
+0 或 '0' 索引对象时，这两者等价。
+
+### 4.高级用法
+
+#### 继承接口
+
+```
+interface Books {
+    name: string
+}
+interface Cateory {
+    cateory: string
+}
+interface MathBook extends Books {
+    price: number
+}
+interface EngBook extends Books {
+    size: number
+}
+const myMathBook: MathBook = {
+    name: '数学书',
+    price: 20
+}
+interface ChiBook extends Books, Cateory {
+    start: number
+}
+```
+
+# 二、进阶篇
+
+## 7.泛型
+
+### 1.泛型语法
+
+![image-20220712235632503](TypeScript.assets/image-20220712235632503-16660692515531.png)
+
+```
+function pickObjectKeys(obj, keys) {
+    let result = {}
+    for (const key of keys) {
+        if (key in obj) {
+            result[key] = obj[key]
+        }
+    }
+    return result
+}
+```
+
+### 2.在函数中使用类型
+
+#### 分配泛型参数
+
