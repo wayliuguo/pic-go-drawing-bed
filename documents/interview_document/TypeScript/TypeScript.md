@@ -1012,3 +1012,51 @@ type ResultA = IsStringType<AType> // true
 type ResultB = IsStringType<BType> // false
 ```
 
+## 8.工具类型
+
+### 1.基础知识
+
+#### typeof
+
+- 用途：在类型上下文中获取变量或者属性的类型
+
+```
+let tom = {
+    name: 'tom',
+    age: 18,
+    gender: 'male'
+}
+type PeopleType = typeof tom
+/* type PeopleType = {
+    name: string;
+    age: number;
+    gender: string;
+} */
+type nameType = typeof tom.name
+// type nameType = string
+```
+
+#### keyof
+
+- 用途：获取一个对象接口中的所有 key 值，返回的是联合类型
+
+```
+// 2.keyof
+interface Person {
+    name: string
+    age: number
+    gender: 'male' | 'female'
+}
+type PersonKey = keyof Person // 'name' || 'age' || 'gender'
+function getValueByKey(p: Person, key: PersonKey) {
+    return p[key]
+}
+let val = getValueByKey({
+    name: 'tom',
+    age: 18,
+    gender: 'male'
+}, 'name')
+console.log(val) // tom
+```
+
+### 2.工具类型
