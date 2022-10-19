@@ -911,3 +911,20 @@ function pickObjectKeys(obj, keys) {
 
 #### 分配泛型参数
 
+```
+function identity<T>(value: T): T {
+    return value
+}
+// 显式指明与非显式指明
+let myresult = identity<number>(123)
+myresult = identity(123)
+```
+
+#### 直接传递类型参数
+
+在使用自定义类型的时候，直接传递类型参数很有用
+
+```
+
+```
+
