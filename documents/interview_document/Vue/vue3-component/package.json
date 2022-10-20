@@ -1,0 +1,21 @@
+{
+  "name": "vue3-component",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.8.4",
+    "vue": "^3.2.41"
+  },
+  "dependencies": {
+    "@zi-shui/components": "workspace:^1.0.0",
+    "@zi-shui/theme-chalk": "workspace:^1.0.0",
+    "@zi-shui/utils": "workspace:^1.0.0"
+  }
+}
