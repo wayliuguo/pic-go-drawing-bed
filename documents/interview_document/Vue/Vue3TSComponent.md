@@ -178,3 +178,82 @@ pnpm install @zi-shui/utils -w
   - utils
 
 # 二、实现组件play环境
+
+- vue3-component
+
+  ```
+  pnpm create vite play --template vue-ts
+  ```
+
+- vue3-component/play/vite-env.d.ts
+
+  ```
+  /// <reference types="vite/client" />
+  
+  declare module '*.vue' {
+    import type { DefineComponent } from 'vue'
+    const component: DefineComponent<{}, {}, any>
+    export default component
+  }
+  ```
+
+  - /// + reference 引入外部依赖的声明
+  - .vue 文件智能提示
+
+- vue3-component/typings/vue-shim.d.ts
+
+  ```
+  declare module '*.vue' {
+    import type { DefineComponent } from 'vue'
+    const component: DefineComponent<{}, {}, any>
+    export default component
+  }
+  ```
+
+- vue3-component/package.json
+
+  ```
+  "scripts": {
+    "dev": "pnpm -C play dev"
+  }
+  ```
+
+  - 运行 play 目录下的  dev 脚本
+
+# 三、通过JS实现BEM规范
+
+## 什么是BEM规范
+
+即Block(块) Element(元素) Modifier(修饰器)，用来规范css命名
+
+命名约定模式如下：
+
+```
+.block{}
+.block__element{}
+.block__element--modifier{}
+```
+
+对于块，若多个单词，则用 - 连接，如search-form
+
+具体例子：
+
+- 块即模块，如搜索表单 search-form,可以看做一个块
+- 这个块内的按钮button、输入框input，为元素
+- 元素可以由多种状态，如居中按钮，即修饰
+
+```
+<form class="search-form">
+	<input class="search-form__input" />
+	<button class="search-form__button"></button>
+	<button class="search-form__button__primary"></button>
+</form>
+```
+
+## css样式顺序
+
+1. 定位属性：positon display float left top right bottom overflow clear z-index
+2. 自身属性：width height margin padding border background
+3. 文字样式：font-family font-size font-style font-weight font-varient
+4. 文本属性：text-align vertical-align text-wrap text-transform text-indent text-decoration letter-spacing word-spacing white-space text-overflow
+5. css3中新增属性：content box-shadow border-radius transform
