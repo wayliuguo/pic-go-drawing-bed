@@ -7,6 +7,7 @@ importers:
       '@zi-shui/components': workspace:^1.0.0
       '@zi-shui/theme-chalk': workspace:^1.0.0
       '@zi-shui/utils': workspace:^1.0.0
+      sass: ^1.55.0
       typescript: ^4.8.4
       unplugin-vue-define-options: ^0.12.2
       vue: ^3.2.41
@@ -15,6 +16,7 @@ importers:
       '@zi-shui/theme-chalk': link:packages/theme-chalk
       '@zi-shui/utils': link:packages/utils
     devDependencies:
+      sass: registry.npmmirror.com/sass/1.55.0
       typescript: registry.npmmirror.com/typescript/4.8.4
       unplugin-vue-define-options: registry.npmmirror.com/unplugin-vue-define-options/0.12.2
       vue: registry.npmmirror.com/vue/3.2.41
@@ -30,12 +32,14 @@ importers:
 
   play:
     specifiers:
+      '@vicons/ionicons5': ^0.12.0
       '@vitejs/plugin-vue': ^3.1.0
       typescript: ^4.6.4
       vite: ^3.1.0
       vue: ^3.2.37
       vue-tsc: ^0.40.4
     dependencies:
+      '@vicons/ionicons5': registry.npmmirror.com/@vicons/ionicons5/0.12.0
       vue: registry.npmmirror.com/vue/3.2.41
     devDependencies:
       '@vitejs/plugin-vue': registry.npmmirror.com/@vitejs/plugin-vue/3.1.2_vite@3.1.8+vue@3.2.41
@@ -107,6 +111,12 @@ packages:
       estree-walker: registry.npmmirror.com/estree-walker/2.0.2
       picomatch: registry.npmmirror.com/picomatch/2.3.1
     dev: true
+
+  registry.npmmirror.com/@vicons/ionicons5/0.12.0:
+    resolution: {integrity: sha512-Iy1EUVRpX0WWxeu1VIReR1zsZLMc4fqpt223czR+Rpnrwu7pt46nbnC2ycO7ItI/uqDLJxnbcMC7FujKs9IfFA==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@vicons/ionicons5/-/ionicons5-0.12.0.tgz}
+    name: '@vicons/ionicons5'
+    version: 0.12.0
+    dev: false
 
   registry.npmmirror.com/@vitejs/plugin-vue/3.1.2_vite@3.1.8+vue@3.2.41:
     resolution: {integrity: sha512-3zxKNlvA3oNaKDYX0NBclgxTQ1xaFdL7PzwF6zj9tGFziKwmBa3Q/6XcJQxudlT81WxDjEhHmevvIC4Orc1LhQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/@vitejs/plugin-vue/-/plugin-vue-3.1.2.tgz}
@@ -655,6 +665,12 @@ packages:
       function-bind: registry.npmmirror.com/function-bind/1.1.1
     dev: true
 
+  registry.npmmirror.com/immutable/4.1.0:
+    resolution: {integrity: sha512-oNkuqVTA8jqG1Q6c+UglTOD1xhC1BtjKI7XkCXRkZHrN5m18/XsnUp8Q89GkQO/z+0WjonSvl0FLhDYftp46nQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/immutable/-/immutable-4.1.0.tgz}
+    name: immutable
+    version: 4.1.0
+    dev: true
+
   registry.npmmirror.com/is-binary-path/2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/is-binary-path/-/is-binary-path-2.1.0.tgz}
     name: is-binary-path
@@ -790,6 +806,18 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: registry.npmmirror.com/fsevents/2.3.2
+    dev: true
+
+  registry.npmmirror.com/sass/1.55.0:
+    resolution: {integrity: sha512-Pk+PMy7OGLs9WaxZGJMn7S96dvlyVBwwtToX895WmCpAOr5YiJYEUJfiJidMuKb613z2xNWcXCHEuOvjZbqC6A==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/sass/-/sass-1.55.0.tgz}
+    name: sass
+    version: 1.55.0
+    engines: {node: '>=12.0.0'}
+    hasBin: true
+    dependencies:
+      chokidar: registry.npmmirror.com/chokidar/3.5.3
+      immutable: registry.npmmirror.com/immutable/4.1.0
+      source-map-js: registry.npmmirror.com/source-map-js/1.0.2
     dev: true
 
   registry.npmmirror.com/semver/7.3.8:

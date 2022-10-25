@@ -439,12 +439,15 @@ console.log(bem.em('element', 'modifier')); */
    ```
 
    - 开发依赖
+   
    - -w: 整个工作区都可以用
+   
    - 通过这个插件，可以在<script setup> 中使用 Options API，尤其能够在一个函数中设置 `name`、`props`、`emit` 和 `render` 属性
+   
    - https://github.com/sxzz/unplugin-vue-macros/blob/HEAD/packages/define-options/README-zh-CN.md
-
+   
    - vite.config.ts
-
+   
      ```
      import { defineConfig } from 'vite'
      import vue from '@vitejs/plugin-vue'
@@ -455,9 +458,9 @@ console.log(bem.em('element', 'modifier')); */
        plugins: [vue(), DefineOptions()]
      })
      ```
-
+   
    - packages/components/icon/src/icon.vue
-
+   
      ```
      ...
      // 定义组件名称
@@ -466,9 +469,9 @@ console.log(bem.em('element', 'modifier')); */
      })
      ...
      ```
-
+   
    - packages/utils/with-install.ts
-
+   
      ```
      import { Plugin } from 'vue'
      export type SFCWithInstall<T> = T & Plugin;
@@ -483,9 +486,9 @@ console.log(bem.em('element', 'modifier')); */
 
      - 导出一个 widthInstall
      - widthInstall 里有一个 install 方法（配合 Plugin use 的时候执行），在这个方法里进行组件的全局注册
-
+   
    - packages/components/icon/index.ts
-
+   
      ```
      // 用来整合组件的 最终实现导出组件
      
@@ -509,9 +512,9 @@ console.log(bem.em('element', 'modifier')); */
 
      - 导入 icon.vue, 通过 withInstall给 icon 组件添加 install 方法，配合 Plugin.use() 使用
      - 配合volar声明以给组件类型标注
-
+   
    - packages/play/src/main.ts
-
+   
      ```
      import { createApp } from 'vue'
      import './style.css'
@@ -526,6 +529,148 @@ console.log(bem.em('element', 'modifier')); */
      
      app.mount('#app')
      ```
-
+   
      - 引入 Icon，此时的 Icon 有 install 方法
      - 将组件注册成全局组件 
+
+## svg 图标
+
+https://github.com/07akioni/xicons/blob/main/README.zh-CN.md
+
+- 安装@vicons/ionicons5
+
+  ```
+  pnpm i @vicons/ionicons5   
+  ```
+
+- play/src/App.vue
+
+  ```
+  <script setup lang="ts">
+  import {  AddCircle } from '@vicons/ionicons5'
+  </script>
+  
+  <template>
+      <z-icon :color="'yellow'" :size="20">
+          <AddCircle></AddCircle>
+      </z-icon>
+  </template>
+  
+  <style scoped>
+  </style>
+  ```
+
+## scss 编写
+
+### 结构目录
+
+```
+theme-chalk
+│ └─src
+│ └─mixins
+│ └─config.scss # BEM规范命名
+```
+
+### sass 配置
+
+#### **mixins/config.scss**
+
+```
+// 变量声明
+$namespace: 'z';
+$element-separator: '__';
+$modifier-separator:'--';
+$state-prefix:'is-';
+```
+
+#### **mixins/mixins.scss**
+
+```
+@use 'config'as *;
+@forward 'config';
+
+// .z-button{}
+@mixin b($block) {
+    $B: $namespace+'-'+$block;
+
+    .#{$B} {
+        @content;
+    }
+}
+
+// .z-button.is-xxx
+@mixin when($state) {
+    @at-root {
+        &.#{$state-prefix + $state} {
+            @content;
+        }
+    }
+}
+
+// &--primary => .z-button--primary
+@mixin m($modifier) {
+    @at-root {
+        #{&+$modifier-separator+$modifier} {
+            @content;
+        }
+    }
+}
+
+// &__header => .z-button__header
+@mixin e($element) {
+    @at-root {
+        #{&+$element-separator+$element} {
+            @content;
+        }
+    }
+}
+```
+
+- @use
+  - scss真正意义上的模块化，可以从其它 scss样式表中加载mixin、function和变量
+- @forward：引入另一个模块的所有变量、`mixins`和函数，将它们直接作为当前模块的`API`暴露出去，不会真的在当前模块增加代码
+- @mixin:定义可重复使用的样式
+- @include: 引用定义的mixin
+
+#### **src/icon.scss**
+
+```
+@use 'mixins/mixins'as *;
+
+@include b('icon') {
+    height: 1em;
+    width: 1em;
+    line-height: 1em;
+    display: inline-block;
+    vertical-align: middle;
+
+    svg {
+        height: 1em;
+        width: 1em;
+    }
+}
+```
+
+#### **src/index.scss**
+
+```
+@use './icon.scss'
+```
+
+### 引用样式
+
+```
+pnpm install sass -D -w
+```
+
+- play/src/main.ts
+
+  ```
+  ...
+  import '@zi-shui/theme-chalk/src/index.scss'
+  ...
+  ```
+
+![image-20221025233635660](Vue3TSComponent.assets/image-20221025233635660.png)
+
+# 
