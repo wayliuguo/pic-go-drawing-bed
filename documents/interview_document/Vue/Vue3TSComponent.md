@@ -7,7 +7,7 @@
 ```
 npm i pnpm -g // 全局安装pnpm
 pnpm init // 初始化package.json配置⽂件 私有库
-pnpm install vue typescript -D // 全局下添加依赖
+pnpm install vue typescript // 全局下添加依赖
 ```
 
 只有package.json 中依赖声明了的vue与typescript会在node_modules的根目录下，其余的在 .pnpm目录下。
@@ -673,4 +673,211 @@ pnpm install sass -D -w
 
 ![image-20221025233635660](Vue3TSComponent.assets/image-20221025233635660.png)
 
-# 
+# 五、eslint和prettier的配置
+
+## 基本操作
+
+```
+npx eslint --init
+```
+
+**检查语法并提示错误行数**
+
+```
+? How would you like to use ESLint? ...
+ To check syntax only
+> To check syntax and find problems
+ To check syntax, find problems, and enforce
+code style
+```
+
+**才有js-module**
+
+```
+? What type of modules does your project use?
+...
+> JavaScript modules (import/export)
+ CommonJS (require/exports)
+ None of these
+```
+
+**项目采用vue项目**
+
+```
+? Which framework does your project use? ...
+ React
+> Vue.js
+ None of these
+```
+
+**使用TypeScript**
+
+```
+Does your project use TypeScript?  Yes
+```
+
+**平台**
+
+```
+Where does your code run？ browser, node
+```
+
+**配置文件**
+
+```
+What format do you want your config file to be in? · JavaScript
+```
+
+**安装相关依赖**（no）
+
+```
+The config that you've selected requires the following dependencies:
+
+eslint-plugin-vue@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest eslint@latest
+√ Would you like to install them now? · No / Yes
+```
+
+这里默认会yes，但是希望使用pnpm安装，则收到安装依赖
+
+**手动安装插件**
+
+```
+pnpm i eslint-plugin-vue@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest eslint@latest -D -w
+```
+
+**生成的.eslintrc.js**
+
+```
+module.exports = {
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:vue/vue3-essential",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "overrides": [
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "vue",
+        "@typescript-eslint"
+    ],
+    "rules": {
+    }
+}
+```
+
+```
+"extends": [
+    "eslint:recommended",
+    "plugin:vue/vue3-essential",
+    "plugin:@typescript-eslint/recommended"
+]
+```
+
+- eslint:recommended ：eslint 推荐规范
+
+- vue2/vue3 语法规范 (https://eslint.vuejs.org/user-guide/#installation)
+
+- "plugin:@typescript-eslint/recommended" : 校验.vue文件ts语法
+
+  ```
+  pnpm i @vue/eslint-config-typescript -D -w
+  ```
+
+**.eslintrc.js**
+
+```
+module.exports = {
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:vue/vue3-essential",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "overrides": [
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "vue",
+        "@typescript-eslint"
+    ],
+    "rules": {
+    },
+    "globals": {
+        defineOptions: "readOnly"
+    }
+}
+```
+
+## .eslintignore 配置
+
+```
+node_modules
+dist
+*.css
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.d.ts
+```
+
+**最终安装vscode 中eslint 插件：eslint只是检测代码规范**
+
+## Prettier 配置
+
+**.prettierrc.js**
+
+```
+module.exports = {
+    singleQuote: true, //使⽤单引号
+    semi: false, // 使⽤分号
+    trailingComma: "none", // 末尾逗号
+    arrowParens: "avoid", // 箭头函数括号
+    endOfLine: "auto" // 结尾换⾏⾃动
+}
+```
+
+**.prettierignore**
+
+```
+node_modules
+dist
+```
+
+**最终安装vscode 中 Prettier插件：prettier 只是用来格式化代码**
+
+**这⾥需要配置Format On Save 为启⽤，保存时⾃动格式 化 Default Formatter选择Prettier - Code formatter**
+
+## 编辑器配置
+
+**.editorconfig**
+
+```
+root = true
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+end_of_line = lf
+```
+
+**最终安装vscode中EditorConfig for VS Code插件**
+
