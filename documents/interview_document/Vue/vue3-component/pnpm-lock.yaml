@@ -15,11 +15,11 @@ importers:
       '@zi-shui/components': link:packages/components
       '@zi-shui/theme-chalk': link:packages/theme-chalk
       '@zi-shui/utils': link:packages/utils
+      typescript: registry.npmmirror.com/typescript/4.8.4
+      vue: registry.npmmirror.com/vue/3.2.41
     devDependencies:
       sass: registry.npmmirror.com/sass/1.55.0
-      typescript: registry.npmmirror.com/typescript/4.8.4
       unplugin-vue-define-options: registry.npmmirror.com/unplugin-vue-define-options/0.12.2
-      vue: registry.npmmirror.com/vue/3.2.41
 
   packages/components:
     specifiers: {}
@@ -875,7 +875,6 @@ packages:
     version: 4.8.4
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   registry.npmmirror.com/unplugin-vue-define-options/0.12.2:
     resolution: {integrity: sha512-RQd+JWKx7Z1kKVq5X+K8yBv5h1Of//R6DHY0kF2cF9NPgTxu5u1pfaL24Dup0mQ+5ulrPaiEXti5G/bWMMg+Ig==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/unplugin-vue-define-options/-/unplugin-vue-define-options-0.12.2.tgz}
