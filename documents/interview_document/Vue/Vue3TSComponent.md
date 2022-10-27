@@ -881,3 +881,200 @@ end_of_line = lf
 
 **最终安装vscode中EditorConfig for VS Code插件**
 
+# 六、Vitepress 编写组件文档
+
+## 安装依赖
+
+```
+pnpm init
+pnpm install vitepress -D # 在doc⽬录下安装
+```
+
+## 运行
+
+- docs/package.json
+
+```
+...
+"dev": "vitepress dev ."
+...
+```
+
+- vue3-component/package.json
+
+  ```
+  "docs:dev": "pnpm -C docs dev"
+  ```
+
+## 首页
+
+- docs/index.md
+
+  ```
+  ---
+  layout: home
+  
+  hero:
+    name: z-ui 组件库
+    text: 基于 Vue 3 的组件库.
+    tagline: 掌握 vue3 组件编写
+    actions:
+      - theme: brand
+        text: 快速开始
+        link: /guide/quieStart
+  
+  features:
+    - icon: 🛠️
+      title: 组件库构建流程
+      details: Vue3 组件库构建...
+    - icon: ⚙️
+      title: 组件库单元测试
+      details: Vue3 组件库测试...
+  ---
+  ```
+
+## 文档配置文件
+
+- vitepress/config.js
+
+```
+module.exports = {
+  title: 'Z-UI',
+  description: 'zi-shui UI',
+  themeConfig: {
+    lastUpdated: '最后更新时间',
+    docsDir: 'docs',
+    editLinks: true,
+    editLinkText: '编辑此网站',
+    repo: 'https://gitee.com/login',
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2022-present Zi Shui'
+    },
+    nav: [
+      { text: '指南', link: '/guide/installation', activeMatch: '/guide/' },
+      { text: '组件', link: '/component/icon', activeMatch: '/component/' }
+    ],
+    sidebar: {
+      '/guide/': [
+        {
+          text: '指南',
+          items: [
+            { text: '安装', link: '/guide/installation' },
+            { text: '快速开始', link: '/guide/quieStart' }
+          ]
+        }
+      ],
+      '/component/': [
+        {
+          text: '基础组件',
+          items: [{ text: 'Icon', link: '/component/icon' }]
+        }
+      ]
+    }
+  }
+}
+```
+
+## 主题配置
+
+- .vitepress/theme/index.ts
+
+  ```
+  import DefaultTheme from 'vitepress/theme'
+  
+  import ZIcon from '@zi-shui/components/icon'
+  import '@zi-shui/theme-chalk/src/index.scss'
+  
+  console.log(ZIcon)
+  export default {
+    ...DefaultTheme,
+    enhanceApp({ app }) {
+      app.use(ZIcon) // 在vitepress中 注册全局组件
+    }
+  }
+  ```
+
+- component/icon.md
+
+  ````
+  # Icon 图标
+  
+  z-ui 推荐使用 xicons 作为图标库。
+  
+  ```
+  $ pnpm install @vicons/ionicons5
+  ```
+  
+  ## 使用图标
+  
+  - 如果你想像用例一样直接使用，你需要全局注册组件，才能够直接在项目里使用。
+  
+  <script setup lang="ts">
+  import { CashOutline } from '@vicons/ionicons5'
+  </script>
+  <z-icon color="red" size="40">
+    <CashOutline/>
+  </z-icon>
+  
+  <z-icon color="green" size="40">
+    <CashOutline/>
+  </z-icon>
+  <z-icon color="blue" size="40">
+    <CashOutline/>
+  </z-icon>
+  <div>
+  
+  <z-icon color="red" size="60">
+    <CashOutline/>
+  </z-icon>
+  
+  <z-icon color="green" size="60">
+    <CashOutline/>
+  </z-icon>
+  
+  <z-icon color="blue" size="60">
+    <CashOutline/>
+  </z-icon>
+  </div>
+  
+  ```vue
+  <script setup lang="ts">
+  import { CashOutline } from '@vicons/ionicons5'
+  </script>
+  <template>
+    <z-icon color="red" size="40">
+      <CashOutline />
+    </z-icon>
+  </template>
+  ```
+  
+  ## API
+  
+  ### Icon Props
+  
+  | 名称  | 类型             | 默认值    | 说明     |
+  | ----- | ---------------- | --------- | -------- |
+  | color | string           | undefined | 图标颜色 |
+  | size  | number \| string | undefined | 图片大小 |
+  
+  ````
+
+- vite.config.ts
+
+  ```
+  import { defineConfig } from 'vite'
+  import DefineOptions from 'unplugin-vue-define-options/vite'
+  
+  // https://vitejs.dev/config/
+  export default defineConfig({
+    plugins: [DefineOptions()]
+  })
+  ```
+
+  **已经内置了此配置文件，但是我们的组件由于没有定义名称，这里引用插件完成**
+
+- guide/installation.md
+
+- guide/quieStart.md
+
