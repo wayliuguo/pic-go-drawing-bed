@@ -23,6 +23,17 @@ export function initState (vm) {
     if (opts.watch) {
         initWatch(vm)
     }
+
+    function proxy (vm, source, key) {
+        Object.defineProperty(vm, key, {
+            get() {
+                return vm[source][key]
+            },
+            set(newValue) {
+                vm[source][key] = newValue
+            }
+        })
+    }
     
     function initData(vm) {
         let data = vm.$options.data
@@ -32,6 +43,11 @@ export function initState (vm) {
 
         // 数据响应式
         observe(data)
+
+        // 数据代理
+        for (let key in data) {
+            proxy(vm, '_data', key)
+        }
     }
 
     // 未实现的方法

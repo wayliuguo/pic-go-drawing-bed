@@ -18,12 +18,23 @@
                 name: 'well',
                 a: {
                     a: 1
-                }
+                },
+                // arr: [1, 2, 3],
+                arrObj: [
+                    {
+                        name: 'well'
+                    },
+                    {
+                        name: 'well'
+                    }
+                ]
             },
             computed: {},
             watch: {}
         })
         vm._data.a = { ...vm._data.a, b: 1}
+        vm.arrObj[1].name = '123'
+        vm.arrObj.push({age: 18})
         console.log(vm)
     </script>
 </body>

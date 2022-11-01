@@ -12,10 +12,69 @@
         return typeof val === 'object' && val !== null
     }
 
+    // arrayMethods.__proto__ = Array.prototype
+    let oldArrayProrotype = Array.prototype;
+    let arrayMethods = Object.create(oldArrayProrotype);
+
+    let methods = [
+        'push',
+        'shift',
+        'unshift',
+        'pop',
+        'reverse',
+        'sort',
+        'splice'
+    ];
+
+    methods.forEach(method => {
+        // 用户调用的，如果是以上七个方法，则使用自己重写的，否则用原来的数组方法
+        arrayMethods[method] = function (...args) {
+            // vm.name.push(×××), 则this表示vm
+            oldArrayProrotype[method].call(this, ...args);
+            // 新增的内容
+            let inserted;
+            // 根据当前数组获取到observe实例
+            let ob = this.__ob__;
+            switch (method) {
+                case 'push':
+                case 'unshift':
+                    inserted = args;
+                    break
+                case 'splice':
+                    inserted = args.splice(2);
+                    break
+            }
+            // 如果有新增的内容要进行继续劫持
+            if (inserted) {
+                ob.observeArray(inserted);
+            }
+        };
+    });
+
     class Observer {
         // 对对象中的所有属性进行劫持
         constructor (data) {
-            this.walk(data);
+            // 使__ob__属性不可枚举，如果不这么做，data会一直是一个对象，则溢栈
+            // 这里把__ob__挂载在实例上，同时此属性不可枚举
+            Object.defineProperty(data, '__ob__', {
+                value: this,
+                enumerable: false
+            });
+            // 如果是数组，则进行数组劫持的逻辑
+            // 对数组原来的方法进行改写
+            if (Array.isArray(data)) {
+                data.__proto__ = arrayMethods;
+                // 如果数组中的数据是对象类型，需要监控对象的变化
+                this.observeArray(data);
+            } else {
+                this.walk(data);
+            }
+        }
+        observeArray(data) {
+            // 对数组中的数组 数组中的对象再次劫持
+            data.forEach(item => {
+                observe(item);
+            });
         }
         walk(data) {
             Object.keys(data).forEach(key => {
@@ -45,7 +104,10 @@
         if (!isObject(data)) {
             return
         }
-        
+        // 如果已经被观察过了则不需再观察
+        if (data.__ob__) {
+            return
+        }
         // 默认最外层 data 必须是一个对象
         return new Observer(data)
     }
@@ -64,6 +126,17 @@
         if (opts.computed) ;
         // 初始化 watch
         if (opts.watch) ;
+
+        function proxy (vm, source, key) {
+            Object.defineProperty(vm, key, {
+                get() {
+                    return vm[source][key]
+                },
+                set(newValue) {
+                    vm[source][key] = newValue;
+                }
+            });
+        }
         
         function initData(vm) {
             let data = vm.$options.data;
@@ -73,6 +146,11 @@
 
             // 数据响应式
             observe(data);
+
+            // 数据代理
+            for (let key in data) {
+                proxy(vm, '_data', key);
+            }
         }
     }
 

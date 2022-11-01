@@ -1,9 +1,30 @@
 import { isObject } from "../utils";
+import { arrayMethods } from './array'
 
 class Observer {
     // 对对象中的所有属性进行劫持
     constructor (data) {
-        this.walk(data)
+        // 使__ob__属性不可枚举，如果不这么做，data会一直是一个对象，则溢栈
+        // 这里把__ob__挂载在实例上，同时此属性不可枚举
+        Object.defineProperty(data, '__ob__', {
+            value: this,
+            enumerable: false
+        })
+        // 如果是数组，则进行数组劫持的逻辑
+        // 对数组原来的方法进行改写
+        if (Array.isArray(data)) {
+            data.__proto__ = arrayMethods
+            // 如果数组中的数据是对象类型，需要监控对象的变化
+            this.observeArray(data)
+        } else {
+            this.walk(data)
+        }
+    }
+    observeArray(data) {
+        // 对数组中的数组 数组中的对象再次劫持
+        data.forEach(item => {
+            observe(item)
+        })
     }
     walk(data) {
         Object.keys(data).forEach(key => {
@@ -33,7 +54,10 @@ export function observe(data) {
     if (!isObject(data)) {
         return
     }
-    
+    // 如果已经被观察过了则不需再观察
+    if (data.__ob__) {
+        return
+    }
     // 默认最外层 data 必须是一个对象
     return new Observer(data)
 }
