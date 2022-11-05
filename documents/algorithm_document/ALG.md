@@ -2474,3 +2474,124 @@ var isBalanced = function(root) {
   };
   ```
 
+## 8.九大排序算法
+
+### 8.1 冒泡排序
+
+- 从左到右，相邻元素比较，前一个大于后一个（正序），则交换
+- 一轮下来确定一个最大的值（正序）
+- 还有length-1个值需要确定，所以第一层for循环变量+1
+
+```
+function bubbleSort(arr) {
+    for (let i=0; i<arr.length; i++) {
+        // 提前退出冒泡循环的标识位
+        let flag = false
+        for(let j=0; j<arr.length-i-1; j++) {
+            if (arr[j] > arr[j+1]) {
+                [arr[j], arr[j+1]] = [arr[j+1], arr[j]]
+                flag = true
+            }
+        }
+        if (!flag) break
+    }
+}
+
+let arr = [1, 3, 2, 5, 4]
+bubbleSort(arr)
+console.log(arr) // [1, 2, 3, 4, 5]
+```
+
+**复杂度分析**
+
+- 时间复杂度： 最好时间复杂度 O(n)，平均时间复杂度 O(n*n) 
+- 空间复杂度：O(1)
+
+### 8.2 选择排序
+
+从未排序数组中找出最小（最大）放在已排序序列的末尾，重复操作，直到所有的数据都已放入已排序序列中
+
+```
+function selectionSort (arr) {
+    let index
+    for (let i=0; i<arr.length; i++) {
+        index = i
+        for(let j=i; j<arr.length; j++) {
+            if (arr[index] > arr[j]) {
+                index = j
+            }
+        }
+        if (i !== index) {
+            [arr[index], arr[i]] = [arr[i], arr[index]]
+        }
+        console.log(arr)
+        /* [ 1, 3, 2, 5, 4 ]
+           [ 1, 2, 3, 5, 4 ]
+           [ 1, 2, 3, 5, 4 ]
+           [ 1, 2, 3, 4, 5 ]
+           [ 1, 2, 3, 4, 5 ] */
+    }
+}
+
+let arr = [1, 3, 2, 5, 4]
+selectionSort(arr)
+console.log(arr) // [1, 2, 3, 4, 5]
+```
+
+**复杂度分析** 
+
+- 时间复杂度：O(n*n)
+-  空间复杂度：O(1)
+
+### 8.3 归并排序
+
+- 使⽤了分治策略的思想，将数组分成⼀个个⼩数组
+
+- 将原始序列平分成两个⼩数组 
+- 判断⼩数组⻓度是否为1，不为1则继续分裂 
+- 原始数组被分称了⻓度为1的多个⼩数组，然后合并相邻⼩数组（有序合并）
+-  不断合并⼩数组，直到合并称⼀个数组，则为排序后的数组序列
+
+```
+function mergeSort (arr) {
+    let array = mergeSortRec(arr)
+    return array
+}
+
+// 数组分裂
+function mergeSortRec(arr) {
+    let length = arr.length
+    if (length === 1) {
+        return arr
+    }
+    let mid = Math.floor(length / 2)
+    let left = arr.slice(0, mid)
+    let right = arr.slice(mid, length)
+    return merge(mergeSortRec(left), mergeSortRec(right))
+}
+
+// 有序合并
+function merge(left, right) {
+    let result = []
+    while(left.length && right.length) {
+        if (left[0] <= right[0]) {
+            result.push(left.shift());
+        } else {
+            result.push(right.shift());
+        }
+    }
+    while(left.length) {
+        result.push(left.shift())
+    }
+    while(right.length) {
+        result.push(right.shift())
+    }
+    return result
+}
+
+let arr = [1, 3, 2, 5, 4]
+console.log(mergeSort(arr)) // [1, 2, 3, 4, 5]
+```
+
+### 8.4 快速排序
+
