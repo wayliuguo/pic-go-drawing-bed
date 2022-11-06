@@ -17,16 +17,47 @@ const startTagClose = /^\s*(\/?)>/
 // {{name}}
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
 
+let root
+let currentParent
+let stack = []
+const ELEMENT_TYPE = 1
+const TEXT_TYPE = 3
+function createASTElement(tagName, attrs) {
+    return {
+        tag: tagName,
+        type: ELEMENT_TYPE,
+        children: [],
+        attrs,
+        parent: null
+    }
+}
+
 // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
 
 function start (tagName, attributes) {
-    console.log(tagName, attributes)
+    let element = createASTElement(tagName, attributes)
+    if (!root) {
+        root = element
+    }
+    currentParent = element
+    stack.push(element)
 }
 function end (tagName) {
-    console.log(tagName)
+    let element = stack.pop()
+    currentParent = stack[stack.length - 1]
+    if (currentParent) {
+        element.parent = currentParent
+        currentParent.children.push(element)
+    }
 }
 function chars(text) {
-    console.log(text)
+    text = text.replace(/\s/g, '')
+    if (text) {
+        currentParent.children.push({
+            type: TEXT_TYPE,
+            text
+        })
+    }
 }
 function parserHTML(html) { // <div id="app">{{name}}</div>
     // 截取字符串
@@ -109,4 +140,5 @@ function parserHTML(html) { // <div id="app">{{name}}</div>
 export function compileToFunctions (template) {
     
     parserHTML(template)
+    console.log(root)
 }
