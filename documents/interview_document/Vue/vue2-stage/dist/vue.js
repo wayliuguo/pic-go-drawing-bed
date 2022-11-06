@@ -188,7 +188,7 @@
 
     // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
 
-    function start (tagName, attributes) {
+    function start(tagName, attributes) {
         let element = createASTElement(tagName, attributes);
         if (!root) {
             root = element;
@@ -196,7 +196,7 @@
         currentParent = element;
         stack.push(element);
     }
-    function end (tagName) {
+    function end(tagName) {
         let element = stack.pop();
         currentParent = stack[stack.length - 1];
         if (currentParent) {
@@ -215,11 +215,11 @@
     }
     function parserHTML(html) { // <div id="app">{{name}}</div>
         // 截取字符串
-        function advance (len) {
+        function advance(len) {
             html = html.substring(len);
         }
         // 匹配标签开头
-        function parseStartTag () {
+        function parseStartTag() {
             const start = html.match(startTagOpen);
             // console.log(start) // ['<div', 'div']
             if (start) {
@@ -229,9 +229,9 @@
                 };
                 advance(start[0].length);
                 // console.log(html) // id="app">{{name}}</div>
-                let end,attr;
+                let end, attr;
                 // 如果没有遇到标签结尾就不停的解析
-                while(!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
+                while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
                     // console.log(attr) // [' id="app"', 'id', '=', 'app', undefined, undefined]
                     advance(attr[0].length);
                     match.attrs.push({
@@ -260,9 +260,9 @@
 
             }
             // 不是开始标签
-            return false 
+            return false
         }
-        
+
         // 解析的内容如果存在则不停地解析
         while (html) {
             // 当前解析的开头
@@ -290,10 +290,12 @@
                 advance(text.length);
             }
         }
+        return root
     }
+
     function compileToFunctions (template) {
         
-        parserHTML(template);
+        let root = parserHTML(template);
         console.log(root);
     }
 

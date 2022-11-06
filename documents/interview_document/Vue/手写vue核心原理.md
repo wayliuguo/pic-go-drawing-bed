@@ -583,5 +583,53 @@ export function initMixin (Vue) {
   - 调用parserHTML()
   - 匹配标签开头、属性、结尾、文本
 
+## 3.构造AST语法树
 
+- compiler/parser.js
 
+  ```
+  let root
+  let currentParent
+  let stack = []
+  const ELEMENT_TYPE = 1
+  const TEXT_TYPE = 3
+  function createASTElement(tagName, attrs) {
+      return {
+          tag: tagName,
+          type: ELEMENT_TYPE,
+          children: [],
+          attrs,
+          parent: null
+      }
+  }
+  
+  // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
+  
+  function start(tagName, attributes) {
+      let element = createASTElement(tagName, attributes)
+      if (!root) {
+          root = element
+      }
+      currentParent = element
+      stack.push(element)
+  }
+  function end(tagName) {
+      let element = stack.pop()
+      currentParent = stack[stack.length - 1]
+      if (currentParent) {
+          element.parent = currentParent
+          currentParent.children.push(element)
+      }
+  }
+  function chars(text) {
+      text = text.replace(/\s/g, '')
+      if (text) {
+          currentParent.children.push({
+              type: TEXT_TYPE,
+              text
+          })
+      }
+  }
+  ```
+
+  
