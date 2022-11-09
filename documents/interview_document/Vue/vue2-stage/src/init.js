@@ -32,6 +32,7 @@ export function initMixin (Vue) {
             }
             const render = compileToFunctions(template)
             options.render = render
+            console.log('>>>生成的render函数:', options.render)
         }
     }
 }
