@@ -748,3 +748,103 @@ export function compileToFunctions (template) {
 ```
 
 - 由于数据在data上，需要用with去指定作用域
+
+# 四、组件挂载
+
+## 1.生成虚拟dom
+
+- src/index.js
+
+  ```
+  import { initMixin } from "./init"
+  import { lifecycleMixin } from "./lifecycle"
+  import { renderMixin } from "./render"
+  function Vue(options) {
+      // options 为用户传入的选项
+      this._init(options) // 初始化操作、组件
+  }
+  
+  // 给原型上新增_init 方法
+  initMixin(Vue)
+  renderMixin(Vue)
+  lifecycleMixin(Vue)
+  
+  export default Vue
+  ```
+
+  - 执行renderMixin、lifecycleMixin
+  - 给原型上挂载对应方法
+
+- src/lifecycle.js
+
+  ```
+  export function lifecycleMixin(Vue) {
+      Vue.prototype._update = function (vnode) {
+          console.log('update')
+      }
+  }
+  
+  export function mountComponent(vm, el) {
+      // 更新函数 数据变化后 会再次调用此函数
+      let updateComponent = () => {
+          // 1.调用render函数，生成、更新虚拟dom
+          // 2.用虚拟dom生成真实dom
+  
+          vm._update(vm._render())
+      }
+      updateComponent()
+  }
+  ```
+
+  - 挂载 _update 方法，用于更新虚拟dom
+  - 导出mountComponent 方法, 此方法中执行updateComponent函数，用于更新组件
+
+- src/render.js
+
+  ```
+  import { createElement, createTextNode } from "./vdom/index"
+  
+  export function renderMixin (Vue) {
+      Vue.prototype._c = function () {
+          return createElement(this, ...arguments)
+      }
+      Vue.prototype._v = function (text) {
+          return createTextNode(this, text)
+      }
+      Vue.prototype._s = function (val) {
+          return val == null ? '' : (typeof val === 'object' ? JSON.stringify(val) : val)
+      }
+      Vue.prototype._render = function() {
+          const vm = this
+          // 获取 render 函数
+          let render = vm.$options.render
+          let vnode = render.call(vm)
+          console.log('vnode>>>', vnode)
+          return vnode
+      }
+  }
+  ```
+
+  - 导出_render 方法，用于调用渲染函数render,生成虚拟dom
+  - 挂载`_c、_v、_s`，供渲染函数render内部调用
+
+- src/init.js
+
+  ```
+  import { initState } from "./state"
+  import { compileToFunctions } from './compiler/index'
+  import { mountComponent } from "./lifecycle"
+  
+  export function initMixin (Vue) {
+      Vue.prototype._init = function (options) {
+          ...
+      }
+      Vue.prototype.$mount = function (el) {
+         ...
+          // 组件挂载
+          mountComponent(vm, el)
+      }
+  }
+  ```
+
+- 

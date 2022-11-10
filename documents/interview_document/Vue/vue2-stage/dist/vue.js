@@ -367,6 +367,23 @@
         return renderFn
     }
 
+    function lifecycleMixin(Vue) {
+        Vue.prototype._update = function (vnode) {
+            console.log('update');
+        };
+    }
+
+    function mountComponent(vm, el) {
+        // 更新函数 数据变化后 会再次调用此函数
+        let updateComponent = () => {
+            // 1.调用render函数，生成、更新虚拟dom
+            // 2.用虚拟dom生成真实dom
+
+            vm._update(vm._render());
+        };
+        updateComponent();
+    }
+
     function initMixin (Vue) {
         Vue.prototype._init = function (options) {
             // el, data
@@ -400,6 +417,47 @@
                 options.render = render;
                 console.log('>>>生成的render函数:', options.render);
             }
+            // 组件挂载
+            mountComponent(vm);
+        };
+    }
+
+    function createElement(vm, tag, data = {}, ...children) {
+        return vnode(vm, tag, data, data.key, children, undefined)
+    }
+
+    function createTextNode(vm, text) {
+        return vnode(vm, undefined, undefined, undefined, undefined, text)
+    }
+
+    function vnode(vm, tag, data, key, children, text) {
+        return {
+            vm,
+            tag,
+            data,
+            key,
+            children,
+            text
+        }
+    }
+
+    function renderMixin (Vue) {
+        Vue.prototype._c = function () {
+            return createElement(this, ...arguments)
+        };
+        Vue.prototype._v = function (text) {
+            return createTextNode(this, text)
+        };
+        Vue.prototype._s = function (val) {
+            return val == null ? '' : (typeof val === 'object' ? JSON.stringify(val) : val)
+        };
+        Vue.prototype._render = function() {
+            const vm = this;
+            // 获取 render 函数
+            let render = vm.$options.render;
+            let vnode = render.call(vm);
+            console.log('生成的vnode>>>', vnode);
+            return vnode
         };
     }
 
@@ -410,6 +468,8 @@
 
     // 给原型上新增_init 方法
     initMixin(Vue);
+    renderMixin(Vue);
+    lifecycleMixin(Vue);
 
     return Vue;
 
