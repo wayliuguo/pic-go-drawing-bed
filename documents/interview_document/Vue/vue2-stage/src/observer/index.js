@@ -1,5 +1,6 @@
 import { isObject } from "../utils";
 import { arrayMethods } from './array'
+import { Dep } from './dep'
 
 class Observer {
     // 对对象中的所有属性进行劫持
@@ -37,14 +38,25 @@ class Observer {
 function defineReactive(data, key, value) {
     // 如果value是一个对象，则继续递归进行劫持
     observe(value) 
+    // 每个属性都有一个dep属性
+    let dep = new Dep()
     Object.defineProperty(data, key, {
         get() {
+            // 取值时将watcher和dep对应起来
+            if (Dep.target) {
+                // 收集依赖
+                dep.depend()
+            }
             return value
         },
         set(newV) {
             // 如果用户赋值一个新对象，需要将这个对象进行劫持
+
+            // 如果新旧值相同则return
+            if (newV === value) return 
             observe(newV)
             value = newV
+            dep.notify() // 通知渲染Watcher 去更新
         }
     })
 }

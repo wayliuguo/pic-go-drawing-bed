@@ -923,10 +923,11 @@ export function compileToFunctions (template) {
 
   - 找到真实dom的父节点，通过vnode创建真实节点挂载在父节点上，删除旧节点
 
+# 五.响应式原理
 
-## 3.响应式原理
+## 1.对象依赖收集
 
-### 3.1 手动更新视图
+### 1 手动更新视图
 
 - src/vdom/patch.js
 
@@ -974,10 +975,162 @@ export function compileToFunctions (template) {
   }, 1000)
   ```
 
-### 3.2 自动更新
+### 2 自动更新
 
 - 观察者模式
   - 属性：“被观察者”
   - 刷新页面：“观察者”
 - 每个组件渲染的时候都会有一个watcher
 
+- src/lifecycle.js
+
+  ```
+  export function mountComponent(vm, el) {
+      // 更新函数 数据变化后 会再次调用此函数
+      let updateComponent = () => {
+          // 1.调用render函数，生成、更新虚拟dom
+          // 2.用虚拟dom生成真实dom
+  
+          vm._update(vm._render())
+      }
+      // updateComponent()
+      // 观察者模式 属性：“被观察者” 刷新页面：“观察者”
+      new Watcher(vm, updateComponent, () => {
+          console.log('更新视图了')
+      }, true) // true 表示是一个渲染watcher，后续有其他watcher
+  }
+  ```
+
+  - 不再手动调用updateComponent
+  - 通过 new Watcher() 创建 Watcher 实例
+
+- src/observer/watcher.js
+
+  ```
+  import { popTarget, pushTarget } from "./dep"
+  
+  let id = 0
+  class Watcher {
+      constructor(vm, exprOrFn, cb, options) {
+          this.vm = vm
+          this.exprOrFn = exprOrFn
+          this.cb = cb
+          this.options = options
+          this.id = id++
+          this.deps = [] // 存放 dep
+          this.depsId = new Set() // 用于去重 dep
+  
+          // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
+          this.getter = exprOrFn
+          this.get() // 默认初始化，要取值
+      }
+      get() {
+          // 由于取值会触发 defineProperty.get
+          // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
+          // 每个属性都可以收集自己的watcher
+          pushTarget(this) // 往Dep的target属性上挂载Watcher 实例
+          this.getter()
+          popTarget()
+      }
+      // 存放dep，同时让dep存储watcher实例
+      addDep(dep) {
+          let id = dep.id
+          if (!this.depsId.has(id)) {
+              this.depsId.add(id)
+              this.deps.push(dep)
+              dep.addSub(this) // 让dep 存储Watcher 实例
+          }
+      }
+      // 更新视图
+      update() {
+          this.get()
+      }
+  }
+  
+  export default Watcher
+  ```
+
+  - 实例化的时候就执行get方法
+    1. 往Dep的target属性上挂载Watcher 实例
+    2. 执行传入的updateComponent，这里会取data的值，触发object.defineProperty()
+    3. 清除Dep的target属性上的Watcher 实例
+  - addDep
+    1. 由于在Dep的target属性上挂载了Watcher 实例，可以通过Dep.target获取Watcher实例，调用此方法
+    2. 此方法可以存储dep实例，同时通过传参获取dep实例使实例存储Watcher实例
+
+- src/observer/dep.js
+
+  ```
+  // 每个属性都分配一份dep,
+  // dep 可以用来存放watcher
+  // watcher 中还要存放这个dep
+  
+  let id = 0
+  export class Dep {
+      constructor () {
+          this.id = id++
+          this.subs = [] // 存放watcher
+      }
+      // 让Watcher实例存放dep
+      depend () {
+          // Dep.target 就是Watcher
+          if (Dep.target) {
+              Dep.target.addDep(this) // 让Watcher 去存放dep
+          }
+      }
+      // dep 实例存放 watcher 实例
+      addSub(watcher) {
+          this.subs.push(watcher)
+      }
+      // 通知关联的每一个watcher更新
+      notify() {
+          this.subs.forEach(watcher => watcher.update())
+      }
+  }
+  
+  Dep.target = null
+  
+  export function pushTarget(watcher) {
+      Dep.target = watcher
+  }
+  
+  export function popTarget() {
+      Dep.target = null
+  }
+  ```
+
+  - depend
+  - addSub
+  - notify
+
+- src/observer/index.js
+
+  ```
+  function defineReactive(data, key, value) {
+      // 如果value是一个对象，则继续递归进行劫持
+      observe(value) 
+      // 每个属性都有一个dep属性
+      let dep = new Dep()
+      Object.defineProperty(data, key, {
+          get() {
+              // 取值时将watcher和dep对应起来
+              if (Dep.target) {
+                  // 收集依赖
+                  dep.depend()
+              }
+              return value
+          },
+          set(newV) {
+              // 如果用户赋值一个新对象，需要将这个对象进行劫持
+  
+              // 如果新旧值相同则return
+              if (newV === value) return 
+              observe(newV)
+              value = newV
+              dep.notify() // 通知渲染Watcher 去更新
+          }
+      })
+  }
+  ```
+
+## 2.

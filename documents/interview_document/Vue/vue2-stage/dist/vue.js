@@ -51,6 +51,43 @@
         };
     });
 
+    // 每个属性都分配一份dep,
+    // dep 可以用来存放watcher
+    // watcher 中还要存放这个dep
+
+    let id$1 = 0;
+    class Dep {
+        constructor () {
+            this.id = id$1++;
+            this.subs = []; // 存放watcher
+        }
+        // 让Watcher实例存放dep
+        depend () {
+            // Dep.target 就是Watcher
+            if (Dep.target) {
+                Dep.target.addDep(this); // 让Watcher 去存放dep
+            }
+        }
+        // dep 实例存放 watcher 实例
+        addSub(watcher) {
+            this.subs.push(watcher);
+        }
+        // 通知关联的每一个watcher更新
+        notify() {
+            this.subs.forEach(watcher => watcher.update());
+        }
+    }
+
+    Dep.target = null;
+
+    function pushTarget(watcher) {
+        Dep.target = watcher;
+    }
+
+    function popTarget() {
+        Dep.target = null;
+    }
+
     class Observer {
         // 对对象中的所有属性进行劫持
         constructor (data) {
@@ -87,14 +124,25 @@
     function defineReactive(data, key, value) {
         // 如果value是一个对象，则继续递归进行劫持
         observe(value); 
+        // 每个属性都有一个dep属性
+        let dep = new Dep();
         Object.defineProperty(data, key, {
             get() {
+                // 取值时将watcher和dep对应起来
+                if (Dep.target) {
+                    // 收集依赖
+                    dep.depend();
+                }
                 return value
             },
             set(newV) {
                 // 如果用户赋值一个新对象，需要将这个对象进行劫持
+
+                // 如果新旧值相同则return
+                if (newV === value) return 
                 observe(newV);
                 value = newV;
+                dep.notify(); // 通知渲染Watcher 去更新
             }
         });
     }
@@ -375,6 +423,8 @@
             this.cb = cb;
             this.options = options;
             this.id = id++;
+            this.deps = []; // 存放 dep
+            this.depsId = new Set(); // 用于去重 dep
 
             // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
             this.getter = exprOrFn;
@@ -384,7 +434,22 @@
             // 由于取值会触发 defineProperty.get
             // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
             // 每个属性都可以收集自己的watcher
+            pushTarget(this); // 往Dep的target属性上挂载Watcher 实例
             this.getter();
+            popTarget();
+        }
+        // 存放dep，同时让dep存储watcher实例
+        addDep(dep) {
+            let id = dep.id;
+            if (!this.depsId.has(id)) {
+                this.depsId.add(id);
+                this.deps.push(dep);
+                dep.addSub(this); // 让dep 存储Watcher 实例
+            }
+        }
+        // 更新视图
+        update() {
+            this.get();
         }
     }
 
