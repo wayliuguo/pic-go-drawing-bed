@@ -10,6 +10,7 @@ export function patch(oldVnode, vnode) {
         parentElm.insertBefore(elm, oldVnode.nextSibling)
         // 把自己删除
         parentElm.removeChild(oldVnode)
+        return elm
     }
 }
 

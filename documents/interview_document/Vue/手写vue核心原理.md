@@ -868,7 +868,7 @@ export function compileToFunctions (template) {
 
   - 调用patch函数
 
-- src/vdom/patch.js
+- src/vdom/patch.js 
 
   ```
   export function patch(oldVnode, vnode) {
@@ -923,4 +923,61 @@ export function compileToFunctions (template) {
 
   - 找到真实dom的父节点，通过vnode创建真实节点挂载在父节点上，删除旧节点
 
+
+## 3.响应式原理
+
+### 3.1 手动更新视图
+
+- src/vdom/patch.js
+
+  ```
+  export function patch(oldVnode, vnode) {
+      // 如果是元素
+      if (oldVnode.nodeType === 1) {
+          // 用vnode来生成真实dom，替换成原来的dom元素
   
+          // 找到其父亲元素
+          const parentElm = oldVnode.parentNode
+          // 根据虚拟节点创建元素
+          let elm = createElm(vnode)
+          parentElm.insertBefore(elm, oldVnode.nextSibling)
+          // 把自己删除
+          parentElm.removeChild(oldVnode)
+          return elm
+      }
+  }
+  ```
+
+  - 返回新的dom元素
+
+- src/lifecycle.js
+
+  ```
+  export function lifecycleMixin(Vue) {
+      Vue.prototype._update = function (vnode) {
+          const vm = this
+          vm.$el = patch(vm.$el, vnode)
+      }
+  }
+  ```
+
+  - 将返回的dom元素作为$el,下次对比的时候vnode跟他对比
+
+- index.html
+
+  ```
+  // 数据变化需要影响视图
+  setTimeout(() => {
+  	vm.name = 'liuguowei'
+  	// 重新调用render方法产生
+  	vm._update(vm._render())
+  }, 1000)
+  ```
+
+### 3.2 自动更新
+
+- 观察者模式
+  - 属性：“被观察者”
+  - 刷新页面：“观察者”
+- 每个组件渲染的时候都会有一个watcher
+

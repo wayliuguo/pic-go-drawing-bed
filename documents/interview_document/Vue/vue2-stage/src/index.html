@@ -44,6 +44,12 @@
         vm._data.a = { ...vm._data.a, b: 1}
         vm.arrObj[1].name = '123'
         vm.arrObj.push({age: 18})
+        // 数据变化需要影响视图
+        setTimeout(() => {
+            vm.name = 'liuguowei'
+            // 重新调用render方法产生
+            vm._update(vm._render())
+        }, 1000)
         console.log(vm)
     </script>
 </body>

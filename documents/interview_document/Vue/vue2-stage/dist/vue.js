@@ -367,6 +367,27 @@
         return renderFn
     }
 
+    let id = 0;
+    class Watcher {
+        constructor(vm, exprOrFn, cb, options) {
+            this.vm = vm;
+            this.exprOrFn = exprOrFn;
+            this.cb = cb;
+            this.options = options;
+            this.id = id++;
+
+            // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
+            this.getter = exprOrFn;
+            this.get(); // 默认初始化，要取值
+        }
+        get() {
+            // 由于取值会触发 defineProperty.get
+            // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
+            // 每个属性都可以收集自己的watcher
+            this.getter();
+        }
+    }
+
     function patch(oldVnode, vnode) {
         // 如果是元素
         if (oldVnode.nodeType === 1) {
@@ -379,6 +400,7 @@
             parentElm.insertBefore(elm, oldVnode.nextSibling);
             // 把自己删除
             parentElm.removeChild(oldVnode);
+            return elm
         }
     }
 
@@ -419,10 +441,11 @@
     function lifecycleMixin(Vue) {
         Vue.prototype._update = function (vnode) {
             const vm = this;
-            patch(vm.$el, vnode);
+            vm.$el = patch(vm.$el, vnode);
         };
     }
 
+    // 后续每个组件渲染的时候都会有一个watcher
     function mountComponent(vm, el) {
         // 更新函数 数据变化后 会再次调用此函数
         let updateComponent = () => {
@@ -431,7 +454,11 @@
 
             vm._update(vm._render());
         };
-        updateComponent();
+        // updateComponent()
+        // 观察者模式 属性：“被观察者” 刷新页面：“观察者”
+        new Watcher(vm, updateComponent, () => {
+            console.log('更新视图了');
+        }, true); // true 表示是一个渲染watcher，后续有其他watcher
     }
 
     function initMixin (Vue) {
