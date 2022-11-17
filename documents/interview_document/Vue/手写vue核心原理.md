@@ -1110,6 +1110,7 @@ export function compileToFunctions (template) {
       // 如果value是一个对象，则继续递归进行劫持
       observe(value) 
       // 每个属性都有一个dep属性
+      // 创建dep实例，下面的setter和getter可以通过闭包访问到
       let dep = new Dep()
       Object.defineProperty(data, key, {
           get() {
@@ -1132,5 +1133,7 @@ export function compileToFunctions (template) {
       })
   }
   ```
+  
+  - 通过闭包使getter和setter可以访问到对应的实例
 
 ## 2.
