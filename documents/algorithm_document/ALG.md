@@ -2509,7 +2509,7 @@ console.log(arr) // [1, 2, 3, 4, 5]
 
 ### 8.2 选择排序
 
-从未排序数组中找出最小（最大）放在已排序序列的末尾，重复操作，直到所有的数据都已放入已排序序列中
+从未排序数组中找出最小（最大）放在**已排序序列**的末尾，重复操作，直到所有的数据都已放入已排序序列中
 
 ```
 function selectionSort (arr) {
@@ -2554,44 +2554,90 @@ console.log(arr) // [1, 2, 3, 4, 5]
 
 ```
 function mergeSort (arr) {
-    let array = mergeSortRec(arr)
-    return array
-}
-
-// 数组分裂
-function mergeSortRec(arr) {
-    let length = arr.length
-    if (length === 1) {
-        return arr
-    }
-    let mid = Math.floor(length / 2)
-    let left = arr.slice(0, mid)
-    let right = arr.slice(mid, length)
-    return merge(mergeSortRec(left), mergeSortRec(right))
-}
-
-// 有序合并
-function merge(left, right) {
-    let result = []
-    while(left.length && right.length) {
-        if (left[0] <= right[0]) {
-            result.push(left.shift());
+    // 如果数组长度为一，则终止递归
+    if (arr.length === 1) return arr
+    let left = []
+    let right = []
+    let middle = Math.floor(arr.length / 2)
+    // 拆分数组
+    for (let i=0; i<arr.length; i++) {
+        if (i < middle) {
+            left.push(arr[i])
         } else {
-            result.push(right.shift());
+            right.push(arr[i])
         }
     }
-    while(left.length) {
-        result.push(left.shift())
+    // 将数组拆分到单元素才开始合并
+    return merge(mergeSort(left), mergeSort(right))
+}
+
+function merge(left, right) {
+    let result = []
+    let l = 0
+    let r = 0
+    // 根据left、right中元素的大小进行排序
+    while (l < left.length && r < right.length) {
+        // 如果 左<右
+        if (left[l] < right[r]) {
+            result.push(left[l])
+            l++
+        } else {
+            // 如果 右<= 左
+            result.push(right[r])
+            r++
+        }
     }
-    while(right.length) {
-        result.push(right.shift())
+    // 如果 left 数组未处理完毕（right数组肯定已空）
+    while (l < left.length) {
+        result.push(left[l])
+        l++
+    }
+    // 如果 right 数组未处理完毕（left数组肯定已空）
+    while (r < right.length) {
+        result.push(right[r])
+        r++
     }
     return result
 }
 
-let arr = [1, 3, 2, 5, 4]
-console.log(mergeSort(arr)) // [1, 2, 3, 4, 5]
+const arr = [8,0,4,6,1,2,7,3,5,9]
+console.log(mergeSort(arr))
+// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
 ### 8.4 快速排序
+
+**对冒泡排序的一种改进，通过不断分割要排序数组并单独排序达到目的（空间换时间）**
+
+1. 在要排序的数组中找一个基准值
+2. 把小于基准值的数据集中到数组的左边（升序排列），把大于基准值的数据集中到数组的右边
+3. 数组的左边和右边重复上边的步骤，直到数组有序
+
+```
+function quickSort (arr) {
+    if (arr.length <= 1) return arr
+    // 基准索引
+    let middleIndex = Math.floor(arr.length / 2)
+    // 基准值
+    let middleValue = arr[middleIndex]
+    // 建立一个左数组
+    let left = []
+    // 建立一个右数组
+    let right = []
+    // 遍历数组
+    for (let i=0; i<arr.length; i++) {
+        if (i === middleIndex) continue
+        if (arr[i] < middleValue) {
+            left.push(arr[i])
+        } else {
+            right.push(arr[i])
+        }
+    }
+    // 递归： 左 基准 右
+    return quickSort(left).concat([middleValue], quickSort(right))
+}
+
+const arr = [8,0,4,6,1,2,7,3,5,9]
+console.log(quickSort(arr)) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
 
