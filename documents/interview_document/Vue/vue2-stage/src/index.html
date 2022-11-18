@@ -47,10 +47,15 @@
         // 数据变化需要影响视图
         setTimeout(() => {
             vm.name = 'liuguowei'
+            vm.name = '123'
+            vm.name = 'abc'
             // 重新调用render方法产生
             // vm._update(vm._render())
+            vm.$nextTick(() => {
+                console.log('>>>nextTick', vm.$el)
+            })
         }, 1000)
-        console.log(vm)
+        console.log('>>>vm', vm)
     </script>
 </body>
 </html>

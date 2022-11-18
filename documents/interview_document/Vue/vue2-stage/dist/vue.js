@@ -416,6 +416,71 @@
         return renderFn
     }
 
+    let callbacks = [];
+
+    function flushCallbacks () {
+        callbacks.forEach(cb => cb());
+    }
+
+    let timerFunc;
+    let waiting = false;
+    if (Promise) {
+        timerFunc = () => {
+            Promise.resolve().then(flushCallbacks);
+        };
+    } else if (MutationObserver) {
+        let observe = new MutationObserver(flushCallbacks);
+        let textNode = document.createTextNode(1);
+        observe.observe(textNode, {
+            characterData: true
+        });
+        timerFunc = () => {
+            textNode.textContent = 2;
+        };
+    } else if (setImmediate) {
+        timerFunc = () => {
+            setImmediate(flushCallbacks);
+        };
+    } else {
+        timerFunc = () => {
+            setTimeout(flushCallbacks, 0);
+        };
+    }
+
+    function nextTick (cb) {
+        callbacks.push(cb);
+        if (!waiting) {
+            timerFunc();
+            waiting = true;
+        }
+    }
+
+    let queue = [];
+    let has = {}; // 做列表的 列表维护存放了哪些watcher
+
+    function flushSchedulerQueue () {
+        for (let i=0; i<queue.length; i++) {
+            let watcher = queue[i];
+            watcher.run();
+        }
+        queue = [];
+        has = {};
+    }
+
+    let pending = false;
+    function queueWatcher (watcher) {
+        const id = watcher.id;
+        if (has[id] == null) {
+            has[id] = true;
+            queue.push(watcher);
+            // 开启一次更新操作，批处理
+            if (!pending) {
+                nextTick(flushSchedulerQueue);
+                pending = true;
+            }
+        }
+    }
+
     let id = 0;
     class Watcher {
         constructor(vm, exprOrFn, cb, options) {
@@ -448,8 +513,13 @@
                 dep.addSub(this); // 让dep 存储Watcher 实例
             }
         }
-        // 更新视图
+        // 更新视图(vue中更新是异步的)
         update() {
+            // this.get()
+            // 多次调用update，先将watcher缓存下来，收集起来一起更新
+            queueWatcher(this);
+        }
+        run () {
             this.get();
         }
     }
@@ -509,6 +579,7 @@
             const vm = this;
             vm.$el = patch(vm.$el, vnode);
         };
+        Vue.prototype.$nextTick = nextTick;
     }
 
     // 后续每个组件渲染的时候都会有一个watcher

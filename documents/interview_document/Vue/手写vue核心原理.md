@@ -1136,4 +1136,143 @@ export function compileToFunctions (template) {
   
   - 通过闭包使getter和setter可以访问到对应的实例
 
-## 2.
+## 2.异步更新原理之nextTick
+
+- src/observer/watcher.js
+
+  ```
+  import { popTarget, pushTarget } from "./dep"
+  import { queueWatcher } from "./scheduler"
+  
+  let id = 0
+  class Watcher {
+      constructor(vm, exprOrFn, cb, options) {
+          ...
+      }
+      get() {
+         ...
+      }
+      // 存放dep，同时让dep存储watcher实例
+      addDep(dep) {
+         ...
+      }
+      // 更新视图(vue中更新是异步的)
+      update() {
+          // this.get()
+          // 多次调用update，先将watcher缓存下来，收集起来一起更新
+          queueWatcher(this)
+      }
+      run () {
+          this.get()
+      }
+  }
+  
+  export default Watcher
+  ```
+
+- src/observer/scheduler.js
+
+  ```
+  import { nextTick } from "../next-tick"
+  
+  let queue = []
+  let has = {} // 做列表的 列表维护存放了哪些watcher
+  
+  function flushSchedulerQueue () {
+      for (let i=0; i<queue.length; i++) {
+          let watcher = queue[i]
+          watcher.run()
+      }
+      queue = []
+      has = {}
+  }
+  
+  let pending = false
+  export function queueWatcher (watcher) {
+      const id = watcher.id
+      if (has[id] == null) {
+          has[id] = true
+          queue.push(watcher)
+          // 开启一次更新操作，批处理
+          if (!pending) {
+              nextTick(flushSchedulerQueue)
+              pending = true
+          }
+      }
+  }
+  ```
+
+  - 通过queueWatcher方法过滤相同的watcher的id，存储到栈中
+  - 由于vue的更新操作是异步的，所以需要使用nextTick方法对。
+
+- src/next-tick.js
+
+  ```
+  let callbacks = []
+  
+  function flushCallbacks () {
+      callbacks.forEach(cb => cb())
+  }
+  
+  let timerFunc
+  let waiting = false
+  if (Promise) {
+      timerFunc = () => {
+          Promise.resolve().then(flushCallbacks)
+      }
+  } else if (MutationObserver) {
+      let observe = new MutationObserver(flushCallbacks)
+      let textNode = document.createTextNode(1)
+      observe.observe(textNode, {
+          characterData: true
+      })
+      timerFunc = () => {
+          textNode.textContent = 2
+      }
+  } else if (setImmediate) {
+      timerFunc = () => {
+          setImmediate(flushCallbacks)
+      }
+  } else {
+      timerFunc = () => {
+          setTimeout(flushCallbacks, 0)
+      }
+  }
+  
+  export function nextTick (cb) {
+      callbacks.push(cb)
+      if (!waiting) {
+          timerFunc()
+          waiting = true
+      }
+  }
+  ```
+
+  - 收集所有的callback，使callback在微任务中调用，后于同步代码的执行（多个判断是做了兼容性处理）
+
+- src/lifecycle.js
+
+  ```
+  import { nextTick } from "./next-tick"
+  
+  export function lifecycleMixin(Vue) {
+      ...
+      Vue.prototype.$nextTick = nextTick
+  }
+  ```
+
+- index.html
+
+  ```
+  setTimeout(() => {
+      vm.name = 'liuguowei'
+      vm.name = '123'
+      vm.name = 'abc'
+  
+      vm.$nextTick(() => {
+      	console.log('>>>nextTick', vm.$el)
+      })
+  }, 1000)
+  ```
+
+  
