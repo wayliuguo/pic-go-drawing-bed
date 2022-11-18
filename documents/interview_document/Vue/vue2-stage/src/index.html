@@ -16,6 +16,8 @@
             <li class="first">{{name}}</li>
             <li class="second">{{name}}</li>
         </ul>
+        <div>{{arr}}</div>
+        <div>{{obj}}</div>
     </div>
     <script src="../dist/vue.js"></script>
     <script>
@@ -28,7 +30,12 @@
                 a: {
                     a: 1
                 },
-                // arr: [1, 2, 3],
+                arr: [[1, 2, 3]],
+                obj: {
+                    n: {
+                        x: 1
+                    }
+                },
                 arrObj: [
                     {
                         name: 'well'
@@ -51,6 +58,8 @@
             vm.name = 'abc'
             // 重新调用render方法产生
             // vm._update(vm._render())
+            vm.arr[0].push(456)
+            vm.obj.n.x = 100
             vm.$nextTick(() => {
                 console.log('>>>nextTick', vm.$el)
             })

@@ -36,5 +36,7 @@ methods.forEach(method => {
         if (inserted) {
             ob.observeArray(inserted)
         }
+        // 数组的observer.dep 数组
+        ob.dep.notify()
     }
 })

@@ -1275,4 +1275,5 @@ export function compileToFunctions (template) {
   }, 1000)
   ```
 
-  
+
+## 3.数组更新原理
