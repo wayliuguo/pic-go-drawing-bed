@@ -10,8 +10,8 @@ function bubbleSort(arr) {
         }
         if (!flag) break
     }
+    return arr
 }
 
-let arr = [1, 3, 2, 5, 4]
-bubbleSort(arr)
-console.log(arr) // [1, 2, 3, 4, 5]
+const arr = [8,0,4,6,1,2,7,3,5,9]
+console.log(bubbleSort(arr)) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
