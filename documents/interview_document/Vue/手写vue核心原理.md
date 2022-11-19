@@ -1275,5 +1275,82 @@ export function compileToFunctions (template) {
   }, 1000)
   ```
 
+## 3.数组依赖收集
 
-## 3.数组更新原理
+- src/observer/index.js
+
+  ```
+  import { isObject } from "../utils";
+  import { arrayMethods } from './array'
+  import { Dep } from './dep'
+  
+  // 如果给对象新增一个属性不会触发视图更新（需要用$set）
+  // 给对象本身也增加一个dep进行存储watcher，如果增加一个属性手动的触发watcher的更新
+  class Observer {
+      // 对对象中的所有属性进行劫持
+      constructor (data) {
+          // 数据可能使数组或者对象
+          this.dep = new Dep()
+          ...
+      }
+  }
+  
+  function dependArray (value) {
+      for (let i=0; i<value.length; i++) {
+          let current = value[i]
+          // current 是数组里面的数组
+          current.__ob__ && current.__ob__.dep.depend()
+          if (Array.isArray(current)) {
+              // 取外层数组要将数组里面的也进行依赖收集
+              dependArray(current)
+          }
+      }
+  }
+  
+  // vue2 会对对象进行遍历，将每个属性使用defineProperty 重新定义，导致性能差
+  function defineReactive(data, key, value) {
+      // 如果value是一个对象，则继续递归进行劫持
+      let childOb = observe(value) 
+      // 每个属性都有一个dep属性
+      // 创建dep实例，下面的setter和getter可以通过闭包访问到
+      let dep = new Dep()
+      Object.defineProperty(data, key, {
+          get() {
+              // 取值时将watcher和dep对应起来
+              if (Dep.target) {
+                  // 收集依赖
+                  dep.depend()
+                  // childOb 可能是数组或者对象，后续写$set方法需要触发他自己的更新
+                  if (childOb) {
+                      // 让数组和对象也记录watcher
+                      childOb.dep.depend()
+                      if (Array.isArray(value)) {
+                          dependArray(value)
+                      }
+                  }
+              }
+              return value
+          },
+          set(newV) {
+              ...
+          }
+      })
+  }
+  ```
+
+  - 通过在Observer的constructor中，给每个实例加上dep
+  - dependArray： 如果是数组，则通过其dep.depend去收集依赖，数组嵌套数组使用递归的方式去收集
+
+- src/observer/array.js
+
+  ```
+  methods.forEach(method => {
+      arrayMethods[method] = function (...args) {
+         	...
+          // 数组的observer.dep 数组
+          ob.dep.notify()
+      }
+  })
+  ```
+
+  
