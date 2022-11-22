@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        {{name}}-{{age.n}}
+    </div>
+    <script src="../dist/vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script> -->
+    <script>
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                name: 'well',
+                age: {
+                    n: 18
+                },
+                temp: 0
+            },
+            watch: {
+                name(newVal, oldVal) {
+                    console.log(newVal, oldVal) // wellwellwell well
+                },
+                temp: [
+                    function(newVal, oldVal) {
+                        console.log(newVal, oldVal) // 10 0
+                    },
+                    function(newVal, oldVal) {
+                        console.log(newVal, oldVal) // 10 0
+                    },
+                ],
+                'age.n'(newVal, oldVal) {
+                    console.log(newVal, oldVal) // 24 18
+                }
+            }
+        })
+        vm.$watch('name', function(newVal) {
+            console.log('$watch>>>', newVal) // $watch>>> wellwellwell
+        })
+        setTimeout(() => {
+            vm.name = 'wellwellwell'
+            vm.age.n = 24
+            vm.temp = 10
+        }, 1000)
+    </script>
+</body>
+</html>

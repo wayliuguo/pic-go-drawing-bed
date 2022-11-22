@@ -11,18 +11,33 @@ class Watcher {
         this.id = id++
         this.deps = [] // 存放 dep
         this.depsId = new Set() // 用于去重 dep
+        this.user = !!options.user
 
         // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
-        this.getter = exprOrFn
-        this.get() // 默认初始化，要取值
+        // 如果是渲染watcher
+        if (typeof exprOrFn === 'function') {
+            this.getter = exprOrFn
+        } else {
+            this.getter = function () {
+                let path = exprOrFn.split('.')
+                let obj = vm
+                for (let i=0; i<path.length; i++) {
+                    obj = obj[path[i]]
+                }
+                return obj
+            }
+        }
+        // 将初始值记录到value属性上
+        this.value = this.get() // 默认初始化，要取值
     }
     get() {
         // 由于取值会触发 defineProperty.get
         // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
         // 每个属性都可以收集自己的watcher
         pushTarget(this) // 往Dep的target属性上挂载Watcher 实例
-        this.getter()
+        const value = this.getter.call(this.vm)
         popTarget()
+        return value
     }
     // 存放dep，同时让dep存储watcher实例
     addDep(dep) {
@@ -40,7 +55,12 @@ class Watcher {
         queueWatcher(this)
     }
     run () {
-        this.get()
+        let value = this.get()
+        let oldValue = this.value
+        this.value = value
+        if (this.user) {
+            this.cb.call(this.vm, value, oldValue)
+        }
     }
 }
 

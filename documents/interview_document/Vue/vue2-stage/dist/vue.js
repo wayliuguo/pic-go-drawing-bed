@@ -187,6 +187,134 @@
         return new Observer(data)
     }
 
+    let callbacks = [];
+
+    function flushCallbacks () {
+        callbacks.forEach(cb => cb());
+    }
+
+    let timerFunc;
+    let waiting = false;
+    if (Promise) {
+        timerFunc = () => {
+            Promise.resolve().then(flushCallbacks);
+        };
+    } else if (MutationObserver) {
+        let observe = new MutationObserver(flushCallbacks);
+        let textNode = document.createTextNode(1);
+        observe.observe(textNode, {
+            characterData: true
+        });
+        timerFunc = () => {
+            textNode.textContent = 2;
+        };
+    } else if (setImmediate) {
+        timerFunc = () => {
+            setImmediate(flushCallbacks);
+        };
+    } else {
+        timerFunc = () => {
+            setTimeout(flushCallbacks, 0);
+        };
+    }
+
+    function nextTick (cb) {
+        callbacks.push(cb);
+        if (!waiting) {
+            timerFunc();
+            waiting = true;
+        }
+    }
+
+    let queue = [];
+    let has = {}; // 做列表的 列表维护存放了哪些watcher
+
+    function flushSchedulerQueue () {
+        for (let i=0; i<queue.length; i++) {
+            let watcher = queue[i];
+            watcher.run();
+        }
+        queue = [];
+        has = {};
+    }
+
+    let pending = false;
+    function queueWatcher (watcher) {
+        const id = watcher.id;
+        if (has[id] == null) {
+            has[id] = true;
+            queue.push(watcher);
+            // 开启一次更新操作，批处理
+            if (!pending) {
+                nextTick(flushSchedulerQueue);
+                pending = true;
+            }
+        }
+    }
+
+    let id = 0;
+    class Watcher {
+        constructor(vm, exprOrFn, cb, options) {
+            this.vm = vm;
+            this.exprOrFn = exprOrFn;
+            this.cb = cb;
+            this.options = options;
+            this.id = id++;
+            this.deps = []; // 存放 dep
+            this.depsId = new Set(); // 用于去重 dep
+            this.user = !!options.user;
+
+            // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
+            // 如果是渲染watcher
+            if (typeof exprOrFn === 'function') {
+                this.getter = exprOrFn;
+            } else {
+                this.getter = function () {
+                    let path = exprOrFn.split('.');
+                    let obj = vm;
+                    for (let i=0; i<path.length; i++) {
+                        obj = obj[path[i]];
+                    }
+                    return obj
+                };
+            }
+            // 将初始值记录到value属性上
+            this.value = this.get(); // 默认初始化，要取值
+        }
+        get() {
+            // 由于取值会触发 defineProperty.get
+            // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
+            // 每个属性都可以收集自己的watcher
+            pushTarget(this); // 往Dep的target属性上挂载Watcher 实例
+            const value = this.getter.call(this.vm);
+            popTarget();
+            return value
+        }
+        // 存放dep，同时让dep存储watcher实例
+        addDep(dep) {
+            let id = dep.id;
+            if (!this.depsId.has(id)) {
+                this.depsId.add(id);
+                this.deps.push(dep);
+                dep.addSub(this); // 让dep 存储Watcher 实例
+            }
+        }
+        // 更新视图(vue中更新是异步的)
+        update() {
+            // this.get()
+            // 多次调用update，先将watcher缓存下来，收集起来一起更新
+            queueWatcher(this);
+        }
+        run () {
+            let value = this.get();
+            let oldValue = this.value;
+            this.value = value;
+            if (this.user) {
+                this.cb.call(this.vm, value, oldValue);
+            }
+        }
+    }
+
     function initState (vm) {
         const opts = vm.$options;
         // 初始化data
@@ -200,7 +328,9 @@
         // 初始化 computed
         if (opts.computed) ;
         // 初始化 watch
-        if (opts.watch) ;
+        if (opts.watch) {
+            initWatch(vm, opts.watch);
+        }
 
         function proxy (vm, source, key) {
             Object.defineProperty(vm, key, {
@@ -227,6 +357,42 @@
                 proxy(vm, '_data', key);
             }
         }
+        function initWatch(vm, watch) {
+            for (const key in watch) {
+                const handler = watch[key];
+                // 如果结果值是数组循环创建watcher
+                if (Array.isArray(handler)) {
+                    for (let i=0; i<handler.length; i++) {
+                        createWatcher(vm, key, handler[i]);
+                    }
+                } else {
+                    createWatcher(vm, key, handler);
+                }
+            }
+        }
+        function createWatcher(vm, exprOrFn, handler, options) {
+            // 如果是对象则提取函数和配置
+            if (isObject(handler)) {
+                options = handler;
+                handler = handler.handler;
+            }
+            // 如果是字符串就是实例上的函数
+            if (typeof handler === 'string') {
+                handler = vm[handler];
+            }
+            return vm.$watch(exprOrFn, handler, options)
+        }
+    }
+    function stateMixin(Vue) {
+        Vue.prototype.$watch = function(exprOrFn, cb, options = {})  {
+            // 标记为用户watcher
+            options.user = true;
+            // 核销就是创建个watcher
+            const watcher = new Watcher(this, exprOrFn, cb, options);
+            if (options.immediate) {
+                cb.call(vm, watcher.value);
+            }
+        };
     }
 
     // 匹配标签名 div
@@ -442,114 +608,6 @@
         return renderFn
     }
 
-    let callbacks = [];
-
-    function flushCallbacks () {
-        callbacks.forEach(cb => cb());
-    }
-
-    let timerFunc;
-    let waiting = false;
-    if (Promise) {
-        timerFunc = () => {
-            Promise.resolve().then(flushCallbacks);
-        };
-    } else if (MutationObserver) {
-        let observe = new MutationObserver(flushCallbacks);
-        let textNode = document.createTextNode(1);
-        observe.observe(textNode, {
-            characterData: true
-        });
-        timerFunc = () => {
-            textNode.textContent = 2;
-        };
-    } else if (setImmediate) {
-        timerFunc = () => {
-            setImmediate(flushCallbacks);
-        };
-    } else {
-        timerFunc = () => {
-            setTimeout(flushCallbacks, 0);
-        };
-    }
-
-    function nextTick (cb) {
-        callbacks.push(cb);
-        if (!waiting) {
-            timerFunc();
-            waiting = true;
-        }
-    }
-
-    let queue = [];
-    let has = {}; // 做列表的 列表维护存放了哪些watcher
-
-    function flushSchedulerQueue () {
-        for (let i=0; i<queue.length; i++) {
-            let watcher = queue[i];
-            watcher.run();
-        }
-        queue = [];
-        has = {};
-    }
-
-    let pending = false;
-    function queueWatcher (watcher) {
-        const id = watcher.id;
-        if (has[id] == null) {
-            has[id] = true;
-            queue.push(watcher);
-            // 开启一次更新操作，批处理
-            if (!pending) {
-                nextTick(flushSchedulerQueue);
-                pending = true;
-            }
-        }
-    }
-
-    let id = 0;
-    class Watcher {
-        constructor(vm, exprOrFn, cb, options) {
-            this.vm = vm;
-            this.exprOrFn = exprOrFn;
-            this.cb = cb;
-            this.options = options;
-            this.id = id++;
-            this.deps = []; // 存放 dep
-            this.depsId = new Set(); // 用于去重 dep
-
-            // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
-            this.getter = exprOrFn;
-            this.get(); // 默认初始化，要取值
-        }
-        get() {
-            // 由于取值会触发 defineProperty.get
-            // 一个属性可以有多个watcher，一个watcher可以对应多个属性（多对多）
-            // 每个属性都可以收集自己的watcher
-            pushTarget(this); // 往Dep的target属性上挂载Watcher 实例
-            this.getter();
-            popTarget();
-        }
-        // 存放dep，同时让dep存储watcher实例
-        addDep(dep) {
-            let id = dep.id;
-            if (!this.depsId.has(id)) {
-                this.depsId.add(id);
-                this.deps.push(dep);
-                dep.addSub(this); // 让dep 存储Watcher 实例
-            }
-        }
-        // 更新视图(vue中更新是异步的)
-        update() {
-            // this.get()
-            // 多次调用update，先将watcher缓存下来，收集起来一起更新
-            queueWatcher(this);
-        }
-        run () {
-            this.get();
-        }
-    }
-
     function patch(oldVnode, vnode) {
         // 如果是元素
         if (oldVnode.nodeType === 1) {
@@ -711,6 +769,7 @@
     initMixin(Vue);
     renderMixin(Vue);
     lifecycleMixin(Vue);
+    stateMixin(Vue);
 
     return Vue;
 

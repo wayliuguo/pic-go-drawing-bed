@@ -1,5 +1,6 @@
-import { isFunction } from "./utils"
+import { isFunction, isObject } from "./utils"
 import { observe } from "./observer/index"
+import Watcher from "./observer/watcher"
 
 export function initState (vm) {
     const opts = vm.$options
@@ -21,7 +22,7 @@ export function initState (vm) {
     }
     // 初始化 watch
     if (opts.watch) {
-        initWatch(vm)
+        initWatch(vm, opts.watch)
     }
 
     function proxy (vm, source, key) {
@@ -54,5 +55,40 @@ export function initState (vm) {
     function initProps() {}
     function initMethod() {}
     function initComputed() {}
-    function initWatch() {}
+    function initWatch(vm, watch) {
+        for (const key in watch) {
+            const handler = watch[key]
+            // 如果结果值是数组循环创建watcher
+            if (Array.isArray(handler)) {
+                for (let i=0; i<handler.length; i++) {
+                    createWatcher(vm, key, handler[i])
+                }
+            } else {
+                createWatcher(vm, key, handler)
+            }
+        }
+    }
+    function createWatcher(vm, exprOrFn, handler, options) {
+        // 如果是对象则提取函数和配置
+        if (isObject(handler)) {
+            options = handler
+            handler = handler.handler
+        }
+        // 如果是字符串就是实例上的函数
+        if (typeof handler === 'string') {
+            handler = vm[handler]
+        }
+        return vm.$watch(exprOrFn, handler, options)
+    }
+}
+export function stateMixin(Vue) {
+    Vue.prototype.$watch = function(exprOrFn, cb, options = {})  {
+        // 标记为用户watcher
+        options.user = true
+        // 核销就是创建个watcher
+        const watcher = new Watcher(this, exprOrFn, cb, options)
+        if (options.immediate) {
+            cb.call(vm, watcher.value)
+        }
+    }
 }

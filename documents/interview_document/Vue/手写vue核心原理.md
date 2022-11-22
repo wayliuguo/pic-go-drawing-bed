@@ -1353,4 +1353,109 @@ export function compileToFunctions (template) {
   })
   ```
 
+
+# 六、watcher&computed
+
+## 1.watcher
+
+- src/state.js
+
+  ```
+  // 初始化 watch
+  if (opts.watch) {
+  	initWatch(vm, opts.watch)
+  }
   
+  function initWatch(vm, watch) {
+  	for (const key in watch) {
+  	const handler = watch[key]
+      // 如果结果值是数组循环创建watcher
+      if (Array.isArray(handler)) {
+          for (let i=0; i<handler.length; i++) {
+              createWatcher(vm, key, handler[i])
+              }
+          } else {
+              createWatcher(vm, key, handler)
+          }
+      }
+  }
+  function createWatcher(vm, exprOrFn, handler, options) {
+      // 如果是对象则提取函数和配置
+      if (isObject(handler)) {
+          options = handler
+          handler = handler.handler
+      }
+      // 如果是字符串就是实例上的函数
+      if (typeof handler === 'string') {
+      	handler = vm[handler]
+      }
+      	return vm.$watch(exprOrFn, handler, options)
+      }
+  }
+  
+  export function stateMixin(Vue) {
+      Vue.prototype.$watch = function(exprOrFn, cb, options = {})  {
+          // 标记为用户watcher
+          options.user = true
+          // 核销就是创建个watcher
+          const watcher = new Watcher(this, exprOrFn, cb, options)
+          if (options.immediate) {
+              cb.call(vm, watcher.value)
+          }
+      }
+  ```
+
+  - initWatch: 对数组进行初始化
+  - createWatcher：最终都是调用vm.$watch来实现
+    1. 值是对象
+    2. 值是数组
+    3. 值是字符串
+
+- src/observer/watcher.js
+
+  ```
+  
+  class Watcher {
+      constructor(vm, exprOrFn, cb, options) {
+          ...
+          this.user = !!options.user
+  
+          // 如果是渲染watcher
+          if (typeof exprOrFn === 'function') {
+              this.getter = exprOrFn
+          } else {
+              this.getter = function () {
+                  let path = exprOrFn.split('.')
+                  let obj = vm
+                  for (let i=0; i<path.length; i++) {
+                      obj = obj[path[i]]
+                  }
+                  return obj
+              }
+          }
+          // 将初始值记录到value属性上
+          this.value = this.get() // 默认初始化，要取值
+      }
+      get() {
+          pushTarget(this)
+          const value = this.getter.call(this.vm)
+          popTarget()
+          return value
+      }
+      run () {
+          let value = this.get()
+          let oldValue = this.value
+          this.value = value
+          if (this.user) {
+              this.cb.call(this.vm, value, oldValue)
+          }
+      }
+  }
+  
+  export default Watcher
+  ```
+
+  借助vue响应式原理，默认在取值时将watcher存放到对应属性得dep中，当数据发生变化时通知对应的watcher重新执行
+
+## 2.computed
+
