@@ -1459,3 +1459,111 @@ export function compileToFunctions (template) {
 
 ## 2.computed
 
+- 计算属性默认不执行=》Object.defineProperty => getter
+
+- 多次取值如果依赖的值不变化，就不会重新执行
+
+- 依赖的值变化，需要重新执行
+
+- src/state.js
+
+  ```
+  // 初始化 computed
+  if (opts.computed) {
+  	initComputed(vm, opts.computed)
+  }
+  function initComputed(vm, computed) {
+  	// 存放计算属性的watcher
+  	const watchers = vm._computedWatchers = {}
+  	for (let key in computed) {
+  		const userDef = computed[key]
+  		// 依赖的属性变化就重新取值
+  		let getter = typeof userDef === 'function' ? userDef : userDef.get
+  
+          // 每个计算属性本质上就是watcher
+          // lazy:true 默认不执行
+          // 将watcher和属性做一个映射
+          watchers[key] = new Watcher(vm, getter, () => {}, {lazy: true})
+          // 将key定义在vm上
+          defineComputed(vm, key, userDef)
+  	}
+  }
+  function defineComputed(vm, key, userDef) {
+      let sharedProperty = {}
+      if (typeof userDef === 'function') {
+      	sharedProperty.get = createComputedGetter(key)
+      } else {
+          sharedProperty.get = createComputedGetter(key)
+          sharedProperty.set = userDef.set
+      }
+      Object.defineProperty(vm, key, sharedProperty)
+  }
+  function createComputedGetter(key) {
+  	// 取计算属性的值，走的是这个函数
+  	return function computedGetter() {
+          // this._computedWatchers 包含着所有的计算属性
+          // 通过key 可以拿到对应的watcher，这个watcher中包含了getter
+          let watcher = this._computedWatchers[key]
+          if (watcher.dirty) {
+              watcher.evaluate()
+          }
+          // 如果当前取值后 Dep.target 还有值，需要继续向上收集
+          if (Dep.target) {
+              watcher.depend()
+          }
+          return watcher.value
+  	}
+  }
+  ```
+
+- observer/watcher.js
+
+  ```
+  // 如果是计算属性，lazy，dirty默认为true
+  this.lazy = options.lazy
+  this.dirty = options.lazy
+  ...
+  this.value = this.lazy ? undefined : this.get() // 默认初始化，要取值
+  ...
+  update() {
+  	// this.get()
+      if (this.lazy) {
+      	this.dirty = true 
+      } else {
+      	// 多次调用update，先将watcher缓存下来，收集起来一起更新
+      	queueWatcher(this)
+      }
+  }
+  ...
+  evaluate() {
+      // 已经取过值了
+      this.dirty = false
+      // 用户的getter执行
+      this.value = this.get()
+  }
+  depend() {
+      let i = this.deps.length
+      while (i--) {
+      	this.deps[i].depend()
+      }
+  }
+  ```
+
+- observer/dep.js
+
+  ```
+  let stack = []
+  
+  export function pushTarget(watcher) {
+      Dep.target = watcher
+      stack.push(watcher)
+      console.log('>>>stack', stack)
+  }
+  
+  export function popTarget() {
+      stack.pop()
+      Dep.target = stack[stack.length - 1]
+  }
+  ```
+
+  

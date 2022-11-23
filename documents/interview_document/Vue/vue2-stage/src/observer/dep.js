@@ -27,10 +27,15 @@ export class Dep {
 
 Dep.target = null
 
+let stack = []
+
 export function pushTarget(watcher) {
     Dep.target = watcher
+    stack.push(watcher)
+    console.log('>>>stack', stack)
 }
 
 export function popTarget() {
-    Dep.target = null
+    stack.pop()
+    Dep.target = stack[stack.length - 1]
 }

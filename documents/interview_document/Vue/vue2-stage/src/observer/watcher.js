@@ -12,6 +12,9 @@ class Watcher {
         this.deps = [] // 存放 dep
         this.depsId = new Set() // 用于去重 dep
         this.user = !!options.user
+        // 如果是计算属性，lazy，dirty默认为true
+        this.lazy = options.lazy
+        this.dirty = options.lazy
 
         // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
         // 如果是渲染watcher
@@ -28,7 +31,8 @@ class Watcher {
             }
         }
         // 将初始值记录到value属性上
-        this.value = this.get() // 默认初始化，要取值
+        // 第一次的value，如果是lazy则是undefined
+        this.value = this.lazy ? undefined : this.get() // 默认初始化，要取值
     }
     get() {
         // 由于取值会触发 defineProperty.get
@@ -51,8 +55,12 @@ class Watcher {
     // 更新视图(vue中更新是异步的)
     update() {
         // this.get()
-        // 多次调用update，先将watcher缓存下来，收集起来一起更新
-        queueWatcher(this)
+        if (this.lazy) {
+           this.dirty = true 
+        } else {
+            // 多次调用update，先将watcher缓存下来，收集起来一起更新
+            queueWatcher(this)
+        }
     }
     run () {
         let value = this.get()
@@ -60,6 +68,18 @@ class Watcher {
         this.value = value
         if (this.user) {
             this.cb.call(this.vm, value, oldValue)
+        }
+    }
+    evaluate() {
+        // 已经取过值了
+        this.dirty = false
+        // 用户的getter执行
+        this.value = this.get()
+    }
+    depend() {
+        let i = this.deps.length
+        while (i--) {
+            this.deps[i].depend()
         }
     }
 }

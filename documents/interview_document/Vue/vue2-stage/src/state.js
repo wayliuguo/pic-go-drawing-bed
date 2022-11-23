@@ -1,6 +1,7 @@
 import { isFunction, isObject } from "./utils"
 import { observe } from "./observer/index"
 import Watcher from "./observer/watcher"
+import { Dep } from "./observer/dep"
 
 export function initState (vm) {
     const opts = vm.$options
@@ -18,7 +19,7 @@ export function initState (vm) {
     }
     // 初始化 computed
     if (opts.computed) {
-        initComputed(vm)
+        initComputed(vm, opts.computed)
     }
     // 初始化 watch
     if (opts.watch) {
@@ -54,7 +55,50 @@ export function initState (vm) {
     // 未实现的方法
     function initProps() {}
     function initMethod() {}
-    function initComputed() {}
+    
+    function initComputed(vm, computed) {
+        // 存放计算属性的watcher
+        const watchers = vm._computedWatchers = {}
+        for (let key in computed) {
+            const userDef = computed[key]
+            // 依赖的属性变化就重新取值
+            let getter = typeof userDef === 'function' ? userDef : userDef.get
+            
+            // 每个计算属性本质上就是watcher
+            // lazy:true 默认不执行
+            // 将watcher和属性做一个映射
+            watchers[key] = new Watcher(vm, getter, () => {}, {lazy: true})
+            // 将key定义在vm上
+            defineComputed(vm, key, userDef)
+        }
+    }
+    function defineComputed(vm, key, userDef) {
+        let sharedProperty = {}
+        if (typeof userDef === 'function') {
+            sharedProperty.get = createComputedGetter(key)
+        } else {
+            sharedProperty.get = createComputedGetter(key)
+            sharedProperty.set = userDef.set
+        }
+        Object.defineProperty(vm, key, sharedProperty)
+    }
+    function createComputedGetter(key) {
+        // 取计算属性的值，走的是这个函数
+        return function computedGetter() {
+            // this._computedWatchers 包含着所有的计算属性
+            // 通过key 可以拿到对应的watcher，这个watcher中包含了getter
+            let watcher = this._computedWatchers[key]
+            if (watcher.dirty) {
+                watcher.evaluate()
+            }
+            // 如果当前取值后 Dep.target 还有值，需要继续向上收集
+            if (Dep.target) {
+                watcher.depend()
+            }
+            return watcher.value
+        }
+    }
+
     function initWatch(vm, watch) {
         for (const key in watch) {
             const handler = watch[key]

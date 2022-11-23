@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<!-- 当在页面中直接写fullName时，fullName不会取收集渲染watcher,因为fu -->
+<!-- firstName 是在计算属性使用的，所以会收集计算属性watcher，没有收集渲染watcher -->
+<!-- 计算属性中的值应该记录 计算属性watcher和渲染watcher -->
+<!-- Dep.target 上赋值一个渲染watcher，又将Dep.target设置为计算属性watcher -->
+<body>
+    <div id="app">
+        {{fullName}}
+    </div>
+    <script src="../dist/vue.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script> -->
+    <script>
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                firstName: 'well',
+                lastName: 'good'
+            },
+            computed: {
+                fullName () {
+                    return this.firstName + this.lastName
+                }
+                /* fullName: {
+                    get () {
+                        console.log('computed>>>')
+                        return this.firstName + this.lastName
+                    },
+                    set (newValue) {
+                        console.log(newValue)
+                    }
+                } */
+            }
+        })
+        setTimeout(() => {
+            vm.firstName = 'liu'
+        }, 1000)
+    </script>
+</body>
+</html>

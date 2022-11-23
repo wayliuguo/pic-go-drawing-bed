@@ -59,6 +59,7 @@ function defineReactive(data, key, value) {
     let dep = new Dep()
     Object.defineProperty(data, key, {
         get() {
+            console.log('>>>dep', dep, key)
             // 取值时将watcher和dep对应起来
             if (Dep.target) {
                 // 收集依赖

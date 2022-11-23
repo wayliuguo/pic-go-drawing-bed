@@ -82,12 +82,17 @@
 
     Dep.target = null;
 
+    let stack$1 = [];
+
     function pushTarget(watcher) {
         Dep.target = watcher;
+        stack$1.push(watcher);
+        console.log('>>>stack', stack$1);
     }
 
     function popTarget() {
-        Dep.target = null;
+        stack$1.pop();
+        Dep.target = stack$1[stack$1.length - 1];
     }
 
     // 如果给对象新增一个属性不会触发视图更新（需要用$set）
@@ -147,6 +152,7 @@
         let dep = new Dep();
         Object.defineProperty(data, key, {
             get() {
+                console.log('>>>dep', dep, key);
                 // 取值时将watcher和dep对应起来
                 if (Dep.target) {
                     // 收集依赖
@@ -263,6 +269,9 @@
             this.deps = []; // 存放 dep
             this.depsId = new Set(); // 用于去重 dep
             this.user = !!options.user;
+            // 如果是计算属性，lazy，dirty默认为true
+            this.lazy = options.lazy;
+            this.dirty = options.lazy;
 
             // 默认应该让exprOrFn 执行，exprOrFn => render => 去vm上取值
             // 如果是渲染watcher
@@ -279,7 +288,8 @@
                 };
             }
             // 将初始值记录到value属性上
-            this.value = this.get(); // 默认初始化，要取值
+            // 第一次的value，如果是lazy则是undefined
+            this.value = this.lazy ? undefined : this.get(); // 默认初始化，要取值
         }
         get() {
             // 由于取值会触发 defineProperty.get
@@ -302,8 +312,12 @@
         // 更新视图(vue中更新是异步的)
         update() {
             // this.get()
-            // 多次调用update，先将watcher缓存下来，收集起来一起更新
-            queueWatcher(this);
+            if (this.lazy) {
+               this.dirty = true; 
+            } else {
+                // 多次调用update，先将watcher缓存下来，收集起来一起更新
+                queueWatcher(this);
+            }
         }
         run () {
             let value = this.get();
@@ -311,6 +325,18 @@
             this.value = value;
             if (this.user) {
                 this.cb.call(this.vm, value, oldValue);
+            }
+        }
+        evaluate() {
+            // 已经取过值了
+            this.dirty = false;
+            // 用户的getter执行
+            this.value = this.get();
+        }
+        depend() {
+            let i = this.deps.length;
+            while (i--) {
+                this.deps[i].depend();
             }
         }
     }
@@ -326,7 +352,9 @@
         // 初始化 props
         if (opts.props) ;
         // 初始化 computed
-        if (opts.computed) ;
+        if (opts.computed) {
+            initComputed(vm, opts.computed);
+        }
         // 初始化 watch
         if (opts.watch) {
             initWatch(vm, opts.watch);
@@ -357,6 +385,50 @@
                 proxy(vm, '_data', key);
             }
         }
+        
+        function initComputed(vm, computed) {
+            // 存放计算属性的watcher
+            const watchers = vm._computedWatchers = {};
+            for (let key in computed) {
+                const userDef = computed[key];
+                // 依赖的属性变化就重新取值
+                let getter = typeof userDef === 'function' ? userDef : userDef.get;
+                
+                // 每个计算属性本质上就是watcher
+                // lazy:true 默认不执行
+                // 将watcher和属性做一个映射
+                watchers[key] = new Watcher(vm, getter, () => {}, {lazy: true});
+                // 将key定义在vm上
+                defineComputed(vm, key, userDef);
+            }
+        }
+        function defineComputed(vm, key, userDef) {
+            let sharedProperty = {};
+            if (typeof userDef === 'function') {
+                sharedProperty.get = createComputedGetter(key);
+            } else {
+                sharedProperty.get = createComputedGetter(key);
+                sharedProperty.set = userDef.set;
+            }
+            Object.defineProperty(vm, key, sharedProperty);
+        }
+        function createComputedGetter(key) {
+            // 取计算属性的值，走的是这个函数
+            return function computedGetter() {
+                // this._computedWatchers 包含着所有的计算属性
+                // 通过key 可以拿到对应的watcher，这个watcher中包含了getter
+                let watcher = this._computedWatchers[key];
+                if (watcher.dirty) {
+                    watcher.evaluate();
+                }
+                // 如果当前取值后 Dep.target 还有值，需要继续向上收集
+                if (Dep.target) {
+                    watcher.depend();
+                }
+                return watcher.value
+            }
+        }
+
         function initWatch(vm, watch) {
             for (const key in watch) {
                 const handler = watch[key];
