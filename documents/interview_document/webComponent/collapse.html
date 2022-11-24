@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <well-collapse>
+        <well-collapse-item title="Node" name="1">
+            <div>nodejs welcome</div>
+        </well-collapse-item>
+        <well-collapse-item title="Vue" name="2">
+            <div>Vue welcome</div>
+        </well-collapse-item>
+        <well-collapse-item title="react" name="3">
+            <div>react welcome</div>
+        </well-collapse-item>
+    </well-collapse>
+
+    <template id="collapse_tmpl">
+        <div class="well-collapse">
+            <slot></slot>
+        </div>
+    </template>
+    <template id="collapse_item_tmpl">
+        <div class="well-collapse-item">
+            <div class="title">
+            </div>
+            <div class="content">
+                <slot></slot>
+            </div>
+        </div>
+    </template>
+
+    <script src="./index.js" type="module"></script>
+</body>
+</html>
