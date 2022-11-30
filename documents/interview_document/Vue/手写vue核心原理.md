@@ -1566,4 +1566,137 @@ export function compileToFunctions (template) {
   }
   ```
 
+
+
+
+# 七、生命周期
+
+## 1.Mixin 与 合并生命周期
+
+- src/index.js
+
+  ```
+  import { initGlobalApi } from "./global-api/index"
+  ...
+  // 在类上扩展的Vue.mixin
+  initGlobalApi(Vue)
   
+  export default Vue
+  ```
+
+  
+
+- src/global-api/index.js
+
+  ```
+  import { mergeOptions } from "../utils"
+  
+  export function initGlobalApi(Vue) {
+      // 用来存放全局的配置，每个组件初始化的时候都会和options选项进行合并
+      // 如 Vue.component Vue.filter Vue.directive
+      Vue.options = {}
+      
+      Vue.mixin = function (options) {
+          this.options = mergeOptions(this.options, options)
+          console.log('>>>options', this.options)
+          return this
+      }
+  }
+  ```
+
+  - 通过 mergeOptions 把 mixin 中传入的对象进行合并
+
+- 合并生命周期
+
+  ```
+  export const LIFECYCLE_HOOKS = [
+      'beforeCreate',
+      'created',
+      'beforeMount',
+      'mounted',
+      'beforeUpdate',
+      'updated',
+      'beforeDestroy',
+      'destroyed'
+  ]
+  
+  const starts = {}
+  function mergeHook(parentVal, childVal) {
+      if (childVal) {
+          if (parentVal) {
+              return parentVal.concat(childVal)
+          } else {
+              return [childVal]
+          }
+      } else {
+          return parentVal
+      }
+  }
+  LIFECYCLE_HOOKS.forEach(hook => {
+      starts[hook] = mergeHook
+  })
+  
+  export function mergeOptions(parent, child) {
+      // 合并后的结果
+      const options = {}
+      for (let key in parent) {
+          mergeFiled(key)
+      }
+      for (let key in child) {
+          if (!parent.hasOwnProperty(key)) {
+              mergeFiled(key)
+          }
+      }
+      function mergeFiled(key) {
+          // 使用策略模式处理钩子
+          if (starts[key]) {
+              options[key] = starts[key](parent[key], child[key])
+          } else {
+              if (isObject(parent[key]) && isObject(child[key])) {
+                  options[key] = {
+                      ...parent[key],
+                      ...child[key]
+                  }
+              } else {
+                  options[key] = child[key]
+              }
+          }
+      }
+      return options
+  }
+  ```
+
+  - 先遍历parent后遍历children，通过mergeFiled实现生命周期的合并与其他属性的合并
+  - 使用策略模式处理生命周期钩子，使得每个starts 的生命周期属性得到一个具备合并的方法
+  - 调用此方法得到合并后的生命周期数组
+
+- 输出
+
+  ```
+  Vue.mixin({
+      data: {
+      b: 100
+  	},
+      beforeCreate() {
+      	console.log('>>>beforeCreate')
+      }
+  })
+  Vue.mixin({
+  	data: {
+  		c: 20
+  	},
+  	beforeCreate() {
+  		console.log('>>>beforeCreate')
+  	}
+  })
+  const vm = new Vue({
+  	el: '#app',
+  	beforeCreate() {
+  		console.log('>>>beforeCreate')
+  	}
+  })
+  ```
+
+  ![image-20221201001903164](手写vue核心原理.assets/image-20221201001903164.png)
+
+## 2.调用生命周期

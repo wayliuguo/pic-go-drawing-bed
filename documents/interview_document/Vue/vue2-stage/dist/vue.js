@@ -12,6 +12,74 @@
         return typeof val === 'object' && val !== null
     }
 
+    const LIFECYCLE_HOOKS = [
+        'beforeCreate',
+        'created',
+        'beforeMount',
+        'mounted',
+        'beforeUpdate',
+        'updated',
+        'beforeDestroy',
+        'destroyed'
+    ];
+
+    const starts = {};
+    function mergeHook(parentVal, childVal) {
+        if (childVal) {
+            if (parentVal) {
+                return parentVal.concat(childVal)
+            } else {
+                return [childVal]
+            }
+        } else {
+            return parentVal
+        }
+    }
+    LIFECYCLE_HOOKS.forEach(hook => {
+        starts[hook] = mergeHook;
+    });
+
+    function mergeOptions(parent, child) {
+        // 合并后的结果
+        const options = {};
+        for (let key in parent) {
+            mergeFiled(key);
+        }
+        for (let key in child) {
+            if (!parent.hasOwnProperty(key)) {
+                mergeFiled(key);
+            }
+        }
+        function mergeFiled(key) {
+            // 使用策略模式处理钩子
+            if (starts[key]) {
+                options[key] = starts[key](parent[key], child[key]);
+            } else {
+                if (isObject(parent[key]) && isObject(child[key])) {
+                    options[key] = {
+                        ...parent[key],
+                        ...child[key]
+                    };
+                } else {
+                    options[key] = child[key];
+                }
+            }
+        }
+        return options
+    }
+
+    function initGlobalApi(Vue) {
+        // 用来存放全局的配置，每个组件初始化的时候都会和options选项进行合并
+        // 如 Vue.component Vue.filter Vue.directive
+        Vue.options = {};
+        
+        Vue.mixin = function (options) {
+            this.options = mergeOptions(this.options, options);
+            console.log('>>>options', this.options);
+            return this
+        };
+    }
+
     // arrayMethods.__proto__ = Array.prototype
     let oldArrayProrotype = Array.prototype;
     let arrayMethods = Object.create(oldArrayProrotype);
@@ -842,6 +910,9 @@
     renderMixin(Vue);
     lifecycleMixin(Vue);
     stateMixin(Vue);
+
+    // 在类上扩展的Vue.mixin
+    initGlobalApi(Vue);
 
     return Vue;
 
