@@ -19,9 +19,20 @@ export function mountComponent(vm, el) {
 
         vm._update(vm._render())
     }
-    // updateComponent()
+    
+    callHook(vm, 'beforeMount')
+
     // 观察者模式 属性：“被观察者” 刷新页面：“观察者”
     new Watcher(vm, updateComponent, () => {
         console.log('更新视图了')
     }, true) // true 表示是一个渲染watcher，后续有其他watcher
+}
+
+export function callHook(vm, hook) {
+    let handlers = vm.$options[hook]
+    if (handlers) {
+        for (let i=0; i<handlers.length; i++) {
+            handlers[i].call(vm)
+        }
+    }
 }

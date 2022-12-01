@@ -17,7 +17,7 @@
                 b: 100
             },
             beforeCreate() {
-                console.log('>>>beforeCreate')
+                console.log('>>>lifeCycle:beforeCreate1')
             }
         })
         Vue.mixin({
@@ -25,15 +25,27 @@
                 c: 20
             },
             beforeCreate() {
-                console.log('>>>beforeCreate')
+                console.log('>>>lifeCycle:beforeCreate2')
             }
         })
         const vm = new Vue({
             el: '#app',
+            data() {
+                return {
+                    b: 25
+                }
+            },
             beforeCreate() {
-                console.log('>>>beforeCreate')
+                console.log('>>>lifeCycle:beforeCreate3')
+            },
+            created() {
+                console.log('>>>lifeCycle:created')
+            },
+            beforeMount() {
+                console.log('>>>lifeCycle:beforeMount')
             }
         })
+        console.log('>>>vm', vm)
     </script>
 </body>
 </html>

@@ -815,22 +815,35 @@
 
             vm._update(vm._render());
         };
-        // updateComponent()
+        
+        callHook(vm, 'beforeMount');
+
         // 观察者模式 属性：“被观察者” 刷新页面：“观察者”
         new Watcher(vm, updateComponent, () => {
             console.log('更新视图了');
         }, true); // true 表示是一个渲染watcher，后续有其他watcher
     }
 
+    function callHook(vm, hook) {
+        let handlers = vm.$options[hook];
+        if (handlers) {
+            for (let i=0; i<handlers.length; i++) {
+                handlers[i].call(vm);
+            }
+        }
+    }
+
     function initMixin (Vue) {
         Vue.prototype._init = function (options) {
             // el, data
             const vm = this;
-            vm.$options = options;
+            vm.$options = mergeOptions(this.constructor.options, options);
 
             // 对数据进行初始化（watch、computed、props、data...）
             // 这些数据都存在于vm.options
+            callHook(vm, 'beforeCreate');
             initState(vm);
+            callHook(vm, 'created');
 
             // 页面挂载
             if (vm.$options.el) {

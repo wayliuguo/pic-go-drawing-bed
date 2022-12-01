@@ -1700,3 +1700,67 @@ export function compileToFunctions (template) {
   ![image-20221201001903164](手写vue核心原理.assets/image-20221201001903164.png)
 
 ## 2.调用生命周期
+
+- src/init.js
+
+  ```
+  import { callHook, mountComponent } from "./lifecycle"
+  import { mergeOptions } from "./utils"
+  
+  export function initMixin (Vue) {
+      Vue.prototype._init = function (options) {
+          // el, data
+          const vm = this
+          vm.$options = mergeOptions(this.constructor.options, options)
+  
+          // 对数据进行初始化（watch、computed、props、data...）
+          // 这些数据都存在于vm.options
+          callHook(vm, 'beforeCreate')
+          initState(vm)
+          callHook(vm, 'created')
+  
+          // 页面挂载
+          if (vm.$options.el) {
+              // 将数据挂载到这个模板上
+              vm.$mount(vm.$options.el)
+          }
+      }
+      ...
+  }
+  ```
+
+  - 把类上的options 和实例上的options进行合并
+  - 在数据初始化前调用`beforeCreate` 
+  - 在数据初始化后调用`created`
+
+- src/lifecycle.js
+
+  ```
+  export function mountComponent(vm, el) {
+      // 更新函数 数据变化后 会再次调用此函数
+      let updateComponent = () => {
+          // 1.调用render函数，生成、更新虚拟dom
+          // 2.用虚拟dom生成真实dom
+  
+          vm._update(vm._render())
+      }
+      
+      callHook(vm, 'beforeMount')
+  
+      // 观察者模式 属性：“被观察者” 刷新页面：“观察者”
+      new Watcher(vm, updateComponent, () => {
+          console.log('更新视图了')
+      }, true) // true 表示是一个渲染watcher，后续有其他watcher
+  }
+  
+  export function callHook(vm, hook) {
+      let handlers = vm.$options[hook]
+      if (handlers) {
+          for (let i=0; i<handlers.length; i++) {
+              handlers[i].call(vm)
+          }
+      }
+  }
+  ```
+
+  - 在页面渲染前调用`beforeMount`
