@@ -39,6 +39,16 @@
         starts[hook] = mergeHook;
     });
 
+    starts.components = function (parentVal, childVal) {
+        let options = Object.create(parentVal);
+        if (childVal) {
+            for (let key in childVal) {
+                options[key] = childVal[key];
+            }
+        }
+        return options
+    };
+
     function mergeOptions(parent, child) {
         // 合并后的结果
         const options = {};
@@ -77,6 +87,32 @@
             this.options = mergeOptions(this.options, options);
             console.log('>>>options', this.options);
             return this
+        };
+
+        Vue.options.components = {};
+        Vue.options._base = Vue;
+        let cid = 0;
+        Vue.component = function(id, definition) {
+            definition.name = definition.name || id;
+            // 保证组件的隔离，每个组件都会产生一个新的类，去继承父类
+            definition = this.options._base.extend(definition);
+            this.options['components'][id] = definition;
+        };
+        // 创建一个子类，继承于Vue，并返回这个类
+        Vue.extend = function (extendOptions) {
+            const Super = this;
+            const Sub = function VueComponent(options) {
+                this._init(options);
+            };
+            Sub.cid = cid++;
+            // 原型继承
+            Sub.prototype = Object.create(Super.prototype);
+            Sub.prototype.constructor = Sub;
+            Sub.options = mergeOptions(
+                Super.options,
+                extendOptions
+            );
+            return Sub
         };
     }
 

@@ -33,6 +33,16 @@ LIFECYCLE_HOOKS.forEach(hook => {
     starts[hook] = mergeHook
 })
 
+starts.components = function (parentVal, childVal) {
+    let options = Object.create(parentVal)
+    if (childVal) {
+        for (let key in childVal) {
+            options[key] = childVal[key]
+        }
+    }
+    return options
+}
+
 export function mergeOptions(parent, child) {
     // 合并后的结果
     const options = {}

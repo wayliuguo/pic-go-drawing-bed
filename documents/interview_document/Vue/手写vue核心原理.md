@@ -1764,3 +1764,72 @@ export function compileToFunctions (template) {
   ```
 
   - 在页面渲染前调用`beforeMount`
+
+# 八、组件原理
+
+## 1.组件的定义流程
+
+- src/global-api/index.js
+
+  ```
+  Vue.options.components = {}
+  Vue.options._base = Vue
+  let cid = 0
+  Vue.component = function(id, definition) {
+      definition.name = definition.name || id
+      // 保证组件的隔离，每个组件都会产生一个新的类，去继承父类
+      definition = this.options._base.extend(definition)
+      this.options['components'][id] = definition
+  }
+  // 创建一个子类，继承于Vue，并返回这个类
+  Vue.extend = function (extendOptions) {
+      const Super = this
+      const Sub = function VueComponent(options) {
+      	this._init(options)
+  	}
+  	Sub.cid = cid++
+  	// 原型继承
+      Sub.prototype = Object.create(Super.prototype)
+      Sub.prototype.constructor = Sub
+      Sub.options = mergeOptions(
+          Super.options,
+          extendOptions
+      )
+  	return Sub
+  }
+  ```
+
+- utils.js
+
+  ```
+  starts.components = function (parentVal, childVal) {
+      let options = Object.create(parentVal)
+      if (childVal) {
+          for (let key in childVal) {
+              options[key] = childVal[key]
+          }
+      }
+      return options
+  }
+  ```
+
+- html
+
+  ```
+  Vue.component('my-button', {
+  	template: '<button>hello</button>'
+  })
+  const vm = new Vue({
+      el: '#app',
+      components: {
+          'my-button': {
+              template: '<button>world</button>'
+          }
+  	}
+  })
+  console.log(vm)
+  ```
+
+  ![image-20221204130713814](手写vue核心原理.assets/image-20221204130713814.png)
+
+## 2.
