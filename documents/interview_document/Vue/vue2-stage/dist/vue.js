@@ -71,12 +71,26 @@
                         ...child[key]
                     };
                 } else {
-                    options[key] = child[key];
+                    options[key] = child[key] || parent[key];
                 }
             }
         }
         return options
     }
+
+
+    function makeMap(str) {
+        const map = {};
+        const list = str.split(',');
+        for (let i=0; i<list.length; i++) {
+            map[list[i]] = true;
+        }
+        return (key) => map[key]
+    }
+
+    const isReservedTag = makeMap(
+        'a,div,img,image,text,span,input,p,button,ul,li'
+    );
 
     function initGlobalApi(Vue) {
         // 用来存放全局的配置，每个组件初始化的时候都会和options选项进行合并
@@ -186,17 +200,17 @@
 
     Dep.target = null;
 
-    let stack$1 = [];
+    let stack = [];
 
     function pushTarget(watcher) {
         Dep.target = watcher;
-        stack$1.push(watcher);
-        console.log('>>>stack', stack$1);
+        stack.push(watcher);
+        console.log('>>>stack', stack);
     }
 
     function popTarget() {
-        stack$1.pop();
-        Dep.target = stack$1[stack$1.length - 1];
+        stack.pop();
+        Dep.target = stack[stack.length - 1];
     }
 
     // 如果给对象新增一个属性不会触发视图更新（需要用$set）
@@ -588,49 +602,50 @@
     //  />
     const startTagClose = /^\s*(\/?)>/;
 
-    let root;
     let currentParent;
-    let stack = [];
     const ELEMENT_TYPE = 1;
     const TEXT_TYPE = 3;
-    function createASTElement(tagName, attrs) {
-        return {
-            tag: tagName,
-            type: ELEMENT_TYPE,
-            children: [],
-            attrs,
-            parent: null
-        }
-    }
 
-    // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
-
-    function start(tagName, attributes) {
-        let element = createASTElement(tagName, attributes);
-        if (!root) {
-            root = element;
-        }
-        currentParent = element;
-        stack.push(element);
-    }
-    function end(tagName) {
-        let element = stack.pop();
-        currentParent = stack[stack.length - 1];
-        if (currentParent) {
-            element.parent = currentParent;
-            currentParent.children.push(element);
-        }
-    }
-    function chars(text) {
-        text = text.replace(/\s/g, '');
-        if (text) {
-            currentParent.children.push({
-                type: TEXT_TYPE,
-                text
-            });
-        }
-    }
     function parserHTML(html) { // <div id="app">{{name}}</div>
+        let root;
+        let stack = [];
+        function createASTElement(tagName, attrs) {
+            return {
+                tag: tagName,
+                type: ELEMENT_TYPE,
+                children: [],
+                attrs,
+                parent: null
+            }
+        }
+
+        // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
+
+        function start(tagName, attributes) {
+            let element = createASTElement(tagName, attributes);
+            if (!root) {
+                root = element;
+            }
+            currentParent = element;
+            stack.push(element);
+        }
+        function end(tagName) {
+            let element = stack.pop();
+            currentParent = stack[stack.length - 1];
+            if (currentParent) {
+                element.parent = currentParent;
+                currentParent.children.push(element);
+            }
+        }
+        function chars(text) {
+            text = text.replace(/\s/g, '');
+            if (text) {
+                currentParent.children.push({
+                    type: TEXT_TYPE,
+                    text
+                });
+            }
+        }
         // 截取字符串
         function advance(len) {
             html = html.substring(len);
@@ -785,6 +800,10 @@
     }
 
     function patch(oldVnode, vnode) {
+        // 判断是要要跟新还是要渲染
+        if (!oldVnode) {
+            return createElm(vnode)
+        }
         // 如果是元素
         if (oldVnode.nodeType === 1) {
             // 用vnode来生成真实dom，替换成原来的dom元素
@@ -804,6 +823,10 @@
         let { tag, data, children, text, vm } = vnode;
         // 如果是元素
         if (typeof tag ==='string') {
+            if (createComponent$1(vnode)) {
+                // 返回组件对应的真实节点
+                return vnode.componentInstance.$el
+            }
             // 虚拟节点会有一个el属性，对应真实节点
             vnode.el = document.createElement(tag);
             updateProperties(vnode);
@@ -814,6 +837,17 @@
             vnode.el = document.createTextNode(text);
         }
         return vnode.el
+    }
+
+    function createComponent$1 (vnode) {
+        let i = vnode.data;
+        if ((i=i.hook) && (i = i.init)) {
+            // 调用init方法
+            i(vnode);
+        }
+        if (vnode.componentInstance) {
+            return true
+        }
     }
 
     function updateProperties(vnode) {
@@ -911,21 +945,47 @@
     }
 
     function createElement(vm, tag, data = {}, ...children) {
-        return vnode(vm, tag, data, data.key, children, undefined)
+        // 在创建虚拟节点的时候我们需要判断这个标签是否是组件，普通标签的虚拟节点和组件标签虚拟节点有所不同
+        if (isReservedTag(tag)) {
+            return vnode(vm, tag, data, data.key, children, undefined)
+        } else {
+            // 如果tag是组件，应该渲染一个组件的vnode
+            let Ctor = vm.$options.components[tag];
+            return createComponent(vm, tag, data, data.key, children, Ctor)
+        }
+    }
+
+    function createComponent(vm, tag, data, key, children, Ctor) {
+        // 获取父类构造函数
+        const baseCtor = vm.$options._base;
+        if (isObject(Ctor)) {
+            Ctor = baseCtor.extend(Ctor);
+        }
+        // 组件的生命周期钩子(渲染组件时需要调用此初始化方法)
+        data.hook = {
+            init(vnode){
+                // new 的时候等于 new Vue(), 走init()
+                let child = vnode.componentInstance = new Ctor({_isComponent: true});
+                // 挂载组件
+                child.$mount();
+            }
+        };
+        return vnode(vm, `vue-component-${tag}`, data, key, undefined, {Ctor, children})
     }
 
     function createTextNode(vm, text) {
         return vnode(vm, undefined, undefined, undefined, undefined, text)
     }
 
-    function vnode(vm, tag, data, key, children, text) {
+    function vnode(vm, tag, data, key, children, text, componentOptions) {
         return {
             vm,
             tag,
             data,
             key,
             children,
-            text
+            text,
+            componentOptions
         }
     }
 

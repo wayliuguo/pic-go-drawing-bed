@@ -17,49 +17,50 @@ const startTagClose = /^\s*(\/?)>/
 // {{name}}
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
 
-let root
 let currentParent
-let stack = []
 const ELEMENT_TYPE = 1
 const TEXT_TYPE = 3
-function createASTElement(tagName, attrs) {
-    return {
-        tag: tagName,
-        type: ELEMENT_TYPE,
-        children: [],
-        attrs,
-        parent: null
-    }
-}
 
-// html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
-
-function start(tagName, attributes) {
-    let element = createASTElement(tagName, attributes)
-    if (!root) {
-        root = element
-    }
-    currentParent = element
-    stack.push(element)
-}
-function end(tagName) {
-    let element = stack.pop()
-    currentParent = stack[stack.length - 1]
-    if (currentParent) {
-        element.parent = currentParent
-        currentParent.children.push(element)
-    }
-}
-function chars(text) {
-    text = text.replace(/\s/g, '')
-    if (text) {
-        currentParent.children.push({
-            type: TEXT_TYPE,
-            text
-        })
-    }
-}
 export function parserHTML(html) { // <div id="app">{{name}}</div>
+    let root
+    let stack = []
+    function createASTElement(tagName, attrs) {
+        return {
+            tag: tagName,
+            type: ELEMENT_TYPE,
+            children: [],
+            attrs,
+            parent: null
+        }
+    }
+
+    // html 字符串解析成对应的脚本来触发 tokens <div id="app">{{name}}</div>
+
+    function start(tagName, attributes) {
+        let element = createASTElement(tagName, attributes)
+        if (!root) {
+            root = element
+        }
+        currentParent = element
+        stack.push(element)
+    }
+    function end(tagName) {
+        let element = stack.pop()
+        currentParent = stack[stack.length - 1]
+        if (currentParent) {
+            element.parent = currentParent
+            currentParent.children.push(element)
+        }
+    }
+    function chars(text) {
+        text = text.replace(/\s/g, '')
+        if (text) {
+            currentParent.children.push({
+                type: TEXT_TYPE,
+                text
+            })
+        }
+    }
     // 截取字符串
     function advance(len) {
         html = html.substring(len)

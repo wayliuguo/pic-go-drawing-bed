@@ -1832,4 +1832,111 @@ export function compileToFunctions (template) {
 
   ![image-20221204130713814](手写vue核心原理.assets/image-20221204130713814.png)
 
-## 2.
+## 2.组件的渲染流程
+
+### 1.创建组件的虚拟节点
+
+- src/vdom/index.js
+
+  ```
+  export function createElement(vm, tag, data = {}, ...children) {
+      // 在创建虚拟节点的时候我们需要判断这个标签是否是组件，普通标签的虚拟节点和组件标签虚拟节点有所不同
+      if (isReservedTag(tag)) {
+          return vnode(vm, tag, data, data.key, children, undefined)
+      } else {
+          // 如果tag是组件，应该渲染一个组件的vnode
+          let Ctor = vm.$options.components[tag]
+          return createComponent(vm, tag, data, data.key, children, Ctor)
+      }
+  }
+  
+  function createComponent(vm, tag, data, key, children, Ctor) {
+      // 获取父类构造函数
+      const baseCtor = vm.$options._base
+      if (isObject(Ctor)) {
+          Ctor = baseCtor.extend(Ctor)
+      }
+      // 组件的生命周期钩子(渲染组件时需要调用此初始化方法)
+      data.hook = {
+          init(vnode){
+              // new 的时候等于 new Vue(), 走init()
+              let child = vnode.componentInstance = new Ctor({_isComponent: true})
+              // 挂载组件
+              child.$mount()
+          }
+      }
+      return vnode(vm, `vue-component-${tag}`, data, key, undefined, {Ctor, children})
+  }
+  
+  function vnode(vm, tag, data, key, children, text, componentOptions) {
+      return {
+          vm,
+          tag,
+          data,
+          key,
+          children,
+          text,
+          componentOptions
+      }
+  }
+  ```
+
+  - 通过isReservedTag方法判断tag是原生还是非原生，如果不是原生则是组件tag
+  - 如果是组件tag，则调用createComponent
+    - 通过extends 获取一个继承vue的函数
+    - 往组件的data上添加hook属性，此属性的init方法会通过实例化，相当与new Vue()
+
+- utils.js
+
+  ```
+  function makeMap(str) {
+      const map = {}
+      const list = str.split(',')
+      for (let i=0; i<list.length; i++) {
+          map[list[i]] = true
+      }
+      return (key) => map[key]
+  }
+  
+  export const isReservedTag = makeMap(
+      'a,div,img,image,text,span,input,p,button,ul,li'
+  )
+  ```
+
+### 2.创建组件真实节点
+
+- src/vdom/patch.js
+
+  ```
+  export function patch(oldVnode, vnode) {
+      // 判断是要要跟新还是要渲染
+      if (!oldVnode) {
+          return createElm(vnode)
+      }
+      ...
+  }
+  
+  function createElm (vnode) {
+      let { tag, data, children, text, vm } = vnode
+      // 如果是元素
+      if (typeof tag ==='string') {
+          if (createComponent(vnode)) {
+              // 返回组件对应的真实节点
+              return vnode.componentInstance.$el
+          }
+         ...
+  }
+  
+  function createComponent (vnode) {
+      let i = vnode.data
+      if ((i=i.hook) && (i = i.init)) {
+          // 调用init方法
+          i(vnode)
+      }
+      if (vnode.componentInstance) {
+          return true
+      }
+  }
+  ```
+
+  

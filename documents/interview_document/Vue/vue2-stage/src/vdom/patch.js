@@ -1,4 +1,8 @@
 export function patch(oldVnode, vnode) {
+    // 判断是要要跟新还是要渲染
+    if (!oldVnode) {
+        return createElm(vnode)
+    }
     // 如果是元素
     if (oldVnode.nodeType === 1) {
         // 用vnode来生成真实dom，替换成原来的dom元素
@@ -18,6 +22,10 @@ function createElm (vnode) {
     let { tag, data, children, text, vm } = vnode
     // 如果是元素
     if (typeof tag ==='string') {
+        if (createComponent(vnode)) {
+            // 返回组件对应的真实节点
+            return vnode.componentInstance.$el
+        }
         // 虚拟节点会有一个el属性，对应真实节点
         vnode.el = document.createElement(tag)
         updateProperties(vnode)
@@ -28,6 +36,17 @@ function createElm (vnode) {
         vnode.el = document.createTextNode(text)
     }
     return vnode.el
+}
+
+function createComponent (vnode) {
+    let i = vnode.data
+    if ((i=i.hook) && (i = i.init)) {
+        // 调用init方法
+        i(vnode)
+    }
+    if (vnode.componentInstance) {
+        return true
+    }
 }
 
 function updateProperties(vnode) {
