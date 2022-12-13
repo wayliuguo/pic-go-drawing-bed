@@ -1939,4 +1939,144 @@ export function compileToFunctions (template) {
   }
   ```
 
+
+# 九、diff 算法解析
+
+## 1.基本diff算法
+
+- src/index.js
+
+  ```
+  // diff 核心
+  // compileToFunctions: 传入template 获得render函数
+  import { compileToFunctions } from "./compiler/index"
+  // createElm：传入vnode得到真实dom
+  import { createElm, patch } from "./vdom/patch"
   
+  // 1.标签名不一样，直接删掉老的换成新的即可
+  // let oldTemplate = `<div>{{message}}</div>`
+  // 2.标签一样比较属性
+  // let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
+  // 3.一方有儿子 一方没儿子
+  // 3.1 老的没儿子， 新的有儿子
+  // let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1></div>`
+  // 3.2 老的有儿子,新的没儿子
+  let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
+  let vm1 = new Vue({data: {message: 'hello'}})
+  const render1 = compileToFunctions(oldTemplate)
+  const oldVnode = render1.call(vm1)
+  document.body.appendChild(createElm(oldVnode))
+  
+  // v-if v-else
+  // 1.标签名不一样，直接删掉老的换成新的即可
+  // let newTemplate = `<p>{{message}}</p>`
+  // 2.标签一样比较属性
+  // let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
+  // 3.一方有儿子 一方没儿子
+  // 3.1 老的没儿子， 新的有儿子
+  // let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
+  // 3.2 老的有儿子,新的没儿子
+  let newTemplate = `<div style="color: blue;background: red;" b=2></div>`
+  let vm2 = new Vue({data: {message: 'world'}})
+  const render2 = compileToFunctions(newTemplate)
+  const newVnode = render2.call(vm2)
+  
+  // 根据新的虚拟节点更新老的节点，老的节点能复用尽量复用
+  setTimeout(() => {
+      patch(oldVnode, newVnode)
+  }, 2000)
+  
+  ```
+
+- src/vdom/patch.js
+
+  ```
+  export function patch(oldVnode, vnode) {
+     ...
+      // 如果是元素
+      if (oldVnode.nodeType === 1) {
+        ...
+      } else {
+          // 如果标签名称不一样， 直接删掉老的换成新的即可
+          if (oldVnode.tag !== vnode.tag) {
+              // 可以通过vnode.el 属性，获取现在真实的dom元素
+             return oldVnode.el.parentNode.replaceChild(createElm(vnode), oldVnode.el)
+          
+          }
+          // 新节点复用老节点
+          let el = vnode.el = oldVnode.el
+  
+          // 如果两个虚拟节点是文本节点（比较文本内容）
+          if (vnode.tag === undefined) {
+              if (oldVnode.text !== vnode.text) {
+                  el.textContent = vnode.text
+              }
+              return
+          }
+  
+          // 如果标签一样比较属性，用新的属性更新老的(目前data的值还有bug)
+          updateProperties(vnode, oldVnode.data)
+  
+          // 一方有儿子 一方没儿子
+          let oldChildren = oldVnode.children || []
+          let newChildren = vnode.children || []
+          if (oldChildren.length > 0 && newChildren.length > 0) {
+              // 如果双方都有儿子
+          } else if (newChildren.length > 0) {
+              // 老的没儿子，但是新的有儿子
+              // 循环创建新节点
+              for (let i=0; i < newChildren.length; i++) {
+                  let child = createElm(newChildren[i])
+                  el.appendChild(child)
+              }
+          } else if (oldChildren.length > 0) {
+              // 老的有儿子新的没儿子(bug: 属性还是会保留新属性)
+              // 直接删除老节点
+              el.innerHTML = ``
+          }
+      }
+  }
+  
+  function updateProperties(vnode, oldProps={}) {
+      let newProps = vnode.data || {}
+      // 当前真实节点
+      let el = vnode.el
+  
+      let newStyle = newProps.style || {}
+      let oldStyle = oldProps.style || {}
+      // 去除老的style中新的没有的
+      for (let key in oldStyle) {
+          if (!newStyle[key]) {
+              el.style[key] = ''
+          }
+      }
+  
+      // 如果老的属性有，新的没有直接删除
+      for (let key in oldProps) {
+          if (!newProps[key]) {
+              el.removeAttribute(key)
+          }
+      }
+      for (let key in newProps) {
+          // 如果是有style属性
+          if (key === 'style') {
+              for (let styleName in newProps.style) {
+                  el.style[styleName] = newProps.style[styleName]
+              }
+          } else if (key === 'class') {
+              el.className = newProps.class
+          } else {
+              el.setAttribute(key, newProps[key])
+          }
+      }
+  }
+  ```
+
+  1. 标签名不一样，直接删掉老的换成新的即可
+  2. 标签一样比较属性
+  3. 一方有儿子 一方没儿子
+     1. 老的没儿子， 新的有儿子
+     2.  老的有儿子,新的没儿子
+     3. 新老都有儿子
+  4. 如果两个虚拟节点是文本节点（新文本代替旧文本）
+
