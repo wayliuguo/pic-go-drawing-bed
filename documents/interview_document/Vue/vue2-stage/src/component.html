@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <div id="app">
         <my-button></my-button>
@@ -18,13 +20,38 @@
         })
         const vm = new Vue({
             el: '#app',
+            beforeCreate() {
+                console.log('生命周期：beforeCreate parent')
+            },
+            created() {
+                console.log('生命周期：created parent')
+            },
+            beforeMount() {
+                console.log('生命周期：beforeMount parent')
+            },
+            mounted() {
+                console.log('生命周期：mounted parent')
+            },
             components: {
                 'my-button': {
-                    template: '<button>world</button>'
+                    template: '<button>world</button>',
+                    beforeCreate() {
+                        console.log('生命周期：beforeCreate child')
+                    },
+                    created() {
+                        console.log('生命周期：created child')
+                    },
+                    beforeMount() {
+                        console.log('生命周期：beforeMount child')
+                    },
+                    mounted() {
+                        console.log('生命周期：mounted child')
+                    }
                 }
             }
         })
         console.log(vm)
     </script>
 </body>
+
 </html>

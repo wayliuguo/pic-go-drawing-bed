@@ -892,6 +892,8 @@
         new Watcher(vm, updateComponent, () => {
             console.log('更新视图了');
         }, true); // true 表示是一个渲染watcher，后续有其他watcher
+
+        callHook(vm, 'mounted');
     }
 
     function callHook(vm, hook) {
