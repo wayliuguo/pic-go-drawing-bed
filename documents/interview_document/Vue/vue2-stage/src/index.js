@@ -32,7 +32,22 @@ import { createElm, patch } from "./vdom/patch"
 // 3.1 老的没儿子， 新的有儿子
 // let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1></div>`
 // 3.2 老的有儿子,新的没儿子
-let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
+// let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
+// 3.3 双方都有儿子
+// 3.3.1 ABCD ADCD(同头指针开始比较)
+// 3.3.2 ABCD ABCDE（新的没有比较完）
+// 3.3.3 ABCD EABCD(Key)（从尾指针开始比较）
+// 3.3.4 从尾比较没比较完
+// 3.3.4.1 ABCD AB
+// 3.3.4.2 ABCD CD
+// 3.3.5 ABCD BCDA (头尾比较)
+// 3.3.6 ABCD DABC (尾头比较)
+let oldTemplate = `<div>
+    <li key="A">A</li>
+    <li key="B">B</li>
+    <li key="C">C</li>
+    <li key="D">D</li>
+</div>`
 let vm1 = new Vue({data: {message: 'hello'}})
 const render1 = compileToFunctions(oldTemplate)
 const oldVnode = render1.call(vm1)
@@ -47,7 +62,22 @@ document.body.appendChild(createElm(oldVnode))
 // 3.1 老的没儿子， 新的有儿子
 // let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
 // 3.2 老的有儿子,新的没儿子
-let newTemplate = `<div style="color: blue;background: red;" b=2></div>`
+// let newTemplate = `<div style="color: blue;background: red;" b=2></div>`
+// 3.3 双方都有儿子
+// 3.3.1 ABCD ADCD (同头指针开始比较)
+// 3.3.2 ABCD ABCDE （新的没有比较完）
+// 3.3.3 ABCD EABCD(Key)（从尾指针开始比较）
+// 3.3.4 从尾比较没比较完
+// 3.3.4.1 ABCD AB
+// 3.3.4.2 ABCD CD
+// 3.3.5 ABCD BCDA (头尾比较)
+// 3.3.6 ABCD DABC (尾头比较)
+let newTemplate = `<div>
+    <li key="D">D</li>
+    <li key="A">A</li>
+    <li key="B">B</li>
+    <li key="C">C</li>
+</div>`
 let vm2 = new Vue({data: {message: 'world'}})
 const render2 = compileToFunctions(newTemplate)
 const newVnode = render2.call(vm2)

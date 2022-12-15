@@ -2080,3 +2080,127 @@ export function compileToFunctions (template) {
      3. 新老都有儿子
   4. 如果两个虚拟节点是文本节点（新文本代替旧文本）
 
+## 2.diff中的优化策略
+
+- src/index.js
+
+  ```
+  // 3.3 双方都有儿子
+  // 3.3.1 ABCD ADCD(同头指针开始比较)
+  // 3.3.2 ABCD ABCDE（新的没有比较完）
+  // 3.3.3 ABCD EABCD(Key)（从尾指针开始比较）
+  // 3.3.4 从尾比较没比较完
+  // 3.3.4.1 ABCD AB
+  // 3.3.4.2 ABCD CD
+  // 3.3.5 ABCD BCDA (头尾比较)
+  // 3.3.6 ABCD DABC (尾头比较)
+  let oldTemplate = `<div>
+      <li key="A">A</li>
+      <li key="B">B</li>
+      <li key="C">C</li>
+      <li key="D">D</li>
+  </div>`
+  
+  ...
+  
+  // 3.3 双方都有儿子
+  // 3.3.1 ABCD ADCD (同头指针开始比较)
+  // 3.3.2 ABCD ABCDE （新的没有比较完）
+  // 3.3.3 ABCD EABCD(Key)（从尾指针开始比较）
+  // 3.3.4 从尾比较没比较完
+  // 3.3.4.1 ABCD AB
+  // 3.3.4.2 ABCD CD
+  // 3.3.5 ABCD BCDA (头尾比较)
+  // 3.3.6 ABCD DABC (尾头比较)
+  let newTemplate = `<div>
+      <li key="D">D</li>
+      <li key="A">A</li>
+      <li key="B">B</li>
+      <li key="C">C</li>
+  </div>`
+  
+  ...
+  ```
+
+  
+
+- src/vdom/patch.js
+
+  ```
+  export function patch(oldVnode, vnode) {
+          ...
+          if (oldChildren.length > 0 && newChildren.length > 0) {
+              // 如果双方都有儿子
+              // vue 使用了双指针的方式来对比
+              patchChildren(el, oldChildren, newChildren)
+          }
+          ...
+  }
+  
+  function patchChildren(el, oldChildren, newChildren) {
+      let oldStartIndex = 0
+      let oldStartVnode = oldChildren[0]
+      let oldEndIndex = oldChildren.length - 1
+      let oldEndVnode = oldChildren[oldEndIndex]
+  
+      let newStartIndex = 0
+      let newStartVnode = newChildren[0]
+      let newEndIndex = newChildren.length - 1
+      let newEndVnode = newChildren[newEndIndex]
+  
+      while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+          // 同时循环新节点和老节点，有一方循环完毕就结束了
+          // 头头比较，标签一致
+          if (isSameVnode(oldStartVnode, newStartVnode)) {
+              // 递归比较
+              patch(oldStartVnode, newStartVnode)
+              oldStartVnode = oldChildren[++oldStartIndex]
+              newStartVnode = newChildren[++newStartIndex]
+          } else if (isSameVnode(oldEndVnode, newEndVnode)) {
+              // 尾尾比较
+              patch(oldEndVnode, newEndVnode)
+              oldEndVnode = oldChildren[--oldEndIndex]
+              newEndVnode = newChildren[--newEndIndex]
+          } else if (isSameVnode(oldStartVnode, newEndVnode)) {
+              // 头尾比较=》reverse
+              patch(oldStartVnode, newEndVnode)
+              // 把旧头节点插入到旧尾节点下一个节点
+              el.insertBefore(oldStartVnode.el, oldEndVnode.el.nextSibling)
+              oldStartVnode = oldChildren[++oldStartIndex]
+              newEndVnode = newChildren[--newEndIndex]
+          } else if (isSameVnode(oldEndVnode, newStartVnode)) {
+              // 尾头比较=》reverse
+              patch(oldEndVnode, newStartVnode)
+              // 把旧尾节点插入到旧头节点
+              el.insertBefore(oldEndVnode.el, oldStartVnode.el)
+              oldEndVnode = oldChildren[--oldEndIndex]
+              newStartVnode = newChildren[++newStartIndex]
+          }
+  
+      }
+      // 这里是用户没有比对完的
+      // 这是新的还没有比对完（旧的已经比对完了，新的还有）
+      if (newStartIndex <= newEndIndex) {
+          for (let i= newStartIndex; i <= newEndIndex; i++) {
+              // el.appendChild(createElm(newChildren[i]))
+  
+              // 通过判断尾指针得下一个元素是否存在判断是从头比较还是从尾比较
+              // 如果是从头比较则appendChild即可，如果是从尾比较则通过insertBefore (appendChild 等价于 insertBefore(newItem, null))
+              let anchor = newChildren[newEndIndex + 1] == null ? null : newChildren[newEndIndex + 1].el
+              el.insertBefore(createElm(newChildren[i]), anchor)
+          }
+      }
+      // 这是旧还没有比对完（新的已经比对完了，旧的还有）
+      if (oldStartIndex <= oldEndIndex) {
+          for (let i=oldStartIndex; i<=oldEndIndex; i++) {
+              el.removeChild(oldChildren[i].el)
+          }
+      }
+  }
+  
+  function isSameVnode(oldVnode, newVnode) {
+      return oldVnode.tag == newVnode.tag && oldVnode.key == newVnode.key
+  }
+  ```
+
+## 3.
