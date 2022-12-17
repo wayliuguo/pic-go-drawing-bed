@@ -69,7 +69,23 @@ function patchChildren(el, oldChildren, newChildren) {
     let newEndIndex = newChildren.length - 1
     let newEndVnode = newChildren[newEndIndex]
 
+    const makeIndexByKey = (children) => {
+        return children.reduce((memo, current, index) => {
+            if (current.key) {
+                memo[current.key] = index
+            }
+            return memo
+        }, {})
+    }
+    const keysMap = makeIndexByKey(oldChildren)
+
     while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+        // 如果节点已经被暴力比对给移走，则指针继续移动
+        if (!oldStartVnode) {
+            oldStartVnode = oldChildren[++oldStartIndex]
+        } else if (!oldEndVnode) {
+            oldEndVnode = oldChildren[--oldEndIndex]
+        }
         // 同时循环新节点和老节点，有一方循环完毕就结束了
         // 头头比较，标签一致
         if (isSameVnode(oldStartVnode, newStartVnode)) {
@@ -96,6 +112,24 @@ function patchChildren(el, oldChildren, newChildren) {
             el.insertBefore(oldEndVnode.el, oldStartVnode.el)
             oldEndVnode = oldChildren[--oldEndIndex]
             newStartVnode = newChildren[++newStartIndex]
+        } else {
+            // 乱序对比
+            // 需要根据key和对应的索引的内容生成映射表
+            // 通过新头的key找出对应旧的key所对应的index
+            let moveIndex = keysMap[newStartVnode.key]
+            // 如果不能复用，直接创建新的插入到老的节点节点开头处
+            if (moveIndex == undefined) {
+                el.insertBefore(createElm(newStartVnode), oldStartVnode.el)
+            } else {
+                let moveNode = oldChildren[moveIndex]
+                // 此节点已经被移走了
+                oldChildren[moveIndex] = null
+                // 移动节点
+                el.insertBefore(moveNode.el, oldStartVnode.el)
+                // 比较两个节点的属性
+                patch(moveNode, newStartVnode)
+            }
+            newStartVnode = newChildren[++newStartIndex]
         }
 
     }
@@ -114,7 +148,10 @@ function patchChildren(el, oldChildren, newChildren) {
     // 这是旧还没有比对完（新的已经比对完了，旧的还有）
     if (oldStartIndex <= oldEndIndex) {
         for (let i=oldStartIndex; i<=oldEndIndex; i++) {
-            el.removeChild(oldChildren[i].el)
+            // 如果老的多 将老节点删除 但可能有暴力对比移除掉null的情况
+            if (oldChildren[i] !== null) {
+                el.removeChild(oldChildren[i].el)
+            }
         }
     }
 }
