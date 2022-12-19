@@ -18,7 +18,7 @@ stateMixin(Vue)
 // 在类上扩展的Vue.mixin
 initGlobalApi(Vue)
 
-// diff 核心
+/* // diff 核心
 // compileToFunctions: 传入template 获得render函数
 import { compileToFunctions } from "./compiler/index"
 // createElm：传入vnode得到真实dom
@@ -87,7 +87,7 @@ const newVnode = render2.call(vm2)
 // 根据新的虚拟节点更新老的节点，老的节点能复用尽量复用
 setTimeout(() => {
     patch(oldVnode, newVnode)
-}, 2000)
+}, 2000) */
 
 
 export default Vue

@@ -56,6 +56,7 @@ export function patch(oldVnode, vnode) {
             el.innerHTML = ``
         }
     }
+    return el
 }
 
 function patchChildren(el, oldChildren, newChildren) {

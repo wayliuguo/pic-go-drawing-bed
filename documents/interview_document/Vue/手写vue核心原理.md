@@ -2275,3 +2275,28 @@ function patchChildren(el, oldChildren, newChildren) {
   - 如果可以复用，则把节点插入对应节点上，把oldChidren对应的节点置为null
   - 比较两个节点
 - 指针继续移动
+
+## 4.diff 算法添加到vue中
+
+- src/lifecycle.js
+
+  ```
+  export function lifecycleMixin(Vue) {
+      Vue.prototype._update = function (vnode) {
+          const vm = this
+          // 保存当前的虚拟节点
+          const preVnode = vm._vnode
+          if (!preVnode) {
+              // 初次渲染
+              vm.$el = patch(vm.$el, vnode)
+          } else {
+              vm.$el = patch(preVnode, vnode)
+          }
+          vm._vnode = vnode
+      }
+      Vue.prototype.$nextTick = nextTick
+  }
+  ```
+
+
+
