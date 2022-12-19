@@ -42,10 +42,11 @@ import { createElm, patch } from "./vdom/patch"
 // 3.3.4.2 ABCD CD
 // 3.3.5 ABCD BCDA (头尾比较)
 // 3.3.6 ABCD DABC (尾头比较)
+// 3.3.7 CABD BCDA (乱序比较)
 let oldTemplate = `<div>
+    <li key="C">C</li>
     <li key="A">A</li>
     <li key="B">B</li>
-    <li key="C">C</li>
     <li key="D">D</li>
 </div>`
 let vm1 = new Vue({data: {message: 'hello'}})
@@ -72,11 +73,12 @@ document.body.appendChild(createElm(oldVnode))
 // 3.3.4.2 ABCD CD
 // 3.3.5 ABCD BCDA (头尾比较)
 // 3.3.6 ABCD DABC (尾头比较)
+// 3.3.7 CABD BCDA (乱序比较)
 let newTemplate = `<div>
-    <li key="D">D</li>
-    <li key="A">A</li>
     <li key="B">B</li>
     <li key="C">C</li>
+    <li key="D">D</li>
+    <li key="A">A</li>
 </div>`
 let vm2 = new Vue({data: {message: 'world'}})
 const render2 = compileToFunctions(newTemplate)

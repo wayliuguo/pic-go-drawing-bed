@@ -2202,5 +2202,76 @@ export function compileToFunctions (template) {
       return oldVnode.tag == newVnode.tag && oldVnode.key == newVnode.key
   }
   ```
+  
+  - 头头对比：优化了向后添加
+  - 尾尾对比：优化了向前添加
+  - 头尾比较：优化了尾巴移动到头部，反转
+  - 尾头比较：优化了头部移动到尾部，反转
+  
+  **通过老的和新的对比，在老的基础上通过对比移动老的，达到复用目的**
 
-## 3.
+## 3.暴力比对
+
+```
+function patchChildren(el, oldChildren, newChildren) {
+    ...
+    const makeIndexByKey = (children) => {
+        return children.reduce((memo, current, index) => {
+            if (current.key) {
+                memo[current.key] = index
+            }
+            return memo
+        }, {})
+    }
+    const keysMap = makeIndexByKey(oldChildren)
+
+    while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+        // 如果节点已经被暴力比对给移走，则指针继续移动
+        if (!oldStartVnode) {
+            oldStartVnode = oldChildren[++oldStartIndex]
+        } else if (!oldEndVnode) {
+            oldEndVnode = oldChildren[--oldEndIndex]
+        }
+        // 同时循环新节点和老节点，有一方循环完毕就结束了
+        // 头头比较，标签一致
+        if (isSameVnode(oldStartVnode, newStartVnode)) {
+           ...
+        } else if (isSameVnode(oldEndVnode, newEndVnode)) {
+            // 尾尾比较
+            ...
+        } else if (isSameVnode(oldStartVnode, newEndVnode)) {
+            // 头尾比较=》reverse
+           ...
+        } else if (isSameVnode(oldEndVnode, newStartVnode)) {
+            // 尾头比较=》reverse
+           ...
+        } else {
+            // 乱序对比
+            // 需要根据key和对应的索引的内容生成映射表
+            // 通过新头的key找出对应旧的key所对应的index
+            let moveIndex = keysMap[newStartVnode.key]
+            // 如果不能复用，直接创建新的插入到老的节点节点开头处
+            if (moveIndex == undefined) {
+                el.insertBefore(createElm(newStartVnode), oldStartVnode.el)
+            } else {
+                let moveNode = oldChildren[moveIndex]
+                // 此节点已经被移走了
+                oldChildren[moveIndex] = null
+                // 移动节点
+                el.insertBefore(moveNode.el, oldStartVnode.el)
+                // 比较两个节点的属性
+                patch(moveNode, newStartVnode)
+            }
+            newStartVnode = newChildren[++newStartIndex]
+        }
+
+    }
+```
+
+- 通过makeIndexByKey构造key:index 的映射表
+- 如果节点已经被暴力比对给移走，则指针继续移动
+- 通过key得到旧vnode中key对应的index，获取该节点
+  - 如果不可以复用，则直接插入到老头节点前面
+  - 如果可以复用，则把节点插入对应节点上，把oldChidren对应的节点置为null
+  - 比较两个节点
+- 指针继续移动
