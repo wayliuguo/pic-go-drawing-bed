@@ -2516,26 +2516,20 @@ function selectionSort (arr) {
     let index
     for (let i=0; i<arr.length; i++) {
         index = i
-        for(let j=i; j<arr.length; j++) {
-            if (arr[index] > arr[j]) {
+        for(let j=i+1; j<arr.length; j++) {
+            if (arr[index] < arr[j]) {
                 index = j
             }
         }
         if (i !== index) {
             [arr[index], arr[i]] = [arr[i], arr[index]]
         }
-        console.log(arr)
-        /* [ 1, 3, 2, 5, 4 ]
-           [ 1, 2, 3, 5, 4 ]
-           [ 1, 2, 3, 5, 4 ]
-           [ 1, 2, 3, 4, 5 ]
-           [ 1, 2, 3, 4, 5 ] */
     }
 }
 
-let arr = [1, 3, 2, 5, 4]
+const arr = [8,0,4,6,1,2,7,3,5,9]
 selectionSort(arr)
-console.log(arr) // [1, 2, 3, 4, 5]
+console.log(arr) //  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
 ```
 
 **复杂度分析** 
@@ -2671,4 +2665,58 @@ console.log(quickSort(arr)) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   console.log(insertSort(arr)) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
   ```
 
-  
+
+### 8.6 计数排序
+
+**牺牲空间换取时间，快于任何比较排序算法**
+
+1. **找出乱序数组中最大的元素，建立一个最大元素 + 1长度的新数组；**
+2. **统计乱序数组中每个值出现的次数，依次放入新数组中；**
+3. **遍历新数组，依次去除新数组中的元素。**
+
+```
+function countingSort (arr) {
+    // 获取出现的最大元素
+    let max = arr[0]
+    for (let i=1; i<arr.length; i++) {
+        if (arr[i] > max) {
+            max = arr[i]
+        }
+    }
+    // 创建一个新数组，用来统计数组中每个元素出现的次数
+    let mapArr = new Array(max + 1)
+    // 遍历数组，把每个元素出现的次数记录在新数组的相应位置
+    for (let i=0; i<arr.length; i++) {
+        // 如果元素未出现过，则置1
+        if (!mapArr[arr[i]]) {
+            mapArr[arr[i]] = 1
+        } else {
+            // 已经出现过的元素次数+1
+            mapArr[arr[i]]++
+        }
+    }
+    // 排序数组的下标
+    let startIndex = 0
+    // 遍历新数组，依次取出元素
+    for (let j=0; j<arr.length; j++) {
+        while(mapArr[j] > 0) {
+            arr[startIndex] = j
+            // 对应元素次数 - 1
+            mapArr[j]--
+            // 排序数组下表 + 1
+            startIndex++
+        }
+    }
+    return arr
+}
+
+const arr = [8,0,4,6,1,2,7,3,5,9]
+console.log(countingSort(arr)) // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+**优化**
+
+```
+const arr = [90,99,99,90,91,91,96,96,98,98,93,93,92,92];
+```
+

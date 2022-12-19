@@ -2,7 +2,7 @@ function selectionSort (arr) {
     let index
     for (let i=0; i<arr.length; i++) {
         index = i
-        for(let j=i; j<arr.length; j++) {
+        for(let j=i+1; j<arr.length; j++) {
             if (arr[index] < arr[j]) {
                 index = j
             }
@@ -10,15 +10,9 @@ function selectionSort (arr) {
         if (i !== index) {
             [arr[index], arr[i]] = [arr[i], arr[index]]
         }
-        console.log(arr)
-        /* [ 1, 3, 2, 5, 4 ]
-           [ 1, 2, 3, 5, 4 ]
-           [ 1, 2, 3, 5, 4 ]
-           [ 1, 2, 3, 4, 5 ]
-           [ 1, 2, 3, 4, 5 ] */
     }
 }
 
-let arr = [1, 3, 2, 5, 4]
+const arr = [8,0,4,6,1,2,7,3,5,9]
 selectionSort(arr)
-console.log(arr) // [1, 2, 3, 4, 5]
+console.log(arr) //  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
