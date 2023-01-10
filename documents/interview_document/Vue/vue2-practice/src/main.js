@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import store from './store'
 import VueLazyLoad from '@/plugins/vue-lazyload'
 import logo from '@/assets/logo.png'
 
@@ -11,6 +12,9 @@ Vue.use(VueLazyLoad, {
   preload: 1.2
 })
 
-new Vue({
+let vm = new Vue({
+  name: 'App',
+  store,
   render: h => h(App),
 }).$mount('#app')
+console.log(vm.$store)

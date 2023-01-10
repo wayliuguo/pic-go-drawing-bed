@@ -248,4 +248,151 @@ export default {
   export default VueLazyLoad
   ```
 
+
+## 3.Vuex 实现原理
+
+### 1. Vuex 中初始化逻辑
+
+#### 1. 主要代码
+
+- Store.vue
+
+  ```
+  <template>
+      <div>
+          {{ this.$store.state.name }}<br>
+          {{ this.$store.state.age }}<br>
+          <!-- {{ this.$store.getters.myAge }}<br> -->
+          <button @click="$store.state.age++">加1</button>
+      </div>
+  </template>
   
+  <script>
+  export default {
+      name: 'Store',
+      mounted() {
+          console.log(this.$store)
+      }
+  }
+  </script>
+  ```
+
+  
+
+- src/store/index.
+
+  ```
+  import Vue from 'vue'
+  import Vuex from '@/vuex'
+  
+  Vue.use(Vuex)
+  
+  export default new Vuex.Store({
+      state: {
+          name: 'well',
+          age: 18
+      },
+      mutations: {
+  
+      },
+      actions: {
+  
+      },
+      getters: {
+          myAge(state) {
+              return `年龄为${state.age}`
+          }
+      },
+      modules: {
+  
+      }
+  })
+  ```
+
+- src/main.js
+
+  ```
+  import Vue from 'vue'
+  import App from './App.vue'
+  import store from './store'
+  ...
+  let vm = new Vue({
+    name: 'App',
+    store,
+    render: h => h(App),
+  }).$mount('#app')
+  console.log(vm.$store)
+  ```
+
+- src/vuex/index.js
+
+  ```
+  import {install} from './install'
+  import Store from './store'
+  
+  export default {
+      install,
+      Store
+  }
+  ```
+
+- src/vuex/install.js
+
+  ```
+  let Vue
+  
+  function install (_Vue) {
+      Vue = _Vue
+  
+      Vue.mixin({
+          beforeCreate() { // this 代表每个组件实例
+              // 获取根组件上的 store 将他共享给每个组件
+              let options = this.$options
+              if (options.store) {
+                  this.$store = options.store
+              } else {
+                  if (this.$parent && this.$parent.$store) {
+                      this.$store = this.$parent.$store
+                  }
+              }
+          }
+      })
+  }
+  
+  export {
+      Vue,
+      install
+  }
+  ```
+
+- src/vuex/store.js
+
+  ```
+  import { Vue } from './install'
+  
+  class Store {
+      constructor(options) {
+          let { state, getters, mutation, actions, module, strice } = options
+          // 这个状态在页面渲染时需要收集对应的渲染 watcher， 这样状态更新才会更新视图
+          this._vm = new Vue({
+              data: { 
+                  // $符号开头的数据不会被挂载到实例上，但是会挂载到当前的_data 上，减少了一次代理
+                  $$state: state
+              }
+              // 用户组件中使用的$store = this
+          })
+      }
+      // 类的属性访问器
+      get state() {
+          return this._vm._data.$$state
+      }
+  }
+  
+  export default Store
+  ```
+
+#### 2. 代码逻辑
+
+1. src/store/index.js 中 通过 Vue.use(Vuex) 使用插件，这会执行其install 方法，同是把实例化的store 作为 参数传入了main.js 的作为vue实例属性
+2. install 中通过 Vue.mixin 给每个组件的 beforeCreate 钩子合并了操作，这样每个组件都有一个$store 属性
+3. store.js 中的每个实例都通过 new Vue 把 state 作为了 vue 实例的data.$$state 属性，通过类属性访问器触发vue实例的getter，实现更新视图
