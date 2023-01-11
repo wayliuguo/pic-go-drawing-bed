@@ -396,3 +396,51 @@ export default {
 1. src/store/index.js 中 通过 Vue.use(Vuex) 使用插件，这会执行其install 方法，同是把实例化的store 作为 参数传入了main.js 的作为vue实例属性
 2. install 中通过 Vue.mixin 给每个组件的 beforeCreate 钩子合并了操作，这样每个组件都有一个$store 属性
 3. store.js 中的每个实例都通过 new Vue 把 state 作为了 vue 实例的data.$$state 属性，通过类属性访问器触发vue实例的getter，实现更新视图
+
+### 2.getters 实现
+
+#### 1.主要代码
+
+- vuex/utils.js
+
+  ```
+  export const forEachValue = (obj, fn) => {
+      Object.keys(obj).forEach(key => fn(obj[key], key))
+  } 
+  ```
+
+- vuex/store.js
+
+  ```
+  import { forEachValue } from './utils'
+  
+  class Store {
+      constructor(options) {
+          ...
+          // 在取getters 的时候,把它代理到计算属性上
+          this.getters = {}
+          const computed = {}
+          forEachValue(getters, (fn, key) => {
+              computed[key] = () => {
+                  return fn(this.state)
+              }
+              Object.defineProperty(this.getters, key, {
+                  get: () => this._vm[key] // this._vm[key] 触发了data 的代理
+              })
+          })
+          ...
+          this._vm = new Vue({
+          	...
+              computed // 利用计算属性实现缓存
+          })
+      }
+      ...
+  }
+  
+  
+  ```
+
+#### 2.代码逻辑
+
+1. 把getters 的方法作为 Vue 实例的 computed 的属性
+2. 利用 Object.defineProperty 把 this.getters 里的 每个属性的 get 方法 触发响应式代理
