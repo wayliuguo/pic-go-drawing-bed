@@ -444,3 +444,47 @@ export default {
 
 1. 把getters 的方法作为 Vue 实例的 computed 的属性
 2. 利用 Object.defineProperty 把 this.getters 里的 每个属性的 get 方法 触发响应式代理
+
+### 3.mutations
+
+#### 1.主要代码
+
+```
+this.mutations = {}
+forEachValue(mutations, (fn, key) => {
+	// commit('changeAge', 10)
+	// this.mutations = {changeAge: () => {}}
+	this.mutations[key] = (payload) => fn.call(this, this.state, payload)
+})
+
+...
+// 用箭头函数的写法，this永远指向Store的实例对象
+commit = (type, payload) => {
+	this.mutations[type](payload)
+}
+```
+
+#### 2. 代码逻辑
+
+1. 把mutations 中的作为 this.mutations 中的方法，需要包一层方法，返回通过call指定this的返回
+2. 实现commit， 调用方法
+
+### 4.actions
+
+#### 1.主要代码
+
+```
+this.actions = {}
+forEachValue(actions, (fn, key) => {
+	this.actions[key] = (payload) => fn.call(this, this, payload)
+})
+...
+dispatch = (type, payload) => {
+	this.actions[type](payload)
+}
+```
+
+#### 2.代码逻辑
+
+1. 把actions 里的属性作为 this.actions 中的属性，需要包一层，返回通过call 指定this返回，第一个参数是store 实例
+2. 实现 dispatch，调用方法

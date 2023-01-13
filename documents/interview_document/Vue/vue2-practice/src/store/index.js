@@ -9,10 +9,17 @@ export default new Vuex.Store({
         age: 18
     },
     mutations: {
-
+        changeAge(state, payload) {
+            state.age += payload
+        }
     },
     actions: {
-
+        // 第一个参数是store，可以从中解构出commit
+        changeAge({commit}, payload) {
+            setTimeout(() => {
+                commit('changeAge', payload)
+            }, 1000);
+        }
     },
     getters: {
         myAge(state) {

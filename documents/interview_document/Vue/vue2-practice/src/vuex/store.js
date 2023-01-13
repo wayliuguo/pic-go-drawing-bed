@@ -3,7 +3,7 @@ import { forEachValue } from './utils'
 
 class Store {
     constructor(options) {
-        let { state, getters, mutation, actions, module, strice } = options
+        let { state, getters, mutations, actions, module, strice } = options
 
         // 在取getters 的时候,把它代理到计算属性上
         this.getters = {}
@@ -16,6 +16,19 @@ class Store {
                 get: () => this._vm[key] // this._vm[key] 触发了data 的代理
             })
         })
+
+        this.mutations = {}
+        forEachValue(mutations, (fn, key) => {
+            // commit('changeAge', 10)
+            // this.mutations = {changeAge: () => {}}
+            this.mutations[key] = (payload) => fn.call(this, this.state, payload)
+        })
+
+        this.actions = {}
+        forEachValue(actions, (fn, key) => {
+            this.actions[key] = (payload) => fn.call(this, this, payload)
+        })
+
 
         // 这个状态在页面渲染时需要收集对应的渲染 watcher， 这样状态更新才会更新视图
         this._vm = new Vue({
@@ -30,6 +43,13 @@ class Store {
     // 类的属性访问器
     get state() {
         return this._vm._data.$$state
+    }
+    // 用箭头函数的写法，this永远指向Store的实例对象
+    commit = (type, payload) => {
+        this.mutations[type](payload)
+    }
+    dispatch = (type, payload) => {
+        this.actions[type](payload)
     }
 }
 

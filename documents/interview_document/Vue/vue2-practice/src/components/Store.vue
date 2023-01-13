@@ -3,7 +3,8 @@
         {{ this.$store.state.name }}<br>
         {{ this.$store.state.age }}<br>
         {{ this.$store.getters.myAge }}<br>
-        <button @click="$store.state.age++">加1</button>
+        <button @click="$store.commit('changeAge', 10)">加10(commit)</button>
+        <button @click="$store.dispatch('changeAge', 10)">加10(dispatch)</button>
     </div>
 </template>
 
