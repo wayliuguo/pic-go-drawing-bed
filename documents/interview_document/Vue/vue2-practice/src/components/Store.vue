@@ -1,10 +1,14 @@
 <template>
     <div>
-        {{ this.$store.state.name }}<br>
-        {{ this.$store.state.age }}<br>
-        {{ this.$store.getters.myAge }}<br>
+        {{ $store.state.name }}<br>
+        {{ $store.state.age }}<br>
+        {{ $store.getters.myAge }}<br>
         <button @click="$store.commit('changeAge', 10)">加10(commit)</button>
         <button @click="$store.dispatch('changeAge', 10)">加10(dispatch)</button>
+        <br/>
+        a:{{ $store.state.a.age }}<br/>
+        a：{{ $store.getters['a/aAge'] }}<br/>
+        <button @click="$store.commit('a/changeAge', 50)">a加50（commit）</button>
     </div>
 </template>
 
