@@ -488,3 +488,108 @@ dispatch = (type, payload) => {
 
 1. 把actions 里的属性作为 this.actions 中的属性，需要包一层，返回通过call 指定this返回，第一个参数是store 实例
 2. 实现 dispatch，调用方法
+
+### 5.vuex 中的模块化
+
+#### 1.格式化用户数据&抽离模块类
+
+##### 1.主要代码
+
+- 组装后的数据解构
+
+  ```
+  /* 
+  this.root = {
+      _raw: 用户定义的模块,
+      state: 当前模块自己的状态,
+      _children: { // 孩子列表
+          a: {
+              _raw: 用户定义的模块,
+              state: 当前模块自己的状态
+              _children: {
+                  c: {
+                      ...
+                  }
+              }
+          }
+      }
+  }
+  */
+  ```
+
+- vuex/store.js
+
+  ```
+  import ModuleCollection from './module/module-collection'
+  
+  class Store {
+      constructor(options) {
+          // 对用户的参数进行格式化操作（树）
+          let r =new ModuleCollection(options)
+          console.log(r)
+      }
+  }
+  
+  export default Store
+  ```
+
+- vuex/module/module-collection.js
+
+  ```
+  import Module from './module'
+  import { forEachValue } from "../utils"
+  
+  export default class ModuleCollection {
+      constructor(options) {
+          this.root = null
+          this.register([], options)
+      }
+      register(path, rootModule) {
+          let newModule = new Module(rootModule)
+          if (path.length === 0) {
+              this.root = newModule
+          } else {
+              // 其父亲的[key]
+              // let temp = path.slice(0, -1)
+              // 取出父亲节点
+              let parent = path.slice(0, -1).reduce((memo, current) => {
+                  return memo.getChild(current)
+              }, this.root)
+              // 把新的子节点作为父亲节点的children
+              parent.addChild([path[path.length-1]], newModule)
+          }
+          if (rootModule.modules) {
+              // 根据kkey递归注册子模块
+              forEachValue(rootModule.modules, (module, moduleName) => {
+                  this.register(path.concat(moduleName), module)
+              })
+          }
+      }
+  }
+  ```
+
+- vuex/module/module.js
+
+  ```
+  export default class Module {
+      constructor(rawModule) {
+          this._children = {}
+          this._rawModule = rawModule
+          this.state = rawModule.state
+      }
+      getChild(key) {
+          return this._children[key]
+      }
+      addChild(key, module) {
+          this._children[key] = module
+      }
+  }
+  ```
+
+##### 2.代码逻辑
+
+1. 通过module-collection.js这个类把数据进行树的格式化
+2. 通过module.js这个类对数据进行抽离，实现其添加与查找children方法
+
+#### 2.安装模块
+

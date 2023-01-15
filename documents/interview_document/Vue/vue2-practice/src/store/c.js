@@ -1,12 +1,11 @@
-import c from './c'
 export default {
     namespaced: true,
     state: {
-        name: 'a',
-        age: 20
+        name: 'c',
+        age: 200
     },
     getters: {
-        aAge(state) {
+        cAge(state) {
             return `年龄为${state.age}`
         }
     },
@@ -14,8 +13,5 @@ export default {
         changeAge(state, payload) {
             state.age += payload
         }
-    },
-    modules: {
-        c
     }
 }
