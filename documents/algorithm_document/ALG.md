@@ -2728,3 +2728,113 @@ const arr = [90,99,99,90,91,91,96,96,98,98,93,93,92,92];
 
 ### 9.4 堆的操作
 
+**215.数组中的第k个最大元素**
+
+给定整数数组 `nums` 和整数 `k`，请返回数组中第 `**k**` 个最大的元素。
+
+请注意，你需要找的是数组排序后的第 `k` 个最大的元素，而不是第 `k` 个不同的元素。、
+
+```
+输入: [3,2,1,5,6,4], k = 2
+输出: 5
+
+输入: [3,2,3,1,2,4,5,5,6], k = 4
+输出: 4
+```
+
+```
+/*
+ * @lc app=leetcode.cn id=215 lang=javascript
+ *
+ * [215] 数组中的第K个最大元素
+ */
+
+// @lc code=start
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+
+class MinHeap {
+    constructor() {
+        this.heap = [];
+    }
+    // 获取父节点
+    getParentIndex(i) {
+        return (i - 1) >> 1;
+    }
+    // 获取左节点
+    getLeftIndex(i) {
+        return i * 2 + 1;
+    }
+    // 获取右节点
+    getRightIndex(i) {
+        return i * 2 + 2;
+    }
+    // 交换值
+    swap(i1, i2) {
+        const temp = this.heap[i1];
+        this.heap[i1] = this.heap[i2];
+        this.heap[i2] = temp;
+    }
+    // 上移节点
+    shiftUp(index) {
+        //到达堆顶就不用上移了
+        if (index == 0) { return; }
+        const parentIndex = this.getParentIndex(index);
+        // 最小堆要求父节点是最小的
+        if (this.heap[parentIndex] > this.heap[index]) {
+            this.swap(parentIndex, index);
+            // 交换过后尝试继续上移
+            this.shiftUp(parentIndex);
+        }
+    }
+    //下移节点
+    shiftDown(index) {
+        const leftIndex = this.getLeftIndex(index);
+        const rightIndex = this.getRightIndex(index);
+        if (this.heap[leftIndex] < this.heap[index]) {
+            this.swap(leftIndex, index);
+            this.shiftDown(leftIndex);
+        }
+        if (this.heap[rightIndex] < this.heap[index]) {
+            this.swap(rightIndex, index);
+            this.shiftDown(rightIndex);
+        }
+    }
+    //插入节点
+    insert(value) {
+        this.heap.push(value);
+        this.shiftUp(this.heap.length - 1);
+    }
+    //删除节点
+    pop() {
+        // 把堆顶元素替换为堆的最后一个元素
+        this.heap[0] = this.heap.pop();
+        this.shiftDown(0);
+    }
+    // 获取堆顶 
+    peek() {
+        return this.heap[0];
+    }
+    // 获取堆的大小
+    size() {
+        return this.heap.length;
+    }
+}
+
+var findKthLargest = function(nums, k) {
+    const h = new MinHeap();
+    nums.forEach(n => { 
+        h.insert(n);
+        if(h.size() > k) {
+            h.pop();
+        }
+    });
+    return h.peek();
+};
+// @lc code=end
+
+```
+
