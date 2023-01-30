@@ -716,3 +716,7 @@ dispatch = (type, payload) => {
 
 ##### 2.代码逻辑
 
+1. 循环当前父模块，使用set对对象新增属性进行响应式
+2. resetStoreVM 中实例化vue，对其data 和 computed 进行声明
+3. 实现 get State() 访问到data 的变量监听watcher
+4. 实现 commit 和 dispatch
