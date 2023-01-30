@@ -626,8 +626,8 @@ dispatch = (type, payload) => {
       })
       module.forEachAction((action, key) => {
           store._actions[key] = (store._actions[key] || [])
-          store._actions[key].push(function(payload) {
-              action.call(store, this, payload)
+          store._actions[key].push((payload) => {
+              action.call(store, store, payload)
           })
       })
       module.forEachChild((child, key) => {
