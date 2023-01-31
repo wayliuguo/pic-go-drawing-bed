@@ -6,6 +6,16 @@ export default class ModuleCollection {
         this.root = null
         this.register([], options)
     }
+
+    getNamespace(path) {
+        let module = this.root
+        return path.reduce((namespace, key) => {
+            module = module.getChild(key)
+            console.log(module)
+            return namespace + (module.namespace ? key + '/' : '')
+        }, '')
+    }
+
     register(path, rootModule) {
         let newModule = new Module(rootModule)
         if (path.length === 0) {
@@ -31,11 +41,11 @@ export default class ModuleCollection {
 
 /* 
 this.root = {
-    _raw: 用户定义的模块,
+    __rawModule: 用户定义的模块,
     state: 当前模块自己的状态,
     _children: { // 孩子列表
         a: {
-            _raw: 用户定义的模块,
+            __rawModule: 用户定义的模块,
             state: 当前模块自己的状态
             _children: {
                 c: {

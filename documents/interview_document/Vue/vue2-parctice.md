@@ -720,3 +720,72 @@ dispatch = (type, payload) => {
 2. resetStoreVM 中实例化vue，对其data 和 computed 进行声明
 3. 实现 get State() 访问到data 的变量监听watcher
 4. 实现 commit 和 dispatch
+
+### 6.Vuex 命名空间
+
+#### 1.主要代码
+
+- vuex/module/module.js
+
+  ```
+  // 用于标识他自己是否写了namespaced
+  get namespace() {
+  	return !!this._rawModule.namespaced
+  }
+  ```
+
+- vuex/module/module-collection.js
+
+  ```
+  import Module from './module'
+  import { forEachValue } from "../utils"
+  
+  export default class ModuleCollection {
+  	...
+      getNamespace(path) {
+          let module = this.root
+          return path.reduce((namespace, key) => {
+              module = module.getChild(key)
+              console.log(module)
+              return namespace + (module.namespace ? key + '/' : '')
+          }, '')
+      }
+      ...
+  }
+  ```
+
+- vuex/store.js
+
+  ```
+  function installModule(store, rootState, path, module) {
+  
+      // 命名空间： a a/c
+      let namespace = store._modules.getNamespace(path)
+  
+      
+      module.forEachGetter((getter, key) => {
+          store._wrappedGetters[namespace + key] = function() {
+              return getter(module.state)
+          }
+      })
+      module.forEachMutation((mutation, key) => {
+          store._mutations[namespace + key] =(store._mutations[namespace + key] || [])
+          store._mutations[namespace + key].push((payload) => {
+              mutation.call(store, module.state, payload)
+          })
+      })
+      module.forEachAction((action, key) => {
+          store._actions[namespace + key] = (store._actions[namespace + key] || [])
+          store._actions[namespace + key].push((payload) => {
+              action.call(store, store, payload)
+          })
+      })
+      
+  }
+  ```
+
+#### 2.代码逻辑
+
+1. 在module 类中添加 getNamespace 函数返回 namespaced
+2. module-collection 类中 添加 getNamespace 模块的命名空间
+3. store 类中通过注册函数给他们的getters、actions、mutations 对应的key 拼接上命名空间

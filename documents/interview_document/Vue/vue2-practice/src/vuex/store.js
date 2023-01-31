@@ -3,6 +3,10 @@ import { Vue } from './install'
 import { forEachValue } from './utils'
 
 function installModule(store, rootState, path, module) {
+
+    // 命名空间： a a/c
+    let namespace = store._modules.getNamespace(path)
+
     // 需要循环当前模块
     // module.state => 放到rootState 对应的儿子里
     if(path.length > 0) {
@@ -14,19 +18,19 @@ function installModule(store, rootState, path, module) {
         Vue.set(parent, path[path.length - 1], module.state)
     }
     module.forEachGetter((getter, key) => {
-        store._wrappedGetters[key] = function() {
+        store._wrappedGetters[namespace + key] = function() {
             return getter(module.state)
         }
     })
     module.forEachMutation((mutation, key) => {
-        store._mutations[key] =(store._mutations[key] || [])
-        store._mutations[key].push((payload) => {
+        store._mutations[namespace + key] =(store._mutations[namespace + key] || [])
+        store._mutations[namespace + key].push((payload) => {
             mutation.call(store, module.state, payload)
         })
     })
     module.forEachAction((action, key) => {
-        store._actions[key] = (store._actions[key] || [])
-        store._actions[key].push((payload) => {
+        store._actions[namespace + key] = (store._actions[namespace + key] || [])
+        store._actions[namespace + key].push((payload) => {
             action.call(store, store, payload)
         })
     })

@@ -29,4 +29,9 @@ export default class Module {
     forEachChild(fn) {
         forEachValue(this._children, fn)
     }
+
+    // 用于标识他自己是否写了namespaced
+    get namespace() {
+        return !!this._rawModule.namespaced
+    }
 }
