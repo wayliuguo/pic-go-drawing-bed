@@ -789,3 +789,95 @@ dispatch = (type, payload) => {
 1. 在module 类中添加 getNamespace 函数返回 namespaced
 2. module-collection 类中 添加 getNamespace 模块的命名空间
 3. store 类中通过注册函数给他们的getters、actions、mutations 对应的key 拼接上命名空间
+
+### 7.插件机制
+
+#### 1.主要代码
+
+- store/index.js
+
+  ```
+  function logger () {
+      return function (store) {
+          let prevState = JSON.stringify(store.state)
+          store.subscribe((mutation, state) => {
+              // 所有的更新操作都基于 mutation （状态变化都是通过mutation）
+              // 如果直接手动的更改状态，此subcribe 是不会执行的
+              console.log('prevState:', prevState)
+              console.log('mutation:', JSON.stringify(mutation))
+              console.log(JSON.stringify(state))
+              prevState = JSON.stringify(state)
+          })
+      }
+  }
+  
+  function persists() {
+      return function (store) {
+          let local = localStorage.getItem('VUES:state')
+          if (local) {
+              store.replaceState(JSON.parse(local))
+          }
+          store.subscribe((mutation, state) => {
+              // 这里需要做一个防抖
+              localStorage.setItem('VUES:state', JSON.stringify(state))
+          })
+      }
+  }
+  ...
+  let store = new Vuex.Store({
+      plugins: [
+          logger(),
+          persists()
+      ]
+  })
+  ...
+  ```
+
+- vuex/store.js
+
+  ```
+  function getNewState(store, path) {
+      return path.reduce((memo, cur) => {
+          return memo[cur]
+      }, store.state)
+  }
+  
+  module.forEachGetter((getter, key) => {
+  	store._wrappedGetters[namespace + key] = function() {
+  		return getter(getNewState(store, path))
+  	}
+  })
+  module.forEachMutation((mutation, key) => {
+  	store._mutations[namespace + key] =(store._mutations[namespace + key] || [])
+  	store._mutations[namespace + key].push((payload) => {
+  		mutation.call(store, getNewState(store, path), payload)
+  		store._subscribe.forEach(fn => fn({type: namespace + key, payload}, store.state))
+  	})
+  })
+  ...
+  class Store {
+      constructor(options) {
+      	this._subscribe = []
+      	...
+      	// 插件
+          if (options.plugins) {
+              options.plugins.forEach(plugin => plugin(this))
+          }
+      }
+      subscribe(fn) {
+          this._subscribe.push(fn)
+      }
+  
+      replaceState(newState) {
+          // 替换最新的状态，赋予对象类型会被重新劫持
+          // 虽然替换了状态，但是mutaions等中的老的状态已经被绑死了
+          // 需要通过getNewState 去取最新的
+          this._vm._data.$$state = newState
+      }
+  }
+  ```
+
+#### 2.代码逻辑
+
+1. 插件中通过 return function() {} 返回一个高阶函数，而我们的store需要遍历这些插件，把这些插件执行，此时插件代码中的subscribe方法会push 到 store 中的_subscribe 中
+2. replaceState 中对数据进行重新劫持，但是由于先执行的installModule，导致mutaions等中的老的状态已经被绑死了，需要通过getNewState 去取最新的

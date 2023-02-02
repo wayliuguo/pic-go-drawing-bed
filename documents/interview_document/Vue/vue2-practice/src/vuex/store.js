@@ -2,6 +2,12 @@ import ModuleCollection from './module/module-collection'
 import { Vue } from './install'
 import { forEachValue } from './utils'
 
+function getNewState(store, path) {
+    return path.reduce((memo, cur) => {
+        return memo[cur]
+    }, store.state)
+}
+
 function installModule(store, rootState, path, module) {
 
     // 命名空间： a a/c
@@ -19,13 +25,14 @@ function installModule(store, rootState, path, module) {
     }
     module.forEachGetter((getter, key) => {
         store._wrappedGetters[namespace + key] = function() {
-            return getter(module.state)
+            return getter(getNewState(store, path))
         }
     })
     module.forEachMutation((mutation, key) => {
         store._mutations[namespace + key] =(store._mutations[namespace + key] || [])
         store._mutations[namespace + key].push((payload) => {
-            mutation.call(store, module.state, payload)
+            mutation.call(store, getNewState(store, path), payload)
+            store._subscribe.forEach(fn => fn({type: namespace + key, payload}, store.state))
         })
     })
     module.forEachAction((action, key) => {
@@ -70,12 +77,30 @@ class Store {
         this._actions = {}
         this._wrappedGetters = {}
         const { state } = options
+        this._subscribe = []
 
         // 安装模块
         installModule(this, state, [], this._modules.root)
 
         resetStoreVM(this, state)
+        
+        // 插件
+        if (options.plugins) {
+            options.plugins.forEach(plugin => plugin(this))
+        }
     }
+
+    subscribe(fn) {
+        this._subscribe.push(fn)
+    }
+
+    replaceState(newState) {
+        // 替换最新的状态，赋予对象类型会被重新劫持
+        // 虽然替换了状态，但是mutaions等中的老的状态已经被绑死了
+        // 需要通过getNewState 去取最新的
+        this._vm._data.$$state = newState
+    }
+
     get state() {
         return this._vm._data.$$state
     }

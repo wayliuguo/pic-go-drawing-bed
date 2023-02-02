@@ -1,13 +1,46 @@
 import Vue from 'vue'
 import Vuex from '@/vuex'
 // import Vuex from 'vuex'
+// import logger from 'vuex/dist/logger.js'
 
 import a from './a'
 import b from './b'
 
 Vue.use(Vuex)
 
+function logger () {
+    return function (store) {
+        let prevState = JSON.stringify(store.state)
+        store.subscribe((mutation, state) => {
+            // 所有的更新操作都基于 mutation （状态变化都是通过mutation）
+            // 如果直接手动的更改状态，此subcribe 是不会执行的
+            console.log('prevState:', prevState)
+            console.log('mutation:', JSON.stringify(mutation))
+            console.log(JSON.stringify(state))
+            prevState = JSON.stringify(state)
+        })
+    }
+}
+
+function persists() {
+    return function (store) {
+        let local = localStorage.getItem('VUES:state')
+        if (local) {
+            store.replaceState(JSON.parse(local))
+        }
+        store.subscribe((mutation, state) => {
+            // 这里需要做一个防抖
+            localStorage.setItem('VUES:state', JSON.stringify(state))
+        })
+    }
+}
+
+
 let store = new Vuex.Store({
+    plugins: [
+        logger(),
+        persists()
+    ],
     strict: true,
     state: {
         name: 'well',
