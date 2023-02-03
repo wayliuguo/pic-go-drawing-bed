@@ -881,3 +881,105 @@ dispatch = (type, payload) => {
 
 1. 插件中通过 return function() {} 返回一个高阶函数，而我们的store需要遍历这些插件，把这些插件执行，此时插件代码中的subscribe方法会push 到 store 中的_subscribe 中
 2. replaceState 中对数据进行重新劫持，但是由于先执行的installModule，导致mutaions等中的老的状态已经被绑死了，需要通过getNewState 去取最新的
+
+### 8.辅助函数
+
+#### 1.主要代码
+
+- vuex/index.js
+
+  ```
+  import {install} from './install'
+  import Store from './store'
+  function mapState (arrList) {
+      let obj = {}
+      for (let i=0; i<arrList.length; i++) {
+          let stateName = arrList[i]
+          obj[stateName] = function() {
+              return this.$store.state[stateName]
+          }
+      }
+      return obj
+  }
+  function mapGetters (arrList) {
+      let obj = {}
+      for (let i=0; i<arrList.length; i++) {
+          let getterName = arrList[i]
+          obj[getterName] = function() {
+              return this.$store.getters[getterName]
+          }
+      }
+      return obj
+  }
+  function mapMutations (arrList) {
+      let obj = {}
+      for (let i=0; i<arrList.length; i++) {
+          let type = arrList[i]
+          obj[type] = function(payload) {
+              this.$store.commit(type, payload)
+          }
+      }
+      return obj
+  }
+  function mapActions (arrList) {
+      let obj = {}
+      for (let i=0; i<arrList.length; i++) {
+          let type = arrList[i]
+          obj[type] = function(payload) {
+              this.$store.dispatch(type, payload)
+          }
+      }
+      return obj
+  }
+  export {
+      install,
+      Store,
+      mapState,
+      mapGetters,
+      mapMutations,
+      mapActions
+  }
+  ```
+
+- store.vue
+
+  ```
+  <template>
+      <div>
+          辅助函数：<br/>
+          name:{{ name }}<br/>
+          myAge: {{ myAge }}<br/>
+          <button @click="changeAge(10)">加10(commit)</button>
+          <button @click="$store.dispatch('changeAge', 10)">加10(dispatch)</button>
+  
+      </div>
+  </template>
+  
+  <script>
+  import { mapState, mapGetters, mapMutations, mapActions } from '@/vuex'
+  export default {
+      name: 'Store',
+      computed: {
+          ...mapState(['name']),
+          ...mapGetters(['myAge'])
+          // name() {
+          //     return this.$store.state.name
+          // },
+          // myAge() {
+          //     return this.$store.getters.myAge
+          // }
+      },
+      methods: {
+          ...mapMutations(['changeAge'])
+          // ...mapActions(['changeAge'])
+      },
+      mounted() {
+          console.log(this.$store)
+      }
+  }
+  </script>
+  ```
+
+#### 2.代码逻辑
+
+1. 通过返回一个对象配合...解构到对应的钩子中，即得到对应的computed或者methods
