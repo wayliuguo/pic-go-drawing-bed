@@ -983,3 +983,188 @@ dispatch = (type, payload) => {
 #### 2.代码逻辑
 
 1. 通过返回一个对象配合...解构到对应的钩子中，即得到对应的computed或者methods
+
+## 4.Vue-Router
+
+### 1.Vue-Router 基本应用
+
+- router.js
+
+  ```
+  import Vue from 'vue'
+  // import Router from 'vue-router'
+  import Router from '@/vue-router'
+  import Home from '@/views/Home'
+  import About from '@/views/About'
+  
+  Vue.use(Router)
+  
+  /* 
+      / => home
+      /about => [about]
+      /about/a => [about, a]
+      /about/b => [about, b]
+  */
+  
+  export default new Router({
+      routes: [
+          {
+              path: '/',
+              name: 'home',
+              component: Home
+          },
+          {
+              path: '/about',
+              name: 'about',
+              component: About,
+              children: [
+                  {
+                      path: 'a',
+                      component: {
+                          render(h) {
+                              return <h1>about A</h1>
+                          }
+                      }
+                  },
+                  {
+                      path: 'b',
+                      component: {
+                          render(h) {
+                              return <h1>about B</h1>
+                          }
+                      }
+                  }
+              ]
+          }
+      ]
+  })
+  ```
+
+- main.js
+
+  ```
+  import Vue from 'vue'
+  import router from 'router'
+  ...
+  let vm = new Vue({
+    router,
+    render: h => h(App),
+  }).$mount('#app')
+  ```
+
+- App.vue
+
+  ```
+  <template>
+    <div id="app">
+      <router-link to="/">首页</router-link>
+      <router-link to="/about">关于页面</router-link>
+      <router-view />
+    </div>
+  </template>
+  ```
+
+- About.vue
+
+  ```
+  <template>
+      <div>
+          This is About page
+          <div>
+              <router-link to="/about/a">about - a</router-link>
+              <router-link to="/about/b">about - b</router-link>
+          </div>
+          <router-view />
+      </div>
+  </template>
+  ```
+
+### 2.编写Vue-Router
+
+#### 1.编写 install 方法
+
+##### 1.主要代码
+
+- vue-router/components(router-link、router-view)
+
+  - link.js
+  - view.js
+
+- vue-router/index.js
+
+  ```
+  import { install } from './install'
+  export default class VueRouter{
+      constructor(options={}) {
+          const { mode='hash', routes=[] } = options
+          // 给我个路径，我就返回给你对应的记录
+          // match 匹配方法
+  
+          // addRoutes 动态添加路由 
+          this.matcher = createMatcher(routes)
+      }
+      init() {
+          console.log('init')
+      }
+  }
+  VueRouter.install = install
+  ```
+
+- vue-router/install.js
+
+  ```
+  import RouterLink from './components/link'
+  import RouterView from './components/view'
+  
+  let _Vue
+  function install (Vue) {
+      _Vue = Vue
+      // 给所有组件的声明周期都增加beforeCreate 方法
+      Vue.mixin({
+          beforeCreate() {
+              if (this.$options.router) { // 如果有router属性说明是根实例
+                  this._routerRoot = this // 将根实例挂载在_routerRoot属性上
+                  this._router = this.$options.router // 将当前router 实例挂载在_router 上
+  
+                  this._router.init(this) // 初始化路由，这里的 this 指向的是根实例
+              } else {
+                  // 父组件渲染后会渲染子组件
+                  this._routerRoot = this.$parent  && this.$parent._routerRoot
+                  // 保证所有子组件都拥有_routerRoot 属性，指向根实例
+                  // 保证所有组件都可以通过 this._routerRoot._router 拿到用户传递进来的路由实例对象
+              }
+          }
+      })
+  
+      // 给所有组件统一添加$router 和 $route 属性
+      Object.defineProperty(Vue.prototype, '$router', {
+          get() {
+          }
+      })
+      Object.defineProperty(Vue.prototype, '$route', {
+          get() {
+  
+          }
+      })
+  
+      // 定义全局组件
+      Vue.component('router-link', RouterLink)
+      Vue.component('router-view', RouterView)
+  }
+  
+  export {
+      _Vue,
+      install
+  }
+  ```
+
+##### 2.代码逻辑
+
+- 实现VueRouter 类并导出，挂载install方法
+- 实现install 方法
+  - 通过Vue.mixin 使所有的组件拥有_routerRoot，指向根实例
+  - 所有组件都可以通过 this._routerRoot._router 拿到用户传递进来的路由实例对象
+- 添加$router、$route 的代理
+- 定义全局组件 router-link、router-view
+
+#### 2.
