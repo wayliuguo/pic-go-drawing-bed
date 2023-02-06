@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import store from './store'
 import VueLazyLoad from '@/plugins/vue-lazyload'
+import router from '@/router'
 import logo from '@/assets/logo.png'
 
 
@@ -14,6 +15,7 @@ Vue.use(VueLazyLoad, {
 
 let vm = new Vue({
   name: 'App',
+  router,
   store,
   render: h => h(App),
 }).$mount('#app')
