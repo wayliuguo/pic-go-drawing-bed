@@ -1,4 +1,5 @@
 import { install } from './install'
+import createMatcher from './create-matcher'
 export default class VueRouter{
     constructor(options={}) {
         const { mode='hash', routes=[] } = options

@@ -1167,4 +1167,89 @@ dispatch = (type, payload) => {
 - 添加$router、$route 的代理
 - 定义全局组件 router-link、router-view
 
-#### 2.
+#### 2.编写createMatcher 方法
+
+##### 1.主要代码
+
+- vue-router/create-matcher.js
+
+  ```
+  import createRouteMap from "./create-router-map"
+  
+  export default function createMatcher(routes) {
+      // 收集所有的路由路径，收集路径的对应渲染关系
+      // pathMap = {'/': '/的记录', '/about':'/about的记录',... }
+      let { pathMap } = createRouteMap(routes)
+      console.log(pathMap)
+  
+      // 这个方法是动态加载路由的方法
+      function addRoutes(routes) {
+          // 将新增的路由追加到 pathMap 中
+          createRouteMap(routes, pathMap)
+      }
+  
+      // 根据路径找到对应的记录
+      function match(path) {
+          return pathMap[path]
+      }
+  
+      return {
+          addRoutes,
+          match
+      }
+  }
+  ```
+
+##### 2.代码逻辑
+
+1. 导出两个方法
+   - addRouters: 动态加载路由
+   - match: 匹配路由
+2. 通过 createRouteMap 得到扁平化的路由映射表
+
+#### 3.编写 createRouteMap 方法
+
+##### 1.主要代码
+
+- create-router-map.js
+
+  ```
+  export default function createRouteMap(routes, oldPathMap) {
+      // 当第一次加载的时候没有 pathMap
+      let pathMap = oldPathMap || Object.create(null)
+      // 遍历路由配置
+      routes.forEach(route => {
+          // 添加到路由记录
+          addRouteRecord(route, pathMap)
+      });
+      return {
+          pathMap
+      }
+  }
+  
+  function addRouteRecord (route, pathMap, parent) {
+      // 如果是子路由记录，需要增加前缀
+      let path = parent ? `${parent.path}/${route.path}` : route.path
+      // 需要提取的信息
+      let record = {
+          path,
+          component: route.component,
+          parent
+      }
+      if (!pathMap[path]) {
+          pathMap[path] = record
+      }
+      // 递归添加子路由
+      if (route.children) {
+          route.children.forEach(childRoute => {
+              // 这里需要标记父亲是谁
+              addRouteRecord(childRoute, pathMap, route)
+          })
+      }
+  }
+  ```
+
+##### 2.代码逻辑
+
+1. 在createRouteMap 中遍历路由配置，通过addRouteRecorde 获取路由映射
+2. 在 addRouteRecorde  中 提取信息，递归往 pathMap 中添加对应映射信息
