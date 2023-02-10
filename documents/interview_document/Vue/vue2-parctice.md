@@ -1253,3 +1253,156 @@ dispatch = (type, payload) => {
 
 1. 在createRouteMap 中遍历路由配置，通过addRouteRecorde 获取路由映射
 2. 在 addRouteRecorde  中 提取信息，递归往 pathMap 中添加对应映射信息
+
+#### 4.hash 路由实现
+
+##### 1.主要代码
+
+- vue-router/history/base.js
+
+  ```
+  function createRoute (record, location) { // 创建路由
+      const matched = []
+      if (record) {
+          // 不停地去父级查找
+          while(record) {
+              matched.unshift(record)
+              record = record.parent
+          }
+      }
+      return {
+          ...location,
+          matched
+      }
+  } 
+  
+  export default class History {
+      constructor (router) {
+          this.router = router
+  
+          // 有一个数据来保存数据的变化
+          // null: 当前没有匹配到记录
+          this.current = createRoute(null, {
+              path: '/'
+          })
+      }
+  
+      transitionTo(path, cb) {
+          let route = this.router.match(path)
+          this.current = createRoute(route, {
+              path
+          })
+          console.log('current>>>', this.current)
+  
+          // 路径变化 需要渲染组件 响应式原理
+          // 我们需要将current 属性变成响应式，这样后续更改current 就可以渲染组件了
+          // 我们可以在router-view 组件中使用current 属性，如果路径变化就可以更新router-view
+  
+          // 默认第一次 cb 是进行 hashChange 监听
+          cb && cb()
+      }
+  }
+  ```
+
+- vue-router/history/hash.js
+
+  ```
+  import History from "./base";
+  
+  const ensureHash = () => {
+      if (!window.location.hash) {
+          window.location.hash = '/'
+      }
+  }
+  
+  const getHash = () => {
+      return window.location.hash.slice(1)
+  }
+  export default class Hash extends History {
+      constructor(router) {
+          super(router)
+          console.log('hashRouter', router)
+          // hash 路由初始化的时候需要增加一个默认的hash值 /#/
+          ensureHash()
+      }
+      getCurrentLocation() {
+          return getHash()
+      }
+  
+      setUpListener() {
+          window.addEventListener('hashchange', () => {
+              // 等待hash值变化后再去切换组件
+              this.transitionTo(getHash())
+          })
+      }
+  }
+  ```
+
+- vue-router/index.js
+
+  ```
+  import HTML5History from './history/h5'
+  import Hash from './history/hash'
+  export default class VueRouter{
+      constructor(options={}) {
+      	...
+          this.mode = mode
+          ...
+          switch (this.mode) {
+              case 'hash': // location.hash
+                  this.history = new Hash(this)
+                  break
+              case 'history':
+                  this.history = new HTML5History(this)
+                  break
+          }
+      }
+  
+      match(location) {
+          return this.matcher.match(location)
+      }
+  
+      init() {
+          const history = this.history
+          // hash => hashChange 但是浏览器支持popState时优先采用 popstate
+          // history => popstate，性能高于 hashchange 但是有兼容性问题
+          // 可以在控制台中输入，然后切换路由测试
+          /* window.addEventListener('popstate', () => {
+              console.log(window.location)
+          }) */
+  
+          const setUpListener = () => {
+              history.setUpListener()
+          }
+  
+          // 页面初始化完毕后 需要先进行一次调整
+          history.transitionTo(
+              history.getCurrentLocation(), // 各自获取路径方法
+              setUpListener // 跳转到某个路径
+          )
+      }
+  }
+  VueRouter.install = install
+  ```
+
+##### 2.代码逻辑
+
+1. base.js
+
+   - 导出实现History 类，实现this.router与this.current 属性，实现 transitionTo
+
+   - 通过createRoute方法实现映射
+
+     ![image-20230210081336967](vue2-parctice.assets/image-20230210081336967.png)
+
+2. hash.js
+
+   - 导出实现Hash类继承 History
+   - 初始化增加一个默认的hash值 /#/
+   - setUpListener： 监听 hashChange 事件，调用 History 的 transitionTo并传入hash值
+
+3. index.js
+
+   - 根据mode 生成不同的history
+   - 页面初始化完毕后，通过 history.transitionTo(path, setUpListener)，进行初始化路由并实现监听
+
