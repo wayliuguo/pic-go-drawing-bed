@@ -26,7 +26,16 @@ export default class VueRouter{
         return this.matcher.match(location)
     }
 
-    init() {
+    // 跳转页面
+    push(location) {
+        this.history.transitionTo(location, ()=> {
+            // 更改hash值
+            window.location.hash = location
+        })
+    }
+
+
+    init(app) {
         const history = this.history
         // hash => hashChange 但是浏览器支持popState时优先采用 popstate
         // history => popstate，性能高于 hashchange 但是有兼容性问题
@@ -44,6 +53,11 @@ export default class VueRouter{
             history.getCurrentLocation(), // 各自获取路径方法
             setUpListener // 跳转到某个路径
         )
+
+        history.listen((route) => {
+            // 监听如果current变化，则重新给_route赋值
+            app._route = route
+        })
     }
 }
 VueRouter.install = install

@@ -12,6 +12,10 @@ function install (Vue) {
                 this._router = this.$options.router // 将当前router 实例挂载在_router 上
 
                 this._router.init(this) // 初始化路由，这里的 this 指向的是根实例
+
+                // 使current变为响应式数据，在哪里使用就收集对应的watcher
+                Vue.util.defineReactive(this, '_route',this._router.history.current)
+                console.log(this._router.history.current)
             } else {
                 // 父组件渲染后会渲染子组件
                 this._routerRoot = this.$parent  && this.$parent._routerRoot
@@ -24,11 +28,12 @@ function install (Vue) {
     // 给所有组件统一添加$router 和 $route 属性
     Object.defineProperty(Vue.prototype, '$router', {
         get() {
+            return this._routerRoot._router
         }
     })
     Object.defineProperty(Vue.prototype, '$route', {
         get() {
-
+            return this._routerRoot._route
         }
     })
 

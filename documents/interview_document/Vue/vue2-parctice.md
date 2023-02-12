@@ -1406,3 +1406,196 @@ dispatch = (type, payload) => {
    - 根据mode 生成不同的history
    - 页面初始化完毕后，通过 history.transitionTo(path, setUpListener)，进行初始化路由并实现监听
 
+#### 5.编写router-link 与 router-view
+
+- vue-router/install.js
+
+  ```
+  function install (Vue) {
+     
+      Vue.mixin({
+          beforeCreate() {
+              if (this.$options.router) { // 如果有router属性说明是根实例
+                  ...
+                  this._router.init(this) // 初始化路由，这里的 this 指向的是根实例
+                  // 使current变为响应式数据，在哪里使用就收集对应的watcher
+                  Vue.util.defineReactive(this, '_route',this._router.history.current)
+              } else {
+                  ...
+              }
+          }
+      })
+  
+      // 给所有组件统一添加$router 和 $route 属性
+      Object.defineProperty(Vue.prototype, '$router', {
+          get() {
+              return this._routerRoot._router
+          }
+      })
+      Object.defineProperty(Vue.prototype, '$route', {
+          get() {
+              return this._routerRoot._route
+          }
+      })
+  }
+  ```
+
+  - 调用init方法会走下面index的init方法
+  - 通过` Vue.util.defineReactive(this, '_route',this._router.history.current)`使current变为响应式数据
+  - 给所有组件统一添加$router 和 $route 属性
+
+- vue-router/index.js
+
+  ```
+  export default class VueRouter{
+      constructor(options={}) {
+          ...
+      }
+      // 跳转页面
+      push(location) {
+          this.history.transitionTo(location, ()=> {
+              // 更改hash值
+              window.location.hash = location
+          })
+      }
+  
+  
+      init(app) {
+      	...
+          history.listen((route) => {
+              // 监听如果current变化，则重新给_route赋值
+              app._route = route
+          })
+      }
+  }
+  VueRouter.install = install
+  ```
+
+  - 实现 push 方法，通过push方法改变hash值
+  - 在init方法中调用history.listen 中传入方法，此传入的方法监听current变化，则重新给_route赋值
+
+- vue-router/base.js
+
+  ```
+  export default class History {
+      ...
+      listen(cb) {
+          // 保存当前的cb函数
+          this.cb = cb
+      }
+  
+      transitionTo(path, cb) {
+          let record = this.router.match(path)
+          let route = createRoute(record, {
+              path
+          })
+          // 保证跳转的路径和当前路径一致
+          // 匹配的记录个数，应该和当前的匹配个数一致，说明是相同路由
+          if (path === this.current.path && route.matched.length && this.current.matched.length) {
+              return
+          }
+          this.current = route
+          console.log('current>>>', this.current)
+  
+          // 路径变化 需要渲染组件 响应式原理
+          // 我们需要将current 属性变成响应式，这样后续更改current 就可以渲染组件了
+          // 我们可以在router-view 组件中使用current 属性，如果路径变化就可以更新router-view
+  
+          this.cb && this.cb(route) // 更改了组件中._route的值，才会响应式更改到$route的值，重新渲染
+          // 默认第一次 cb 是进行 hashChange 监听
+          cb && cb()
+      }
+  }
+  ```
+
+  - 实现listen方法，保存cb属性
+  - 给transitionTo 方法增加匹配路径和匹配个数判断，如果是相等的则不做操作了，这是由于link组件在点击时候push更改了hash值，而我们前面已经安装了hash值的监听与回调，会再调一遍，但是相同的就return掉就好了
+  - 更新 this._current,调用this.cb 更新 `this._route`, 由于是响应式的则会导致this.$route也已经刷新，否则router-view 组件获取的$router 是旧数据
+
+- vue-router/components/link.js
+
+  ```
+  export default {
+      // 函数式组件，会导致render函数中没有this
+      functional: true,
+      props: {
+          to: {
+              type: String,
+              required: true
+          }
+      },
+      render(h, { props, slots, parent }) { // render 方法和 template等价的，template 语法需要被编译成render函数
+          const click= () => {
+              // 组件中的$router（由于没有this，需要获取parent的引用中获取）
+              parent.$router.push(props.to)
+          }
+          // jsx 和 react 语法一样 < 开头表示的是html {}开头表示的是js属性
+          return <a onClick={click}>{slots().default}</a>
+      }
+  }
+  ```
+
+- vue-router/components/view.js
+
+  ```
+  export default {
+      functional: true,
+      render(h, {parent, data}) {
+          // 获取current 对象 current={matched: []}
+          let route = parent.$route
+          // 依次将matched的结果赋予给每个 router-view
+          // 记录返回matched 的第几项 前一项是后一项的父亲 
+          let depth = 0
+          // 需要是组件 <router-view></router-view> <App></App>
+          while(parent) {
+              if (parent.$vnode && parent.$vnode.data.routerView) {
+                  depth++
+              }
+              parent = parent.$parent
+          }
+          // 两个router-view /about /about/a
+          let record = route.matched[depth]
+          if (!record) {
+              return h()
+          }
+          // 给组件打上标识，代表已经标识过了
+          data.routerView = true
+          // 渲染匹配到的组件
+          return h(record.component, data)
+      }
+  }
+  ```
+
+  - 获取当前的$route，通过depth的结果，返回对应的组件
+
+  - 核心是通过递归当前组件往父组件上递归，如果已经对应返回过的则给其routerView赋值true，且depth++，则根据匹配到的顺序返回了对应的组件
+
+  - 即获取从父级开始，先返回其对应的组件，然后标识其返回过了，再从头开始，由于已经标识过的跳过，depth++就可以找到对应的了
+
+  - 例如：http://localhost:8080/#/about =》 http://localhost:8080/#/about/a
+
+    - route的数据如下
+
+      ```
+      {
+      	path: "/about/a",
+      	matched: [
+      		{
+      			component: ...,
+                  children: ...,
+                  name: "about"
+                  path: "/about"
+      		},
+      		{
+      			component: ...,
+                  parent: ...,
+                  path: "/about/a"
+      		}
+      	]
+      }
+      ```
+
+      
+
+    - 第一次是先渲染about对应的router-view,然后标识了，depth为0
+    - 第二次渲染a对应的router-view，由于about的标识了，depth++，返回'/about/a'对应的组件
