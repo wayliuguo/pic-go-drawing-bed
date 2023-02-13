@@ -31,8 +31,7 @@ export default class VueRouter{
     // 跳转页面
     push(location) {
         this.history.transitionTo(location, ()=> {
-            // 更改hash值
-            window.location.hash = location
+            this.history.pushState(location)
         })
     }
 

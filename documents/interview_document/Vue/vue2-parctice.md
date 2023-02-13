@@ -1676,3 +1676,53 @@ dispatch = (type, payload) => {
 
   - iterator: 执行每一个hooks
   - runQueue：传入所有的 钩子数组，iterator，cb，在里面通过step方法遍历执行钩子（next的作用就是使step+1），如果执行完了所有钩子，则执行传入的cb，cb的作用是更新路由实现跳转
+
+#### 7.history 路由实现
+
+- vue-router/index.js
+
+  ```
+  // 跳转页面
+  push(location) {
+  	this.history.transitionTo(location, ()=> {
+  		this.history.pushState(location)
+  	})
+  }
+  ```
+
+- vue-router/history/h5.js
+
+  ```
+  import History from "./base";
+  
+  export default class HTML5History extends History {
+      constructor(router) {
+          super(router)
+      }
+      getCurrentLocation() {
+          // 获取路径
+          return window.location.pathname
+      }
+      setUpListener() {
+          window.addEventListener('popstate', () => {
+              this.transitionTo(window.location.pathname)
+          })
+      }
+  
+      pushState() {
+          history.pushState({}, null, location)
+      }
+  }
+  ```
+
+- vue-router/history/hash.js
+
+  ```
+  pushState(location) {
+  	// 更改hash值
+  	window.location.hash = location
+   }
+  ```
+
+
+

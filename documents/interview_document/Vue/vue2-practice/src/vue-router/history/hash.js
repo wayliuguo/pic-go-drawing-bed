@@ -26,4 +26,9 @@ export default class Hash extends History {
             this.transitionTo(getHash())
         })
     }
+
+    pushState(location) {
+        // 更改hash值
+        window.location.hash = location
+    }
 }
