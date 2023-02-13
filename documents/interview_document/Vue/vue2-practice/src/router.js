@@ -13,7 +13,7 @@ Vue.use(Router)
     /about/b => [about, b]
 */
 
-export default new Router({
+const router = new Router({
     mode: 'hash',
     routes: [
         {
@@ -46,3 +46,17 @@ export default new Router({
         }
     ]
 })
+
+// 全局路由钩子
+router.beforeEach((to, from, next) => {
+    console.log(to, from, 1)
+    setTimeout(() => {
+        next()
+    },1000)
+})
+router.beforeEach((to, from, next) => {
+    console.log(to, from, 2)
+    next()
+})
+
+export default router

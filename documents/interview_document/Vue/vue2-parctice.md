@@ -1598,4 +1598,81 @@ dispatch = (type, payload) => {
       
 
     - 第一次是先渲染about对应的router-view,然后标识了，depth为0
+    
     - 第二次渲染a对应的router-view，由于about的标识了，depth++，返回'/about/a'对应的组件
+
+#### 6.路由钩子实现
+
+- router.js
+
+  ```
+  // 全局路由钩子
+  router.beforeEach((to, from, next) => {
+      console.log(to, from, 1)
+      setTimeout(() => {
+          next()
+      },1000)
+  })
+  router.beforeEach((to, from, next) => {
+      console.log(to, from, 2)
+      next()
+  })
+  ```
+
+- vue-router/index.js
+
+  ```
+  export default class VueRouter{
+      constructor(options={}) {
+          ...
+          this.beforeHooks = []
+      }
+      ...
+      beforeEach(fn) {
+          this.beforeHooks.push(fn)
+      }
+  }
+  ```
+
+- vue-router/history/base.js
+
+  ```
+  function runQueue(queue, iterator, cb) {
+      function step(index) {
+          if (index >= queue.length) return cb()
+          let hook = queue[index]
+          iterator(hook, () => step(index+1))
+      }
+      step(0)
+  }
+  
+  transitionTo(path, cb) {
+          ...
+  
+          // 在跳转前需要先走对应的钩子
+          let queue = this.router.beforeHooks
+          // 依次执行逻辑 [beforeEach, beforeEnter, beforeRouteEnter]
+          const iterator = (hook, next) => {
+              hook(route, this.current, next)
+          }
+          runQueue(queue, iterator, () => {
+              // 修改current._route 实现跳转
+              this.updateRoute(route)
+  
+              // 默认第一次 cb 是进行 hashChange 监听
+              cb && cb()
+          })
+      }
+  
+      updateRoute(route) {
+          // 路径变化 需要渲染组件 响应式原理
+          // 我们需要将current 属性变成响应式，这样后续更改current 就可以渲染组件了
+          // 我们可以在router-view 组件中使用current 属性，如果路径变化就可以更新router-view
+          this.current = route
+          console.log('current>>>', this.current)
+          this.cb && this.cb(route) // 更改了组件中._route的值，才会响应式更改到$route的值，重新渲染
+      }
+  ```
+
+  - iterator: 执行每一个hooks
+  - runQueue：传入所有的 钩子数组，iterator，cb，在里面通过step方法遍历执行钩子（next的作用就是使step+1），如果执行完了所有钩子，则执行传入的cb，cb的作用是更新路由实现跳转

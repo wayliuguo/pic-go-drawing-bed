@@ -20,6 +20,8 @@ export default class VueRouter{
                 this.history = new HTML5History(this)
                 break
         }
+
+        this.beforeHooks = []
     }
 
     match(location) {
@@ -58,6 +60,10 @@ export default class VueRouter{
             // 监听如果current变化，则重新给_route赋值
             app._route = route
         })
+    }
+
+    beforeEach(fn) {
+        this.beforeHooks.push(fn)
     }
 }
 VueRouter.install = install
