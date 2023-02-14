@@ -3,6 +3,8 @@ import Vue from 'vue'
 import Router from '@/vue-router'
 import Home from '@/views/Home'
 import About from '@/views/About'
+import Level from '@/views/Level.vue'
+import Menu from '@/views/Menu.vue'
 
 Vue.use(Router)
 
@@ -14,7 +16,7 @@ Vue.use(Router)
 */
 
 const router = new Router({
-    mode: 'history',
+    mode: 'hash',
     routes: [
         {
             path: '/',
@@ -43,6 +45,16 @@ const router = new Router({
                     }
                 }
             ]
+        },
+        {
+            path: '/level',
+            name: 'level',
+            component: Level
+        },
+        {
+            path: '/menu',
+            name: 'menu',
+            component: Menu
         }
     ]
 })

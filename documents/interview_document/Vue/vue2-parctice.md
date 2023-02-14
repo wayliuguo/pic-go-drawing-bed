@@ -1726,3 +1726,47 @@ dispatch = (type, payload) => {
 
 
 
+## 5.组件训练
+
+### 1.Level
+
+- components/level.js
+
+  ```
+  export default {
+      props: {
+          type: String
+      },
+      render(h) {
+          return h('h' + this.type, this.$slots.default)
+      }
+  }
+  ```
+
+- Level.vue
+
+  ```
+  <template>
+      <div>
+          <level type="1">
+              ok
+          </level>
+          <level type="2">
+              ok
+          </level>
+      </div>
+  </template>
+  
+  <script>
+  import level from '@/components/level'
+  export default {
+      components: {
+          level
+      }
+  }
+  </script>
+  ```
+
+  ![image-20230214215847569](vue2-parctice.assets/image-20230214215847569.png)
+
+### 2.
