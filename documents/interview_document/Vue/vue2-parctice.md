@@ -1769,4 +1769,197 @@ dispatch = (type, payload) => {
 
   ![image-20230214215847569](vue2-parctice.assets/image-20230214215847569.png)
 
-### 2.
+### 2.递归组件与jsx
+
+- el-meun.vue
+
+  ```
+  <template>
+      <ul>
+          <slot></slot>
+      </ul>
+  </template>
+  ```
+
+- el-submenu.vue
+
+  ```
+  <template>
+      <li>
+          <div>
+              <slot name="title"></slot>
+          </div>
+          <ul>
+              <slot></slot>
+          </ul>
+      </li>
+  </template>
+  ```
+
+- el-menu-item.vue
+
+  ```
+  <template>
+      <li>
+          <slot></slot>
+      </li>
+  </template>
+  ```
+
+- resub.vue
+
+  ```
+  <template>
+      <el-menu-item :key="data.title" v-if="!data.children">{{ data.title }}</el-menu-item>
+      <el-submenu v-else>
+          <template #title>{{ data.title }}</template>
+          <template v-for="d in data.children">
+              <resub :data="d" :key="d.title"></resub>
+          </template>
+      </el-submenu>
+  </template>
+  
+  <script>
+  import elSubmenu from '@/components/el-submenu.vue'
+  import elMenuItem from '@/components/el-menu-item.vue'
+  export default {
+      name: 'resub',
+      components: {
+          elSubmenu,
+          elMenuItem,
+      },
+      props: {
+          data: {}
+      }
+  }
+  </script>
+  ```
+
+- my-menu.vue
+
+  ```
+  <template>
+      <el-menu>
+          <template v-for="item in data">
+              <resub :data="item" :key="item.title"></resub>
+          </template>
+      </el-menu>
+  </template>
+  
+  <script>
+  import elMenu from '@/components/el-menu.vue'
+  import resub from '@/components/resub.vue'
+  export default {
+      components: {
+          elMenu,
+          resub
+      },
+      props: {
+          data: {
+              type: Array,
+              default: () => {
+                  return []
+              }
+          }
+      }
+  }
+  </script>
+  ```
+
+- my-menu.jsx
+
+  ```
+  import elMenu from '@/components/el-menu.vue'
+  import elSubmenu from '@/components/el-submenu.vue'
+  import elMenuItem from '@/components/el-menu-item.vue'
+  
+  export default {
+      props: {
+          data: {}
+      },
+      components: {
+          elMenu,
+          elSubmenu,
+          elMenuItem,
+      },
+      render() {
+          let renderChildren = (data) => {
+              return data.map(child => (
+                  child.children ?
+                  <el-submenu>
+                      <div slot="title">{child.title}</div>
+                      {renderChildren(child.children)}
+                  </el-submenu> :
+                  <el-menu-item>{child.title}</el-menu-item>
+              ))
+          }
+          return (
+              <el-menu>
+                  {renderChildren(this.data)}
+              </el-menu>
+          )
+      }
+  }
+  ```
+
+- Menu.vue(使用)
+
+  ```
+  <template>
+      <div>
+          <my-menu :data="tree"></my-menu>
+      </div>
+  </template>
+  
+  <script>
+  // import myMenu from '@/components/my-menu.vue'
+  import myMenu from '@/components/my-menu.jsx'
+  export default {
+      name: 'Menu',
+      components: {
+          myMenu
+      },
+      data() {
+          return {
+              tree: [
+                  {
+                      title: '菜单1',
+                      children: [
+                          {
+                              title: '菜单1-1',
+                              children: [
+                                  {
+                                      title: '菜单1-1-1',
+                                      children: [
+                                      {
+                                          title: '菜单1-1-1-1',
+                                      }
+                                  ]
+                                  },
+                                  {
+                                      title: '菜单1-1-2'
+                                  },
+                              ]
+                          }
+                      ]
+                  },
+                  {
+                      title: '菜单2',
+                      children: [
+                          {
+                              title: '菜单2-1'
+                          }
+                      ]
+                  },
+                  {
+                      title: '菜单3'
+                  }
+              ]
+          }
+      }
+  }
+  </script>
+  ```
+
+  
+
