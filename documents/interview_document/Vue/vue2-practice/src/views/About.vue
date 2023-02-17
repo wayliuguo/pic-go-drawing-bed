@@ -8,3 +8,14 @@
         <router-view />
     </div>
 </template>
+
+<script>
+import { fetchTodos } from '@/api/index'
+export default {
+    mounted() {
+        fetchTodos().then(res => {
+            console.log('tokens:',this.$store?.state?.token?.tokens?.length)
+        })
+    }
+}
+</script>

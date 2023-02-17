@@ -6,6 +6,8 @@ import About from '@/views/About'
 import Level from '@/views/Level.vue'
 import Menu from '@/views/Menu.vue'
 
+import hooks from './utils/hooks'
+
 Vue.use(Router)
 
 /* 
@@ -60,7 +62,7 @@ const router = new Router({
 })
 
 // 全局路由钩子
-router.beforeEach((to, from, next) => {
+/* router.beforeEach((to, from, next) => {
     console.log(to, from, 1)
     setTimeout(() => {
         next()
@@ -69,6 +71,12 @@ router.beforeEach((to, from, next) => {
 router.beforeEach((to, from, next) => {
     console.log(to, from, 2)
     next()
+}) */
+
+Object.values(hooks).forEach(hook => {
+    router.beforeEach(hook)
 })
+
+
 
 export default router

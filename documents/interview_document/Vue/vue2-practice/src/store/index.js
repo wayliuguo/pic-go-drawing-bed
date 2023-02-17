@@ -5,6 +5,7 @@ import Vuex from 'vuex'
 
 import a from './a'
 import b from './b'
+import token from './token'
 
 Vue.use(Vuex)
 
@@ -38,10 +39,10 @@ function persists() {
 
 let store = new Vuex.Store({
     plugins: [
-        logger(),
-        persists()
+        // logger(),
+        // persists()
     ],
-    strict: true,
+    // strict: true,
     state: {
         name: 'well',
         age: 18
@@ -66,7 +67,8 @@ let store = new Vuex.Store({
     },
     modules: {
         a,
-        b
+        b,
+        token
     }
 })
 console.log('>>>', store)
