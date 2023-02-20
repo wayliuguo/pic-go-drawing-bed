@@ -1,3 +1,5 @@
+export {}
+
 // 接口定义
 interface Info {
     firstName: string

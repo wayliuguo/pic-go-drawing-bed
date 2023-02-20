@@ -1,3 +1,5 @@
+export {}
+
 // 1.类的使用
 class Point {
     x: number

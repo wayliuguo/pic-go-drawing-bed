@@ -1,3 +1,4 @@
+export {}
 // num
 let num: number
 num = 123
@@ -121,7 +122,9 @@ consoleVal = undefined
 
 // never
 // never的特点
-const throwErrorFunc = () => { throw new Error()}
+const throwErrorFunc = () => { 
+    throw new Error()
+}
 const add = (a:number,b:number):number => a + b
 // let neverVal: never = add(1,2) // 不能将类型“number”分配给类型“never”
 let neverVal: never = throwErrorFunc()

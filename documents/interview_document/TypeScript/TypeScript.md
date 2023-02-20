@@ -308,7 +308,7 @@ consoleVal = undefined
 
 #### 7.never
 
-- 指永远粗存在的类型
+- 指永远不存在的类型
 - 其值是**总会抛出异常或根本不会有返回值的函数表达式的返回值**
 
 ##### never 的特点
@@ -336,8 +336,10 @@ TypeScript 使用 never 作为那些无法达到的终点的函数的返回值�
 - 函数不会有返回值（无限循环）
 
 ```
+// throwErrorFunc
 const throwErrorFunc = () => { throw new Error()}
 
+// const output: () => never
 const output = () => {
     while(true) {
         console.log('循环')
@@ -381,6 +383,27 @@ anyA = notSure
 let result: unknown
 if (typeof result === 'number') {
     result.toFixed()
+}
+```
+
+#### 9.字面量类型与类型字面量
+
+```
+// 字面量类型
+type Direction = 'Up' | 'Down' | 'Left' | 'Riht'
+function move(direction: Direction) {
+    console.log(direction)
+}
+move('Down')
+
+// 类型字面量
+type Person1 = {
+    name: string,
+    age: number
+}
+let p1: Person1 = {
+    name: 'well',
+    age: 18
 }
 ```
 
@@ -510,19 +533,32 @@ const handleDataMore = (x: number, ...args: (number | string)[]) => Array
 ### 3.函数重载
 
 ```
-const handleDatas = (x: string | number | null): any => {
-    if (typeof x === 'string') {
-        return Number(x);
-    }
-    if (typeof x === 'number' ) {
-        return String(x);
-    }
-    return -1;
+let attrObj = {
+    name: '',
+    age: 0
 }
-console.log(handleDatas(996)) // "996"
-console.log(handleDatas("996")) // 996
-// handleData(false) // error
+// function attr():void
+/* 
+  如果传入的val是一个字符串赋值给attrObj.name
+  如果传入的val是一个数字赋值给attrObj.age
+  @param val
+*/
+function attr(val: string):void
+function attr(val: number):void
+function attr (val:any):void {
+    if (typeof val === 'string') {
+        attrObj.name = val
+    } else if (typeof val === 'number') {
+        attrObj.age  = val
+    }
+}
+attr('well')
+attr(18)
+// attr(true) // 报错
 ```
+
+- 重载的需要在上面，定义的需要跟着重载，不能被别的断开
+- 如果重载了，则下面的attr(true)（没有boolean的重载）
 
 ## 5.类类型
 

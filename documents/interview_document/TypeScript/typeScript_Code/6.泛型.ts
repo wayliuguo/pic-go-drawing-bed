@@ -1,3 +1,5 @@
+export {}
+
 // 泛型语法
 function pickObjectKeys<T, K extends keyof T>(obj: T, keys: K[]) {
     let result = {} as Pick<T, K>

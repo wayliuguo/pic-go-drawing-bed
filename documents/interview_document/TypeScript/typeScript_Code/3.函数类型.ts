@@ -1,3 +1,4 @@
+export {}
 // 直接定义
 function addFn (x: number, y: number):number {
     return x + y
@@ -43,15 +44,25 @@ const handleData = (x: number, ...args: number[]) => Array
 const handleDataMore = (x: number, ...args: (number | string)[]) => Array
 
 // 函数重载
-const handleDatas = (x: string | number | null): any => {
-    if (typeof x === 'string') {
-        return Number(x);
-    }
-    if (typeof x === 'number' ) {
-        return String(x);
-    }
-    return -1;
+let attrObj = {
+    name: '',
+    age: 0
 }
-console.log(handleDatas(996)) // "996"
-console.log(handleDatas("996")) // 996
-// handleData(false) // error
+// function attr():void
+/* 
+  如果传入的val是一个字符串赋值给attrObj.name
+  如果传入的val是一个数字赋值给attrObj.age
+  @param val
+*/
+function attr(val: string):void
+function attr(val: number):void
+function attr (val:any):void {
+    if (typeof val === 'string') {
+        attrObj.name = val
+    } else if (typeof val === 'number') {
+        attrObj.age  = val
+    }
+}
+attr('well')
+attr(18)
+// attr(true) // 报错

@@ -1,3 +1,4 @@
+export {}
 // 数字枚举
 enum Day {
     SUNDAY,

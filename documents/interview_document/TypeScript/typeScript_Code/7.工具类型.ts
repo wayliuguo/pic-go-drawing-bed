@@ -1,3 +1,4 @@
+export {}
 // 基本知识
 // 1.typeof
 let tom = {
