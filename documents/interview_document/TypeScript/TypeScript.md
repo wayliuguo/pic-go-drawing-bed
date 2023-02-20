@@ -636,7 +636,33 @@ console.log(b.getJob()) // IT
 console.log(b.getNameAndJob()) // TomIT
 ```
 
-### 2.类的修饰符
+
+
+### 2.存取器
+
+```
+export {}
+class User {
+    myName: String;
+    constructor(myName: string) {
+        this.myName = myName
+    }
+    get name() {
+        return this.myName
+    }
+    set name(value) {
+        this.myName = value
+    }
+}
+
+let user = new User('well')
+user.name = 'liuguowei'
+console.log(user.name)  // liuguowei
+```
+
+**就是通过Object.defineProperty 定义 User 函数的name 属性的getter与setter**
+
+### 3.类的修饰符
 
 #### 访问修饰符
 
@@ -646,60 +672,50 @@ console.log(b.getNameAndJob()) // TomIT
 
 **TypeScript 中有三类访问修饰符**
 
-- public(默认)：修饰的是任何地方可见、公有的属性或方法
-- protected: 修饰的是仅在类自身及子类中可见、受保护的属性或方法 
-- private：修饰的是仅在同一类中可见，私有的属性或方法
-
-##### protected
+- public(默认)：修饰的是 自己、自己的子类、其他类都能访问的属性或方法
+- protected: 修饰的是 自己、自己的子类能访问，其他类不可访问的属性或方法
+- private：修饰的是仅 自己能访问，子类和其他类不可访问的属性或方法
+- static: 静态属性， 子类可以调用父类的
 
 ```
-class Parent {
+class Father {
+    static fatherName:string = 'father'
+    public name: string
     protected age: number
-    constructor(age: number) {
+    private money: number
+    constructor(name: string, age: number, money: number) {
+        this.name = name
         this.age = age
+        this.money = money
     }
-    protected getAge() {
-        return this.age
-    }
-}
-const p = new Parent(18)
-// console.log(p.age) // 属性“age”受保护，只能在类“Parent”及其子类中访问
-// console.log(p.getAge()) // 属性“getAge”受保护，只能在类“Parent”及其子类中访问
-// console.log(Parent.age) // 类型“typeof Parent”上不存在属性“age”
-class Child extends Parent {
-    constructor(age: number) {
-        super(age)
-        console.log(super.age) // undefined
-        console.log(super.getAge()) // 18
+    getName():string {
+        // public 自己能访问
+        return this.name
     }
 }
-new Child(18)
-```
 
-##### private
+class Child extends Father {
+    static childName:string = 'child'
+    constructor(name: string, age: number, money: number) {
+        super(name, age, money)
+    }
+    desc() {
+        // public protected 子类能访问
+        console.log(this.name, this.age)
+    }
+    showMoney() {
+        // console.log(this.money) // 属性“age”受保护，只能在类“Father”及其子类中访问。
+    }
+}
 
-```
-class Parent1 {
-    private age: number
-    constructor(age: number) {
-        this.age = age
-    }
-    private getAge() {
-        return this.age
-    }
-}
-const p1 = new Parent1(18)
-// console.log(p1.age) // 属性“age”为私有属性，只能在类“Parent1”中访问
-// console.log(p1.getAge()) // 属性“getAge”为私有属性，只能在类“Parent1”中访问
-// console.log(Parent1.age) // 类型“typeof Parent1”上不存在属性“age”
-class Child1 extends Parent1 {
-    constructor(age: number) {
-        super(age)
-        // console.log(super.age) // 属性“age”为私有属性，只能在类“Parent1”中访问
-        // console.log(super.getAge()) // 属性“getAge”为私有属性，只能在类“Parent1”中访问
-    }
-}
-new Child1(18)
+let child = new Child('well', 18, 2000)
+// public 其他类能访问
+console.log(child.name)
+// console.log(child.age) // 属性“age”受保护，只能在类“Father”及其子类中访问。
+// console.log(child.money) // 属性“money”为私有属性，只能在类“Father”中访问
+
+// 子类也可以调用父类的静态属性或方法
+console.log(Child.fatherName, Child.childName)
 ```
 
 #### 只读修饰符
@@ -715,7 +731,7 @@ const user = new UserInfo('TypeScript')
 // user.name = 'haha' // 无法分配到 "name" ，因为它是只读属性
 ```
 
-### 3.类的使用
+### 4.类的使用
 
 #### 抽象类
 
