@@ -1,38 +1,51 @@
-class Father {
-    static fatherName:string = 'father'
-    public name: string
-    protected age: number
-    private money: number
-    constructor(name: string, age: number, money: number) {
-        this.name = name
-        this.age = age
-        this.money = money
+export {}
+/* function Person () {}
+Object.defineProperty(Person.prototype,'say', {
+    value: function say() {
+        console.log('hello')
     }
-    getName():string {
-        // public 自己能访问
-        return this.name
+})
+let p1 = new(Person as any)()
+p1.say() // hello */
+
+// 普通装饰器
+namespace a {
+    function addNameEat(c: Function) {
+        c.prototype.name = 'well'
+        c.prototype.eat = function () {
+           console.log(this.name) // well
+        }
     }
+    @addNameEat
+    class Person {
+        name!: string;
+        eat!: Function;
+        constructor(){
+        }
+    }
+    let p:Person = new Person()
+    console.log(p.name) // well
+    p.eat()
 }
 
-class Child extends Father {
-    static childName:string = 'child'
-    constructor(name: string, age: number, money: number) {
-        super(name, age, money)
+// 工厂装饰器
+namespace b {
+    function addNameEatFactory(name: string) {
+        return function addNameEat(c: Function) {
+            c.prototype.name = name
+            c.prototype.eat = function () {
+            console.log(this.name)  // liuguowei
+            }
+        }
     }
-    desc() {
-        // public protected 子类能访问
-        console.log(this.name, this.age)
+    @addNameEatFactory('liuguowei')
+    class Person {
+        name!: string;
+        eat!: Function;
+        constructor(){
+        }
     }
-    showMoney() {
-        // console.log(this.money) // 属性“age”受保护，只能在类“Father”及其子类中访问。
-    }
+    let p:Person = new Person()
+    console.log(p.name) // liuguowei
+    p.eat()
 }
-
-let child = new Child('well', 18, 2000)
-// public 其他类能访问
-console.log(child.name)
-// console.log(child.age) // 属性“age”受保护，只能在类“Father”及其子类中访问。
-// console.log(child.money) // 属性“money”为私有属性，只能在类“Father”中访问
-
-// 子类也可以调用父类的静态属性或方法
-console.log(Child.fatherName, Child.childName)
