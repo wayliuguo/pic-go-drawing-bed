@@ -735,11 +735,10 @@ const user = new UserInfo('TypeScript')
 
 **在类声明前声明，用来监视、修改、替换类定义**
 
-#### 普通装饰器与工厂装饰器
+#### 类装饰器与工厂装饰器
 
 ```
 export {}
-// 相当于
 /* function Person () {}
 Object.defineProperty(Person.prototype,'say', {
     value: function say() {
@@ -790,10 +789,117 @@ namespace b {
     console.log(p.name) // liuguowei
     p.eat()
 }
+
+namespace c {
+    // 类装饰器 属性只可以多不能少（类型安全）
+    function replaceClass (c: Function) {
+        return class {
+            name!: string
+            eat!: Function
+            age!: number
+            constructor(){}
+        }
+    } 
+    @replaceClass
+    class Person {
+        name!: string;
+        eat!: Function;
+        constructor(){
+        }
+    }
+}
 ```
 
 - nameSpace：命名空间，在一个文件里可以声明重复的变量
 - tsconfig.json 需要experimentalDecorators: true
+
+#### 属性、方法装饰器
+
+```
+export {}
+
+/**
+ * @param target 如果装饰的是实例属性的话，target是构造函数的原型
+ *               如果是静态属性，taget是静态属性本身
+ * @param propertyKey 
+ */
+function upperCase (target:any, propertyKey: string) {
+    console.log('upperCase>>>',target, propertyKey) // {} name
+    let value = target[propertyKey]
+    const getter = () => value
+    const setter = (newVal: string) => {
+        value = newVal.toUpperCase()
+    }
+    // 把旧属性删除，重新定义属性
+    if (delete target[propertyKey]) {
+        Object.defineProperty(target, propertyKey, {
+            get: getter,
+            set: setter,
+            enumerable: true,
+            configurable: true
+        })
+    }
+}
+function staticPropertyDecorator(target:any, propertyKey: string) {
+    console.log('staticPropertyDecorator>>>', target, propertyKey) // [class Person] { age: 10 } age
+}
+
+function methodDescorator(target:any, propertyKey:string, descriptor:PropertyDescriptor) {
+    let oldMethod = descriptor.value
+    descriptor.value = function(...args: any[]) {
+        args = args.map(item => parseFloat(item))
+        return oldMethod.apply(this, args)
+    }
+}
+class Person {
+    @upperCase
+    name: string = 'well' // 实例属性
+    @staticPropertyDecorator
+    public static age: number = 10 // 静态属性
+    getName() { // 实例方法
+        console.log(this.name)
+    }
+     @methodDescorator
+    sum(...args:any[]) { // 实例方法
+        return args.reduce((acc: number, item: number) => acc+item, 0)
+    }
+}
+
+let p = new Person()
+console.log(p.name) // WELL
+console.log(p.sum('1', '2', '3', '4')) // 10
+```
+
+```
+upperCase>>> {} name
+staticPropertyDecorator>>> [class Person] { age: 10 } age
+WELL
+10
+```
+
+- 如果装饰的是实例属性的话，target是构造函数的原型;如果是静态属性，taget是静态属性本身
+- 第三个 methodDescorator 重写了方法，使字符串的参数转为浮点数后再进行计算
+
+#### 参数装饰器
+
+```
+export {}
+// target: 静态成员是构造函数， 非静态成员是构造函数原型
+function addAge (target: any, methodName: string, paramIndex: number) {
+    console.log(target,methodName, paramIndex)
+    target.age = 18
+}
+class Person {
+    age!: number
+    login(userName: string, @addAge password: string) {
+        console.log(this.age, userName, password) // 18 well password
+    }
+}
+let p = new Person()
+p.login('well', 'password')
+```
+
+#### 装饰器执行顺序
 
 ### 5.类的使用
 
