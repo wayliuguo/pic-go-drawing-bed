@@ -901,6 +901,61 @@ p.login('well', 'password')
 
 #### 装饰器执行顺序
 
+```
+export {}
+function classDecorator1() {
+    return function (target: any) {
+        console.log('classDecorator1')
+    }
+}
+function classDecorator2() {
+    return function (target: any) {
+        console.log('classDecorator2')
+    }
+}
+function propertyDecorator(key: string) {
+    return function(target:any, propertyName: string) {
+        console.log('propertyDecorator', propertyName, key)
+    }
+}
+function methodDecorator() {
+    return function(target:any, propertyName: string) {
+        console.log('methodDecorator', propertyName)
+    }
+}
+function parameterDecorator() {
+    return function(target:any, methodName: string, index: number) {
+        console.log('parameterDecorator', methodName)
+    }
+}
+@classDecorator1()
+@classDecorator2()
+class Person {
+    @propertyDecorator('name')
+    name: string = ''
+    @propertyDecorator('age')
+    age: number = 18
+    @methodDecorator()
+    hello(@parameterDecorator() p1:string, @parameterDecorator() p2: string){}
+}
+```
+
+```
+propertyDecorator name name
+propertyDecorator age age
+parameterDecorator hello 
+parameterDecorator hello 
+methodDecorator hello    
+classDecorator2
+classDecorator1
+```
+
+**执行顺序：**
+
+1. 装饰器是最后执行的，后写的类装饰器先执行
+2. 一个方法，如果有方法装饰器又有参数装饰器，先执行参数装饰器
+3. 属性、方法装饰器谁在前先执行谁
+
 ### 5.类的使用
 
 #### 抽象类
