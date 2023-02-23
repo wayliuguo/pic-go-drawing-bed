@@ -1,18 +1,36 @@
-interface Books {
-    name: string
+export {}
+abstract class Animal {
+    name: string = 'well'
+    constructor(name: string) {
+        this.name = name
+    }
+    abstract speak(): void
+    sing() {
+        console.log('abcdefg')
+    }
 }
-interface Cateory {
-    cateory: string
+
+interface Flying {
+    fly(): void
 }
-interface Money {
-    price: string
+
+class Duck extends Animal implements Flying {
+    price: number
+    constructor(name: string, price: number) {
+        super(name)
+        this.price = price
+    }
+    fly(): void {
+        console.log('fly...')
+    }
+    speak(): void {
+        console.log('咕咕咕')
+    }
 }
-interface MathBook extends Books, Cateory, Money {
-    range: string
-}
-const myMathBook: MathBook = {
-    range: "上学期",
-    name: "数学书",
-    cateory: "教材",
-    price: "55"
-}
+
+let duck = new Duck('唐老鸭', 180)
+console.log(duck.name) // 唐老鸭
+console.log(duck.price) // 180
+duck.fly() // fly...
+duck.speak() // 咕咕咕
+duck.sing() // abcdefg

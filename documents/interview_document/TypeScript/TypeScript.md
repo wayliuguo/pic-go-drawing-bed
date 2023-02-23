@@ -986,6 +986,22 @@ m.printName()
 - 使用**abstract**关键字定义的方法，在继承时必须自身实现（重写）。
 - **多态：**同一个方法在不同子类中有不同的实现
 
+#### 作为类型
+
+```
+class Component {
+    static myName: '静态名称属性'
+    myName: string = '实例名称属性'
+}
+
+let c: Component = new Component()
+let f: Component = Component
+console.log(c) // Component { myName: '实例名称属性' }
+console.log(f) // [class Component]
+```
+
+
+
 ## 6.接口类型
 
 ### 1.接口定义
@@ -1182,15 +1198,64 @@ const myMathBook: MathBook = {
 }
 ```
 
+#### 定义构造函数类型
+
+```
+class Animal {
+    name: string
+    constructor(name: string) {
+        this.name = name
+    }
+}
+// 加上 new 之后就是用来描述构造函数类型
+interface WithNameClass {
+    new(name: string): any
+}
+function createClass(clazz: WithNameClass, name: string) {
+    return new clazz(name)
+}
+let c = createClass(Animal, 'well')
+console.log(c.name) // well
+```
+
 #### 定义函数类型
 
 ```
-interface AddFunc {
-    (x: number, y: number): number
+export {}
+interface Type1 {
+    (name: string): string
 }
+interface Type2 {
+    (name: string): string
+    age: number
+}
+interface Type3 {
+    showName: (name: string) => string
+    age: number
+}
+
+let t1: Type1 = (name: string) => name
+console.log(t1('well')) // well
+
+let t2: any = (name: string) => name
+t2.age = 18
+let t: Type2 = t2
+console.log(t) // [Function: t2] { age: 18 }
+console.log(t.age) // 18
+console.log(t('liuguowei')) // liuguowei
+
+let t3: Type3 = {
+    showName: t1,
+    age: 18
+}
+console.log(t3) // { showName: [Function: t1], age: 18 }
+
+
 // 类型别名
 type AddFuncType = (x: number, y: number) => number
 ```
+
+**分别可以定义三种形式**
 
 #### 定义索引类型
 
@@ -1206,6 +1271,52 @@ const roleDic: RoleDic = {
 ```
 
 0 或 '0' 索引对象时，这两者等价。
+
+### 4.抽象类vs接口
+
+- 不同类之间公有的属性或方法，可以抽象成一个接口
+- 而抽象类是供其他类继承的基类，抽象类不允许被实例化，抽象类中的抽象方法必须在子类中被实现
+- 抽象类本质是一个无法被实例化的类，其中能够实现方法和初始化属性（抽象方法仅初始化，不可以在抽象类中实现，非抽象方法可以），而接口仅能够用于描述，既不提供方法的实现，也不为属性进行初始化
+- 抽象类可以实现接口
+
+```
+export {}
+abstract class Animal {
+    name: string = 'well'
+    constructor(name: string) {
+        this.name = name
+    }
+    abstract speak(): void
+    sing() {
+        console.log('abcdefg')
+    }
+}
+
+interface Flying {
+    fly(): void
+}
+
+class Duck extends Animal implements Flying {
+    price: number
+    constructor(name: string, price: number) {
+        super(name)
+        this.price = price
+    }
+    fly(): void {
+        console.log('fly...')
+    }
+    speak(): void {
+        console.log('咕咕咕')
+    }
+}
+
+let duck = new Duck('唐老鸭', 180)
+console.log(duck.name) // 唐老鸭
+console.log(duck.price) // 180
+duck.fly() // fly...
+duck.speak() // 咕咕咕
+duck.sing() // abcdefg
+```
 
 # 二、进阶篇
 
