@@ -992,6 +992,12 @@ m.printName()
 
 - **TypeScript 的核心原则之一：对值所具有的结构进行类型检查,并且只要两个对象的结构一致，属性和方法的类型一致，则它们的类型是一致的 **
 - **接口的作用：为这些类型命名和为代码或第三方代码定义契约**
+- **同名的接口可以写多个，类型会自动合并**
+- 接口一方面可以在面向对象编程中表示为**行为的抽象**，另外可以用来描述**对象的形状**
+- 接口就是把一些类中共有属性和方法抽象出来，用来约束实现此接口的类
+- 一个类可以继承另一个类并实现多个接口
+- 接口像插件一样用来增强类的，而抽象类是具体类的抽象概念
+- 一个类可以实现多个接口，一个接口也可以被多个类实现，但一个类可以有多个子类，单只能有一个父类
 
 TypeScript 接口定义形式如下：
 
@@ -1115,6 +1121,67 @@ getVegetablesProps({
 
 ### 3.接口使用
 
+#### 描述对象的形状
+
+```
+// 对象的描述
+interface Speakable {
+    name: string
+    speak(): void
+}
+// 由于接口已经定义了name和speak,所以此接口类型的对象的属性必须对应
+let speakMan: Speakable = {
+    name: 'well',
+    speak() {}
+}
+```
+
+#### 行为的抽象
+
+```
+export {}
+
+// 对象的描述
+// 行为的抽象
+interface Speakable {
+    speak():void
+}
+interface Eatable {
+    eat():void
+}
+class Person implements Speakable, Eatable {
+    speak(): void {
+        throw new Error("Method not implemented.")
+    }
+    eat(): void {
+        throw new Error("Method not implemented.")
+    }
+}
+```
+
+#### 接口继承
+
+```
+interface Books {
+    name: string
+}
+interface Cateory {
+    cateory: string
+}
+interface Money {
+    price: string
+}
+interface MathBook extends Books, Cateory, Money {
+    range: string
+}
+const myMathBook: MathBook = {
+    range: "上学期",
+    name: "数学书",
+    cateory: "教材",
+    price: "55"
+}
+```
+
 #### 定义函数类型
 
 ```
@@ -1139,32 +1206,6 @@ const roleDic: RoleDic = {
 ```
 
 0 或 '0' 索引对象时，这两者等价。
-
-### 4.高级用法
-
-#### 继承接口
-
-```
-interface Books {
-    name: string
-}
-interface Cateory {
-    cateory: string
-}
-interface MathBook extends Books {
-    price: number
-}
-interface EngBook extends Books {
-    size: number
-}
-const myMathBook: MathBook = {
-    name: '数学书',
-    price: 20
-}
-interface ChiBook extends Books, Cateory {
-    start: number
-}
-```
 
 # 二、进阶篇
 

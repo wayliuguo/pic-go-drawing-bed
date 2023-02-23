@@ -1,12 +1,18 @@
-export {}
-abstract class Animal {
-    name!: string
-    abstract speak():void
+interface Books {
+    name: string
 }
-
-// 子类实现父类，必须实现
-class Cat extends Animal {
-    speak(): void {
-        console.log('喵喵喵')
-    }
+interface Cateory {
+    cateory: string
+}
+interface Money {
+    price: string
+}
+interface MathBook extends Books, Cateory, Money {
+    range: string
+}
+const myMathBook: MathBook = {
+    range: "上学期",
+    name: "数学书",
+    cateory: "教材",
+    price: "55"
 }
