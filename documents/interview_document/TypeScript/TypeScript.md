@@ -1324,6 +1324,8 @@ duck.sing() // abcdefg
 
 ### 1.泛型语法
 
+#### 泛型函数
+
 ![image-20220712235632503](TypeScript.assets/image-20220712235632503-16660692515531.png)
 
 ```
@@ -1336,6 +1338,65 @@ function pickObjectKeys(obj, keys) {
     }
     return result
 }
+```
+
+#### 泛型类
+
+```
+class MyArray<T> {
+    private list:T[] = []
+    add(value: T) {
+        this.list.push(value)
+    }
+    getMax():T {
+        return this.list[0]
+    }
+}
+let array = new MyArray<number>()
+array.add(1)
+console.log(array.getMax()) // 1
+```
+
+#### 泛型接口
+
+```
+interface Calculate<T> {
+    (a:T, b: T):T
+}
+
+let sum: Calculate<number> = function(a: number,b: number): number {
+    return a + b
+}
+console.log(sum(1,2)) // 3
+```
+
+#### 泛型约束
+
+```
+type Lihua = {
+    name: string
+}
+type xiaoming = {
+    name: string
+}
+type bool = Lihua extends xiaoming ? 'yes' : 'no'
+// let flag: bool = 'no' // 不能将类型“"no"”分配给类型“"yes"”
+let flag: bool = 'yes'
+
+interface LengthWise {
+    length: number
+}
+function logger<T extends LengthWise>(val: T) {
+    console.log(val.length)
+}
+
+function reflectSpecified<P extends number | string | boolean>(param: P): P {
+    return param
+}
+reflectSpecified(1)
+reflectSpecified('1')
+reflectSpecified(false)
+// reflectSpecified({}) // 类型“{}”的参数不能赋给类型“string | number | boolean”的参数
 ```
 
 ### 2.在函数中使用类型
