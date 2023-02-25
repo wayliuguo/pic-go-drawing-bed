@@ -1399,6 +1399,37 @@ reflectSpecified(false)
 // reflectSpecified({}) // 类型“{}”的参数不能赋给类型“string | number | boolean”的参数
 ```
 
+#### 泛型类型别名
+
+- 接口创建了一个新的名称，他可以在其他任意地方被调用，而类型别名并不是创建新的名字，例如报错信息就不会使用别名
+- 类型别名不能被extends和implements，这
+- 时我们应该尽量使用接口代替类型别名
+- 当我们需要使用联合类型或者元组类型的时候，类型别名会更适合
+- 一个原则：能用接口实现别用type
+
+```
+type Cart<T> = {
+    list: T[]
+} | T []
+
+let c1: Cart<string> = {
+    list: ['1']
+}
+let c2: Cart<number> = [1]
+
+interface MyCart<T=string> {
+    list: T[]
+}
+let m1: MyCart<number> = {
+    list: [1]
+}
+let m2: MyCart = {
+    list: ['1']
+}
+```
+
+
+
 ### 2.在函数中使用类型
 
 #### 分配泛型参数
