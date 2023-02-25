@@ -1535,7 +1535,75 @@ type ResultA = IsStringType<AType> // true
 type ResultB = IsStringType<BType> // false
 ```
 
-## 8.工具类型
+## 8.结构类型系统
+
+### 接口的兼容性
+
+```
+export {}
+
+// 接口的兼容性
+interface Animal {
+    name: string
+    age: number
+}
+interface Person {
+    name: string
+    age: number
+    gender: number
+}
+
+let a: Animal = {
+    name: '狗子',
+    age: 2
+}
+let p: Person = {
+    name: 'well',
+    age: 18,
+    gender: 1
+}
+// 这里的入参Animal 有 name、age 两个属性
+function getName(a: Animal): string {
+    return a.name
+}
+getName(a)
+// Person 有 name、age、gender 三个属性，包含 Animal的两个属性
+getName(p)
+```
+
+- Animal两个属性：name、age
+- Person 三个属性：name、age、gender
+- p能作为入参是因为他的属性包含了需要的属性
+
+### 基本类型的兼容性
+
+```
+let num: string | number
+let str: string = 'well'
+num = str
+```
+
+- str 能赋值给 num 是因为他的属性包含了需要的属性
+
+### 类的兼容性
+
+```
+class Animal {
+    name!: string
+}
+class Bird extends Animal {
+    age!: number
+}
+let b: Bird = {
+    name: '',
+    age: 0
+}
+const a: Animal = b
+```
+
+### 函数的兼容性
+
+## 9.工具类型
 
 ### 1.基础知识
 
