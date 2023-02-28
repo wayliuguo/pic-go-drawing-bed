@@ -1645,7 +1645,45 @@ getPerson = g3
 - 比较参数: 参数不能比定义的多
 - 比较返回值：返回值不能比定义的少
 
-## 9.工具类型
+## 9.类型保护
+
+### typeof、instanceof 类型保护
+
+**通过一些关键字如 typeof instanceof for in 来缩小范围**
+
+```
+function double(input: string | number) {
+    if (typeof input === 'string') {
+    } else if (typeof input === 'number') {}
+}
+
+class Animal {}
+class Bird extends Animal {}
+class Dog extends Animal {}
+function getName(animal: Animal) {
+    if (animal instanceof Bird) {
+        console.log('fly...')
+    } else if(animal instanceof Dog) {
+        console.log('run...')
+    }
+}
+```
+
+### null 值类型保护
+
+```
+function getFirstLetter(s: string | null) {
+    if (s === null) {
+        return ''
+    }
+    return s.charAt(0)
+    // return s?.charAt(0)
+}
+```
+
+
+
+## 10.工具类型
 
 ### 1.基础知识
 
