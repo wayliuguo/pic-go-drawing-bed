@@ -358,7 +358,8 @@ const output = () => {
 
 #### 8.unknow
 
-unknown 与 any 一样，所有类型的值都可以赋值给它
+- 其是any 的安全类型
+- unknown 与 any 一样，所有类型的值都可以赋值给它
 
 ```
 let notSure: unknown = 4
@@ -1647,7 +1648,7 @@ getPerson = g3
 
 ## 9.类型保护
 
-### typeof、instanceof 类型保护
+### typeof、instanceof  for in 类型保护
 
 **通过一些关键字如 typeof instanceof for in 来缩小范围**
 
@@ -1667,6 +1668,23 @@ function getName(animal: Animal) {
         console.log('run...')
     }
 }
+
+interface Bird {
+    swing: number
+}
+interface Dog {
+    leg: number
+}
+function getNumber(x: Bird | Dog) {
+    if ('swing' in x) {
+        console.log(x)
+    } else {
+        console.log(x)
+    }
+}
+let bird: Bird = {
+    swing: 2
+}
 ```
 
 ### null 值类型保护
@@ -1678,6 +1696,74 @@ function getFirstLetter(s: string | null) {
     }
     return s.charAt(0)
     // return s?.charAt(0)
+}
+```
+
+### 可辨识的联合类型
+
+```
+interface WarningButton {
+    class: 'waring',
+    text1: '修改'
+}
+interface DangerButton {
+    class: 'danger',
+    text2: '删除'
+}
+
+type Button = WarningButton | DangerButton
+function getButton(button: Button) {
+    if (button.class === 'waring') {
+        console.log(button)
+    }
+    if (button.class === 'danger') {
+        console.log(button)
+    }
+}
+
+interface User {
+    username: string
+}
+type Action = {
+    type: 'add',
+    payload: User
+} | {
+    type: 'delete',
+    payload: number
+}
+const reducer = (action: Action) {
+    switch (action.type) {
+        case 'add':
+            action.payload.username
+            break;
+        case 'delete':
+            const id: number = action.payload
+            break
+        default:
+            break;
+    }
+}
+```
+
+### 自定义类型保护
+
+```
+interface Bird {
+    swing: number // 2: 两个翅膀
+}
+interface Dog {
+    leg: number // 4：四条腿
+}
+function isBird(x: Bird | Dog): x is Bird {
+    return (x as Bird).swing === 2
+}
+
+function getAnimal(x: Bird | Dog) {
+    if (isBird(x)) {
+        console.log(x) // (parameter) x: Bird
+    } else {
+        console.log(x) // (parameter) x: Dog
+    }
 }
 ```
 
