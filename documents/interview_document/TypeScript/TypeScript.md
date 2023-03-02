@@ -1927,6 +1927,42 @@ let cc2: CC = 18
 let cc3: CC = false
 ```
 
+### 4. mixin
+
+```
+function mixin<T,U>(one: T, two: U) {
+    const result = <(T & U)>{}
+    for (let key in one) {
+        (<T>result)[key] = one[key]
+    }
+    for (let key in two) {
+        (<U>result)[key] = two[key]
+    }
+    return result
+}
+
+const x = mixin({name: 'well'}, {age: 18})
+console.log(x.name)
+console.log(x.age)
+```
+
+### 5.typeof
+
+```
+type person = {
+    name: string
+}
+let p: person = {
+    name: 'well'
+}
+type doubleP = typeof p
+let dp: doubleP = {
+    name: 'liuguowei'
+}
+```
+
+
+
 ## 11.工具类型
 
 ### 1.基础知识
