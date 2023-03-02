@@ -308,6 +308,12 @@ consoleVal = undefined
 
 #### 7.never
 
+- unknown 的子类型
+
+  ```
+  type isNever = never extends unknown ? true : false
+  ```
+
 - 指永远不存在的类型
 - 其值是**总会抛出异常或根本不会有返回值的函数表达式的返回值**
 
@@ -406,6 +412,38 @@ let p1: Person1 = {
     name: 'well',
     age: 18
 }
+```
+
+#### 交叉类型(交集)
+
+以交叉类型的子类型来理解，他们需要可以作为交叉类型中的每个类型的子类型
+
+```
+// 交叉类型
+interface A {
+    name: string
+    c: number
+}
+interface B {
+    age: number
+    c: number
+}
+
+let a: A
+let b: B
+type C = A&B
+let c: C = {
+    name: 'well',
+    age: 18,
+    c: 101
+    // d: 333 // 对象字面量只能指定已知属性，并且“d”不在类型“C”中。
+}
+
+type AA = string | number
+type BB = string | boolean
+type CC = AA&BB // type CC = string
+// let cc: CC = false
+let cc: CC = 'WELL'
 ```
 
 
