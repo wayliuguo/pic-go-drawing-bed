@@ -414,40 +414,6 @@ let p1: Person1 = {
 }
 ```
 
-#### 交叉类型(交集)
-
-以交叉类型的子类型来理解，他们需要可以作为交叉类型中的每个类型的子类型
-
-```
-// 交叉类型
-interface A {
-    name: string
-    c: number
-}
-interface B {
-    age: number
-    c: number
-}
-
-let a: A
-let b: B
-type C = A&B
-let c: C = {
-    name: 'well',
-    age: 18,
-    c: 101
-    // d: 333 // 对象字面量只能指定已知属性，并且“d”不在类型“C”中。
-}
-
-type AA = string | number
-type BB = string | boolean
-type CC = AA&BB // type CC = string
-// let cc: CC = false
-let cc: CC = 'WELL'
-```
-
-
-
 ## 3.枚举类型
 
 - 1.数字枚举
@@ -1890,7 +1856,76 @@ function total(a:number, b: number) {
 let k = total(1,2) // let k: any
 ```
 
+### 2.交叉类型（交集）
 
+```
+// 交叉类型
+interface A {
+    name: string
+    c: number
+}
+interface B {
+    age: number
+    c: number
+}
+
+let a: A
+let b: B
+type C = A&B
+let c: C = {
+    name: 'well',
+    age: 18,
+    c: 101
+    // d: 333 // 对象字面量只能指定已知属性，并且“d”不在类型“C”中。
+}
+
+type AA = string | number
+type BB = string | boolean
+type CC = AA&BB // type CC = string
+// let cc: CC = false
+let cc: CC = 'WELL'
+```
+
+### 3. 联合类型（并集）
+
+```
+interface A {
+    name: string
+    c: number
+}
+interface B {
+    age: number
+    c: number
+}
+type C = A | B
+let c1: C = {
+    name: 'well',
+    c: 18
+}
+let c2: C = {
+    age: 18,
+    c: 110
+}
+let c3: C = {
+    name: 'well',
+    age: 18,
+    c: 110
+}
+let c4: C = {
+    name: 'well',
+    age: 18,
+    c: 110,
+    // type: 'boom' // error
+}
+
+
+type AA = string | number
+type BB = string | boolean
+type CC = AA | BB // type CC = string | number | boolean
+let cc1: CC = 'WELL'
+let cc2: CC = 18
+let cc3: CC = false
+```
 
 ## 11.工具类型
 
