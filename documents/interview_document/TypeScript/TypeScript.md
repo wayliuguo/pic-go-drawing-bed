@@ -1961,7 +1961,94 @@ let dp: doubleP = {
 }
 ```
 
+### 6.索引访问操作符
 
+```
+export {}
+interface Person {
+    name: string
+    age: number
+    job: {
+        name: string
+    }
+}
+let FrontEndJob:Person['job'] = {
+    name: '前端'
+}
+```
+
+### 7.映射类型 Partial
+
+```
+// 映射类型
+interface Person {
+    name: string
+    age: number
+    gender: 'male' | 'female'
+}
+// 批量把一个接口中的属性变成可选
+type PartialPerson = {
+    [key in keyof Person]?: Person[key]
+}
+// 也可以用内置类型
+type PPerson = Partial<Person>
+
+let p1: PartialPerson = {
+    name: 'well'
+}
+let p2: PPerson = {
+    name: 'well'
+}
+```
+
+### 8.条件类型
+
+1. 定义条件类型
+2. 条件类型的分发
+3. 内置条件类型
+
+```
+// 定义条件类型
+interface Fish {
+    name1: string
+}
+interface Water {
+    name2: string
+}
+interface Bird {
+    name3: string
+}
+interface Sky {
+    name4: string
+}
+type Condition<T> = T extends Fish ? Water : Bird
+// let con: Water
+let con: Condition<Fish> = {
+    name2: '水'
+}
+
+// 条件类型的分发
+// let con1: Water | Bird
+let con1: Condition<Fish | Bird> = {
+    name2: '水'
+}
+// let con2: Water | Bird
+let con2: Condition<Fish | Bird> = {
+    name4: '天空'
+}
+
+// 找出T中不包含U的部分
+type Diff<T,U> = T extends U ? never : T
+// type R = "d"
+type R = Diff<'a' | 'b' | 'c' | 'd', 'a' | 'b' | 'c'>
+let r: R = 'd'
+
+// 找出TU共有部分
+type Filter<T, U> = T extends U ? T : never
+// type F = "a" | "b" | "c"
+type F = Filter<'a' | 'b' | 'c' | 'd', 'a' | 'b' | 'c'>
+let f: F = 'a'
+```
 
 ## 11.工具类型
 
