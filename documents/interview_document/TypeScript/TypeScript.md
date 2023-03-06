@@ -2140,6 +2140,29 @@ let u: ReturnUser = {
 }
 ```
 
+##### Parameters
+
+`Parameters<T>` 的作用是用于获得函数的参数类型组成的元组类型。
+
+```
+function getUser(name: string, age: number) {
+    return {
+        name,
+        age
+    }
+}
+type GetUserType = typeof getUser
+
+type MyParameters<T extends (...args: any) => any> =
+    T extends (...args: infer P) => any ? P : never
+
+// type parametersUser = [name: string, age: number]
+type parametersUser = Parameters<GetUserType>
+type MyParametersUser = MyParameters<GetUserType>
+let u1:parametersUser= ['123', 18]
+let u2:MyParametersUser = ['well', 18]
+```
+
 
 
 ## 11.工具类型
