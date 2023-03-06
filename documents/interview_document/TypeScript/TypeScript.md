@@ -2003,9 +2003,7 @@ let p2: PPerson = {
 
 ### 8.条件类型
 
-1. 定义条件类型
-2. 条件类型的分发
-3. 内置条件类型
+#### 条件类型与条件类型的分发
 
 ```
 // 定义条件类型
@@ -2049,6 +2047,59 @@ type Filter<T, U> = T extends U ? T : never
 type F = Filter<'a' | 'b' | 'c' | 'd', 'a' | 'b' | 'c'>
 let f: F = 'a'
 ```
+
+#### 内置条件类型
+
+##### Exclude
+
+`Exclude<T, U>` 的作用是将T中属于U的类型移除掉。
+
+```
+type A = 'a' | 'b' | 'c' | 'd'
+type B  = 'a' | 'b' | 'c'
+// Exclude 手写
+type MyExclue<T, U> = T extends U ? never : T
+
+type T0 = Exclude<A, B> // type T0 = "d"
+type MT0 = MyExclue<A, B> // type T0 = "d"
+
+let t0: T0 = 'd'
+let tt0: MT0 = 'd'
+```
+
+##### Extract
+
+`Extract<T, U>`的作用是返回T中属于U的类型
+
+```
+type A = 'a' | 'b' | 'c' | 'd'
+type B  = 'a' | 'b' | 'c'
+
+type MyExtract<T,U> = T extends U ? T: never
+
+type T0 = Extract<A,B> // type T0 = "a" | "b" | "c"
+type MT0 = MyExtract<A, B> // type MT0 = "a" | "b" | "c"
+
+let t0: T0 = 'a'
+let tt0: MT0 = 'b'
+```
+
+##### NonNullable
+
+`NonNullable<T>` 的作用是用来过滤类型中的 `null` 及 `undefined` 类型
+
+```
+type A = null | undefined | string
+
+type MyNonNullable<T> = T extends null | undefined ? never : T
+type T0 = NonNullable<A> // type T0 = string
+type MT0 = NonNullable<A> // type MT0 = string
+
+let t0: T0 = 'well'
+let tt0: MT0 = 'well'
+```
+
+
 
 ## 11.工具类型
 
