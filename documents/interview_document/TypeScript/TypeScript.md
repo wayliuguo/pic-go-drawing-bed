@@ -2286,6 +2286,8 @@ type MyRequiredCompany = MyRequired<Company>
 
 ### ReadOnly
 
+`ReadOnly<T>`将类型的属性变成只读
+
 ```
 interface Company {
     id: number,
@@ -2311,4 +2313,72 @@ let c: ReadOnlyPerson = {
 ```
 
 ### Pick
+
+`Pick<T, ...>` 提取类型的属性
+
+```
+interface Person {
+    name: string
+    age: number
+    gender: number
+}
+// 自定义实现
+type MyPick<T, K extends keyof T> = {
+    [P in K]: T[P]
+}
+/* 
+type PickPerson = {
+    name: string;
+    age: number;
+}
+*/
+type PickPerson = Pick<Person, 'name' | 'age'>
+let person: PickPerson = {
+    name: 'well',
+    age: 18
+}
+```
+
+### Extract
+
+`Extract<T, U>`提取出T中属于U的类型属性
+
+```
+// 自定义实现
+type MyExtract<T, U> = T extends U ? T : never
+// type E = string | number
+type E = Extract<string | number | boolean, string | number>
+```
+
+### Record
+
+`Record<K extends keyof any, T>` 的作用是将 `K` 中所有的属性的值转化为 `T` 类型。
+
+```
+type MyRecord<K extends keyof any, T> = {
+    [P in K]: T
+}
+
+interface PageInfo {
+    title: string;
+}
+type Page = "home" | "about" | "contact"
+type pageRecord = Record<Page, PageInfo>
+/* type pageRecord = {
+    home: PageInfo;
+    about: PageInfo;
+    contact: PageInfo;
+} */
+const x: Record<Page, PageInfo> = {
+    about: {
+        title: "about"
+    },
+    home: {
+        title: "home"
+    },
+    contact: {
+        title: "contact"
+    }
+}
+```
 

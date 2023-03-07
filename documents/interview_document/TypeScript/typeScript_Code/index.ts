@@ -1,21 +1,25 @@
-interface Company {
-    id: number,
-    name?: string
-    salary?: number
+type MyRecord<K extends keyof any, T> = {
+    [P in K]: T
 }
-// 自定义实现
-type MyReadonly<T> = {
-    readonly [P in keyof T]: T[P];
+
+interface PageInfo {
+    title: string;
 }
-type ReadOnlyPerson = Readonly<Company>
-/* 
-type ReadOnlyPerson = {
-    readonly id: number;
-    readonly name?: string | undefined;
-    readonly salary?: number | undefined;
+type Page = "home" | "about" | "contact"
+type pageRecord = Record<Page, PageInfo>
+/* type pageRecord = {
+    home: PageInfo;
+    about: PageInfo;
+    contact: PageInfo;
+} */
+const x: Record<Page, PageInfo> = {
+    about: {
+        title: "about"
+    },
+    home: {
+        title: "home"
+    },
+    contact: {
+        title: "contact"
+    }
 }
-*/
-let c: ReadOnlyPerson = {
-    id: 0
-}
-// c.id = 2 // Cannot assign to 'id' because it is a read-only property
