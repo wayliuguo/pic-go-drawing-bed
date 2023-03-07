@@ -2214,49 +2214,48 @@ let tt3: T3 = {
 
 ## 11.工具类型
 
-### 1.基础知识
+### Partial
 
-#### typeof
-
-- 用途：在类型上下文中获取变量或者属性的类型
+`Partial<T>将类型的属性变成可选`
 
 ```
-let tom = {
-    name: 'tom',
-    age: 18,
-    gender: 'male'
-}
-type PeopleType = typeof tom
-/* type PeopleType = {
-    name: string;
-    age: number;
-    gender: string;
-} */
-type nameType = typeof tom.name
-// type nameType = string
-```
-
-#### keyof
-
-- 用途：获取一个对象接口中的所有 key 值，返回的是联合类型
-
-```
-// 2.keyof
-interface Person {
+interface Company {
+    id: number,
     name: string
-    age: number
-    gender: 'male' | 'female'
 }
-type PersonKey = keyof Person // 'name' || 'age' || 'gender'
-function getValueByKey(p: Person, key: PersonKey) {
-    return p[key]
+interface Person {
+    id: number,
+    name: string,
+    company: Company
 }
-let val = getValueByKey({
-    name: 'tom',
-    age: 18,
-    gender: 'male'
-}, 'name')
-console.log(val) // tom
+type DeepPartial<T> = {
+    [U in keyof T] ?: T[U] extends object ? DeepPartial<T[U]> : T[U]
+}
+
+type PartialPerson = Partial<Person>
+/**
+ * type PartialPerson = {
+    id?: number | undefined;
+    name?: string | undefined;
+    company?: Company | undefined;
+  }
+ */
+let p: PartialPerson = {
+    // 类型“{}”缺少类型“Company”中的以下属性: id, name
+    // 这里如果属性是对象，如果写了此属性，其内层不是可选属性
+    // company: {}
+}
+// 使用自定义深度遍历使深层属性也是可选属性
+type DeepPartialPerson = DeepPartial<Person>
+/* 
+  type DeepPartialPerson = {
+    id?: number | undefined;
+    name?: string | undefined;
+    company?: DeepPartial<Company> | undefined;
+  }
+*/
+let dp: DeepPartialPerson = {
+    company: {}
+}
 ```
 
-### 2.工具类型

@@ -1,22 +1,38 @@
-// tuple(元组)转union(联合)
-type Elements<T> = T extends Array<infer E> ? E : never
-type Ttuple = [string, number]
-// type TupleToUnion = string | number
-type TupleToUnion = Elements<Ttuple>
-
-// 联合类型转交叉类型
-type T1 = {
+interface Company {
+    id: number,
     name: string
 }
-type T2 = {
-    age: number
+interface Person {
+    id: number,
+    name: string,
+    company: Company
 }
-type ToIntersection<T> = T extends {
-    a: (x: infer U) => void, b: (x: infer U) => void
-} ? U : never
-// type T3 = T1 & T2
-type T3 = ToIntersection<{ a: (x: T1) => void, b: (x: T2) => void}>
-let tt3: T3 = {
-    name: 'well',
-    age: 18
+type DeepPartial<T> = {
+    [U in keyof T] ?: T[U] extends object ? DeepPartial<T[U]> : T[U]
+}
+
+type PartialPerson = Partial<Person>
+/**
+ * type PartialPerson = {
+    id?: number | undefined;
+    name?: string | undefined;
+    company?: Company | undefined;
+  }
+ */
+let p: PartialPerson = {
+    // 类型“{}”缺少类型“Company”中的以下属性: id, name
+    // 这里如果属性是对象，如果写了此属性，其内层不是可选属性
+    // company: {}
+}
+// 使用自定义深度遍历使深层属性也是可选属性
+type DeepPartialPerson = DeepPartial<Person>
+/* 
+  type DeepPartialPerson = {
+    id?: number | undefined;
+    name?: string | undefined;
+    company?: DeepPartial<Company> | undefined;
+  }
+*/
+let dp: DeepPartialPerson = {
+    company: {}
 }
