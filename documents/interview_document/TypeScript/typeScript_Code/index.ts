@@ -1,16 +1,14 @@
-function getUser(name: string, age: number) {
-    return {
-        name,
-        age
+class Person {
+    name: string
+    constructor(name: string) {
+        this.name = name
+    }
+    getName() {
+        console.log(this.name)
     }
 }
-type GetUserType = typeof getUser
-
-type MyParameters<T extends (...args: any) => any> =
-    T extends (...args: infer P) => any ? P : never
-
-// type parametersUser = [name: string, age: number]
-type parametersUser = Parameters<GetUserType>
-type MyParametersUser = MyParameters<GetUserType>
-let u1:parametersUser= ['123', 18]
-let u2:MyParametersUser = ['well', 18]
+type MyConstructorParameters<T extends abstract new (...args: any) => any> =
+    T extends abstract new (...args: infer P) => any ? P : never
+type params = ConstructorParameters<typeof Person>
+// let p: [name: string]
+let p: params = ['well']
