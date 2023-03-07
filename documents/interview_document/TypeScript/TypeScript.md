@@ -2259,3 +2259,29 @@ let dp: DeepPartialPerson = {
 }
 ```
 
+### Required
+
+`Required<T>` 将类型的属性变成必选
+
+```
+interface Company {
+    id: number,
+    name?: string
+    salary?: number
+}
+
+/* type RequiredCompany = {
+    id: number;
+    name: string;
+    salary: number;
+} */
+type RequiredCompany = Required<Company>
+
+// 自定义实现
+type MyRequired<T> = {
+    [P in keyof T]-?: T[P]
+}
+type MyRequiredCompany = MyRequired<Company>
+```
+
+### 
