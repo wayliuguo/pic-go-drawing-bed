@@ -2474,3 +2474,65 @@ type DefaultProps = {
 type DuplicateProps = InterSection<Props, DefaultProps>
 ```
 
+## 13.模块 VS 命名空间
+
+### 模块
+
+#### 全局模块
+
+- 默认情况下，处于全局命名空间中
+- 全局空间是危险的，会与文件内的代码命名冲突
+
+#### 文件模块
+
+- 文件模块也称为外部模块，如果在ts文件根级别位置含有import 或者 export，那么它会在这个文件中创建一个本地作用域
+- 模块是TS中外部模块的简称，侧重于代码的复用
+- 模块在其自身的作用域里执行，而不是全局作用域
+- 一个模块里的变量、函数、类等在外部是不可见的，除非你把它导出
+- 如果想要使用另一个模块的变量，则需要导入
+
+```
+export const name = 'well'
+export const age = 18
+```
+
+
+
+## 命名空间
+
+```
+export namespace zoo {
+    export class Dog {
+        log() {
+            console.log('zoo dog')
+        }
+    }
+}
+
+export namespace home {
+    export class Dog {
+        log() {
+            console.log('home dog')
+        }
+    }
+}
+
+const zooDog = new zoo.Dog()
+const homeDog = new home.Dog()
+zooDog.log()
+homeDog.log()
+```
+
+- 命名空间就是一个对象
+- 命名空间内部需要export 来导出才可以被获取
+- 在nameSpace 加 export 也可以导出命名空间
+
+```
+
+import { name, age } from './module'
+import { zoo, home } from './nameSpace'
+console.log(name, age) // well 18
+console.log(zoo, home) // { Dog: [class Dog] } { Dog: [class Dog] }
+
+```
+
