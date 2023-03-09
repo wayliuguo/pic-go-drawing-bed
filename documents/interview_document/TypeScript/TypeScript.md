@@ -2382,6 +2382,31 @@ const x: Record<Page, PageInfo> = {
 }
 ```
 
+### Omit
+
+`Omit<T, K extends keyof any>` 的作用是使用 `T` 类型中除了 `K` 类型的所有属性，来构造一个新的类型
+
+```
+type MyOmit<T, K extends keyof any> = Pick<T, Exclude<keyof T, K>>
+
+interface Jobs {
+    title: string;
+    desc: string;
+    saray: number;
+}
+type JobsOmit = Omit<Jobs, "desc">
+/* type JobsOmit = {
+    title: string;
+    saray: number;
+} */
+const MyJob: JobsOmit = {
+    title: '切图仔',
+    saray: 200
+}
+```
+
+
+
 ## 12.自定义类型
 
 ### Proxy
@@ -2426,5 +2451,26 @@ console.log(proxyProps.name)
 ```
 set name liuguowei
 liuguowei
+```
+
+### InterSection(交集)
+
+```
+// 自定义交集
+type InterSection<T extends object, U extends object> = Pick<T, Extract<keyof T, keyof U> & Extract<keyof U, keyof T>>
+type Props = {
+    name: string
+    age: number
+    visible: boolean
+}
+type DefaultProps = {
+    age: number
+}
+/**
+ * type DuplicateProps = {
+    age: number;
+  }
+ */
+type DuplicateProps = InterSection<Props, DefaultProps>
 ```
 
