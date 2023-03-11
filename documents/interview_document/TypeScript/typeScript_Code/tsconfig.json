@@ -99,5 +99,11 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-  }
+  },
+  // 匹配：路径匹配
+  // **：包含路径分隔符
+  // *： 不包含路径分隔符
+  // "include": [
+  //   "/typings/jquery",
+  // ]
 }

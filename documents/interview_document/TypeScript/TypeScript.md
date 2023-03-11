@@ -2498,7 +2498,7 @@ export const age = 18
 
 
 
-## 命名空间
+### 命名空间
 
 ```
 export namespace zoo {
@@ -2535,4 +2535,72 @@ console.log(name, age) // well 18
 console.log(zoo, home) // { Dog: [class Dog] } { Dog: [class Dog] }
 
 ```
+
+## 14.类型声明
+
+- 声明文件可以让我们不需要将JS重构为TS，只需要加上声明文件就可以使用
+- 类型声明在编译的时候会被删除，不会影响真正的代码
+- 关键字 declare 表示声明的意思，我们可以用它来做各种声明
+
+### 普通声明
+
+```
+// 普通声明
+declare let age: number
+declare function getName(): string
+declare class Animal{}
+```
+
+### 外部枚举
+
+```
+// 外部枚举
+declare enum Seasons {
+    Spring,
+    Summer,
+    Autumn,
+    Winter
+}
+let seasons = {
+    spring: Seasons.Spring
+}
+```
+
+### 命名空间
+
+```
+declare namespace $ {
+    function ajax(url: string, settings: any): void
+    let name: string
+    namespace fn {
+        function extend(obj: any): void
+    }
+}
+$.ajax('/get', {})
+$.name
+$.fn.extend({})
+```
+
+- 一个变量有很多子属性，就可以用namespace
+- 声明文件里的namespace表示一个全局变量包含很多子属性
+- 在命名空间内不需要再使用declare 了
+
+### 声明文件引入
+
+- typings/jquery.d.ts
+
+  ```
+  declare const $:(selector: string) => {
+      click(): void
+      width(length: number): void
+  }
+  ```
+
+- tsconfig.json
+
+  ```
+  "include": [
+      "/typings/jquery",
+    ]
+  ```
 

@@ -1,5 +1,26 @@
+// 普通声明
+declare let age: number
+declare function getName(): string
+declare class Animal{}
 
-import { name, age } from './module'
-import { zoo, home } from './nameSpace'
-console.log(name, age) // well 18
-console.log(zoo, home) // { Dog: [class Dog] } { Dog: [class Dog] }
+// 外部枚举
+declare enum Seasons {
+    Spring,
+    Summer,
+    Autumn,
+    Winter
+}
+let seasons = {
+    spring: Seasons.Spring
+}
+
+declare namespace $ {
+    function ajax(url: string, settings: any): void
+    let name: string
+    namespace fn {
+        function extend(obj: any): void
+    }
+}
+$.ajax('/get', {})
+$.name
+$.fn.extend({})
