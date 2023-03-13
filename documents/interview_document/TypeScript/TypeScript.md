@@ -2604,3 +2604,81 @@ $.fn.extend({})
     ]
   ```
 
+### 类型的扩展
+
+#### 全局扩展
+
+```
+// 相同名称的interface会进行合并
+interface String {
+    double(): string
+}
+String.prototype.double = function() {
+    return `${this}${this}`
+}
+let result = new String('hello').double()
+console.log(result)
+```
+
+#### 局部扩展
+
+```
+// 模块中类型扩展
+export default {}
+declare global {
+    interface String {
+        double(): string
+    }
+}
+String.prototype.double = function() {
+    return `${this}${this}`
+}
+let result = new String('hello').double()
+console.log(result)
+```
+
+### 合并声明
+
+- 同一名称的两个独立声明会被合并成一个单一声明
+- 合并后的声明拥有原先两个声明的特性
+
+| 关键字        | 作为类型使用 | 作为值使用 |
+| ------------- | ------------ | ---------- |
+| class         | yes          | yse        |
+| enum          | yes          | yes        |
+| interface     | yes          | no         |
+| type          | yes          | no         |
+| funcion       | no           | yes        |
+| var let const | no           | yes        |
+
+#### 使用命名空间进行扩展
+
+```
+// 命名空间扩展类
+class Form {
+    username: Form.Item = ''
+    password: Form.Item = ''
+}
+namespace Form {
+    export class Item{}
+}
+let item: Form.Item = new Form.Item()
+
+// 命名空间扩展方法
+function hello() {}
+namespace hello {
+    export let words = 'words'
+}
+console.log(hello.words) // words
+
+// 命名空间扩展枚举类型
+enum Color {
+    red = 1,
+    yellow = 2
+}
+namespace Color {
+    export const green = 3
+}
+console.log(Color.green) // 3
+```
+

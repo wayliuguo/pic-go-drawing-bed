@@ -1,26 +1,26 @@
-// 普通声明
-declare let age: number
-declare function getName(): string
-declare class Animal{}
+// 命名空间扩展类
+class Form {
+    username: Form.Item = ''
+    password: Form.Item = ''
+}
+namespace Form {
+    export class Item{}
+}
+let item: Form.Item = new Form.Item()
 
-// 外部枚举
-declare enum Seasons {
-    Spring,
-    Summer,
-    Autumn,
-    Winter
+// 命名空间扩展方法
+function hello() {}
+namespace hello {
+    export let words = 'words'
 }
-let seasons = {
-    spring: Seasons.Spring
-}
+console.log(hello.words) // words
 
-declare namespace $ {
-    function ajax(url: string, settings: any): void
-    let name: string
-    namespace fn {
-        function extend(obj: any): void
-    }
+// 命名空间扩展枚举类型
+enum Color {
+    red = 1,
+    yellow = 2
 }
-$.ajax('/get', {})
-$.name
-$.fn.extend({})
+namespace Color {
+    export const green = 3
+}
+console.log(Color.green) // 3
