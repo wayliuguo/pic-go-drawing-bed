@@ -2682,3 +2682,16 @@ namespace Color {
 console.log(Color.green) // 3
 ```
 
+#### 自动生成d.ts 声明文件
+
+- tsconfig.json
+
+  ```
+  "declaration": true
+  ```
+
+  ```
+  tsc
+  ```
+
+  
