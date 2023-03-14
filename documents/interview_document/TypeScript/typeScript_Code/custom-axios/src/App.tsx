@@ -2,6 +2,17 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+import axios, { AxiosResponse } from 'axios'
+const baseURL = 'http://localhost:8080'
+axios({
+  method: 'get',
+  url: baseURL
+}).then((response: AxiosResponse) => {
+  console.log(response)
+}).catch((err: any) => {
+  console.log(err)
+})
+
 function App() {
   return (
     <div className="App">
