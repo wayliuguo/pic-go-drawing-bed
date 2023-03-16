@@ -2,11 +2,20 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-import axios, { AxiosResponse } from 'axios'
-const baseURL = 'http://localhost:8080'
+import axios, { AxiosResponse } from './axios'
+const baseURL = 'http://localhost:4000'
+interface USER {
+  name: string,
+  age: number
+}
+const user: USER = {
+  name: 'well',
+  age: 18
+}
 axios({
   method: 'get',
-  url: baseURL
+  url: baseURL + '/todos',
+  params: user
 }).then((response: AxiosResponse) => {
   console.log(response)
 }).catch((err: any) => {
