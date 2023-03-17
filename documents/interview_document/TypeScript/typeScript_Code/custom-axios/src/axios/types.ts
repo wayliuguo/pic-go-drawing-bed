@@ -1,10 +1,12 @@
 export type Methods = 'get' | 'GET' | 'post' | 'POST' | 'put' | 'PUT' | 'delete' | 'DELETE' | 'options' | 'OPTIONS'
 
 export interface AxiosRequestConfig {
-    url: string
-    method: Methods
+    url?: string
+    method?: Methods
     // params: Record<string, any>
-    params: any
+    params?: any,
+    headers?: Record<string, any>,
+    data?: Record<string, any>
 }
 
 // Axios.prototype.request 这个方法

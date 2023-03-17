@@ -10,12 +10,14 @@ export default class axios {
     dispatchRequest<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
         return new Promise<AxiosResponse<T>>(function(resolve, reject) {
             let request = new XMLHttpRequest()
-            let { method, url, params } = config
+            let { method, url, params, headers, data } = config
             if (params && typeof params === 'object') {
                 params = qs.stringify(params)
-                url += (url.indexOf("?") === -1 ? '?' : '&') + params
+                // !：断言：左侧的值一定有值
+                url += (url!.indexOf("?") === -1 ? '?' : '&') + params
             }
-            request.open(method, url, true)
+            request.open(method!, url!, true)
+            request.responseType = 'json'
             // 指定一个状态变更函数
             request.onreadystatechange = function () {
                 // 0 1 2 3 4: 完成
@@ -34,6 +36,11 @@ export default class axios {
                     } else {
                         reject('请求失败')
                     }
+                }
+            }
+            if (headers) {
+                for (let key in headers) {
+                    request.setRequestHeader(key, headers[key])
                 }
             }
             request.send()
