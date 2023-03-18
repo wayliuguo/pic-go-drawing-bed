@@ -12,10 +12,20 @@ const user: USER = {
   name: 'well',
   age: 18
 }
+interface BODY {
+  title: string
+}
+const body: BODY = {
+  title: 'axios ts'
+}
 axios({
-  method: 'get',
+  method: 'post',
   url: baseURL + '/todos',
-  params: user
+  params: user,
+  data: body,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 }).then((response: AxiosResponse) => {
   console.log(response)
 }).catch((err: any) => {

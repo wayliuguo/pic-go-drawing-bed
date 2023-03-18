@@ -43,7 +43,11 @@ export default class axios {
                     request.setRequestHeader(key, headers[key])
                 }
             }
-            request.send()
+            let body: string | null = null
+            if (data) {
+                body = JSON.stringify(data)
+            }
+            request.send(body)
         })
     }
 }
