@@ -25,7 +25,8 @@ axios({
   data: body,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 1000
 }).then((response: AxiosResponse) => {
   console.log(response)
 }).catch((err: any) => {

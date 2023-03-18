@@ -6,7 +6,8 @@ export interface AxiosRequestConfig {
     // params: Record<string, any>
     params?: any,
     headers?: Record<string, any>,
-    data?: Record<string, any>
+    data?: Record<string, any>,
+    timeout?: number
 }
 
 // Axios.prototype.request 这个方法
