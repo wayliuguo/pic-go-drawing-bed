@@ -1,10 +1,27 @@
 import { AxiosRequestConfig, AxiosResponse } from "./types";
+import AxiosInterceptorManager, { Interceptors } from "./AxiosInterceptorManager";
 import qs from 'qs'
 import parseHeaders from "parse-headers";
-export default class axios {
+export default class axios<T> {
+    public intercetors = {
+        request: new AxiosInterceptorManager<AxiosRequestConfig>(),
+        response: new AxiosInterceptorManager<AxiosResponse<T>>()
+    }
     // T 用来限制响应对象response里的参数
     request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-        return this.dispatchRequest(config)
+        // return this.dispatchRequest(config)
+        // AxiosRequestConfig | AxiosResponse<T>
+        const chain: Interceptors<any>[] = [
+            {
+                onFulfilled: this.dispatchRequest
+            }
+        ]
+        this.intercetors.request.interceptors.forEach((interceptor) => {
+            interceptor && chain.unshift(interceptor)
+        })
+        this.intercetors.response.interceptors.forEach((interceptor) => {
+            interceptor && chain.push(interceptor)
+        })
     }
     // 定义一个派发请求的方法
     dispatchRequest<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
