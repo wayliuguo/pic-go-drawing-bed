@@ -1143,3 +1143,118 @@ console.log('end')
 
 - 如果它等到的不是一个 Promise 对象，那 await 表达式的运算结果就是它等到的东西。
 - 如果它等到的是一个 Promise 对象，await 就忙起来了，它会阻塞后面的代码，等着 Promise 对象 resolve，然后得到 resolve 的值，作为 await 表达式的运算结果。
+
+## 40.async await 魔鬼细节
+
+```
+async function async1 () {
+    await new Promise((resolve, reject) => {
+        resolve()
+    })
+    console.log('A')
+}
+
+async1()
+
+new Promise((resolve) => {
+    console.log('B')
+    resolve()
+}).then(() => {
+    console.log('C')
+}).then(() => {
+    console.log('D')
+})
+
+// B A C D
+```
+
+```
+async function async1 () {
+    await async2()
+    console.log('A')
+}
+
+async function async2 () {
+    return new Promise((resolve, reject) => {
+        resolve()
+    })
+}
+
+async1()
+
+new Promise((resolve) => {
+    console.log('B')
+    resolve()
+}).then(() => {
+    console.log('C')
+}).then(() => {
+    console.log('D')
+})
+
+// B C D A
+```
+
+### async 函数返回值
+
+在讨论 `await` 之前，先聊一下 `async` 函数处理返回值的问题，它会像 `Promise.prototype.then` 一样，会对返回值的类型进行辨识。
+
+**根据返回值的类型，引起 `js引擎` 对返回值处理方式的不同**
+
+**结论：**`async`函数在抛出返回值时，会根据返回值**类型**开启**不同数目的微任务**
+
+- return结果值：非`thenable`、非`promise`（不等待）
+- return结果值：`thenable`（等待 1个`then`的时间）
+- return结果值：`promise`（等待 2个`then`的时间）
+
+#### 非`thenable`、非`promise`（不等待）
+
+```
+async function testA () {
+    return 1;
+}
+
+testA().then(() => console.log(1));
+Promise.resolve()
+    .then(() => console.log(2))
+    .then(() => console.log(3));
+
+// (不等待)最终结果👉: 1 2 3
+```
+
+#### `thenable`（等待 1个`then`的时间）
+
+```
+async function testB () {
+    return {
+        then (cb) {
+            cb();
+        }
+    };
+}
+
+testB().then(() => console.log(1));
+Promise.resolve()
+    .then(() => console.log(2))
+    .then(() => console.log(3));
+
+// (等待一个then)最终结果👉: 2 1 3
+```
+
+#### `promise`（等待 2个`then`的时间）
+
+```
+async function testC () {
+    return new Promise((resolve, reject) => {
+        resolve()
+    })
+} 
+
+testC().then(() => console.log(1));
+Promise.resolve()
+    .then(() => console.log(2))
+    .then(() => console.log(3))
+    .then(() => console.log(4))
+
+// (等待两个then)最终结果👉: 2 3 1 4
+```
+
