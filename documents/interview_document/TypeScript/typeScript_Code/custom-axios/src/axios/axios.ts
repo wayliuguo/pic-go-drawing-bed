@@ -8,20 +8,28 @@ export default class axios<T> {
         response: new AxiosInterceptorManager<AxiosResponse<T>>()
     }
     // T 用来限制响应对象response里的参数
-    request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T> | AxiosResponse<T>> {
         // return this.dispatchRequest(config)
-        // AxiosRequestConfig | AxiosResponse<T>
-        const chain: Interceptors<any>[] = [
+        // Interceptors<AxiosRequestConfig | AxiosResponse<T>
+        const chain: Array<Interceptors<any>> = [
             {
                 onFulfilled: this.dispatchRequest
             }
         ]
+        // Interceptors<AxiosRequestConfig>
         this.intercetors.request.interceptors.forEach((interceptor) => {
             interceptor && chain.unshift(interceptor)
         })
+        // Interceptors<AxiosResponse<T>>
         this.intercetors.response.interceptors.forEach((interceptor) => {
             interceptor && chain.push(interceptor)
         })
+        let promise: any = Promise.resolve(config)
+        while(chain.length) {
+            const {onFulfilled, onRejected} = chain.shift()!
+            promise = promise.then(onFulfilled, onRejected)
+        }
+        return promise
     }
     // 定义一个派发请求的方法
     dispatchRequest<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {

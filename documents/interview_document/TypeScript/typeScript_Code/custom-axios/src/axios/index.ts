@@ -3,7 +3,7 @@ import { AxiosInstance } from './types'
 
 // 可以创建一个axios实例，axios其实就是一个函数
 function createInstance(): AxiosInstance {
-    let context: Axios= new Axios() // this 指针指向上下文
+    let context: Axios<any>= new Axios() // this 指针指向上下文
     // 让request 方法里的this 永远指向context 也就是 new Axios()
     let instance = Axios.prototype.request.bind(context)
 
