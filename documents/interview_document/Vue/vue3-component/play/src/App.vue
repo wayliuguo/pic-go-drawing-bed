@@ -22,7 +22,6 @@ function createLabel(level: number): string {
   return ''
 }
 const data = ref(createData())
-console.log(data)
 </script>
 
 <template>
@@ -35,6 +34,7 @@ console.log(data)
       label-field="label"
       key-field="key"
       children-field="children"
+      :default-expanded-keys="['40', '41']"
     >
     </z-tree>
 </template>

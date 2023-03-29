@@ -4,10 +4,13 @@ type Key = string | number
 
 export interface TreeNode extends Required<TreeOption> {
   level: number,
-  rawNode: TreeOption
+  rawNode: TreeOption,
+  children: TreeNode[],
+  isLeaf: boolean
 }
 
 export interface TreeOption {
+  isLeaf: boolean
   label?: Key
   key?: Key
   children?: TreeOption[],
@@ -17,6 +20,10 @@ export interface TreeOption {
 export const treeProps = {
   data: {
     type: Array as PropType<TreeOption[]>,
+    default: () => []
+  },
+  defaultExpandedKeys: {
+    type: Array as PropType<Key[]>,
     default: () => []
   },
   labelField: {
