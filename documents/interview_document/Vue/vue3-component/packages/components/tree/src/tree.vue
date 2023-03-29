@@ -5,7 +5,7 @@
 
 <script setup lang="ts">
 import { createNamespace } from '@zi-shui/utils/create';
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { ref } from 'vue';
 import { TreeNode, TreeOption, treeProps } from './tree'
 
@@ -41,6 +41,7 @@ const treeOptions = createOptions(
   props.labelField, 
   props.childrenField
 )
+
 const createTree = (data: TreeOption[]): any => {
   const traversal = (data: TreeOption[], parent: TreeNode | null = null) => {
     return data.map(node => {
@@ -71,7 +72,6 @@ watch(
   () => props.data, 
   (data: TreeOption[]) => {
     tree.value = createTree(data)
-    console.log(tree.value)
   },
   {
     immediate: true
@@ -79,6 +79,37 @@ watch(
 )
 
 // 希望将一颗树拍平， 点击还能实现展开操作
-// 需要展开的key有哪些
+// 需要展开的key有哪些 [40, 41]
 const expandedKeysSet = ref(new Set(props.defaultExpandedKeys))
+const flattenTree = computed(() => {
+  // 需要展开的keys
+  let expandedKeys = expandedKeysSet.value
+
+  // 扁平后的节点
+  let flattenNodes: TreeNode[] = []
+  // 被格式化后的节点
+  const nodes = tree.value || []
+  // 用于遍历树的栈 [41, 40]
+  const stack: TreeNode[] = []
+  for (let i=nodes.length -1; i>=0; --i) {
+    stack.push(nodes[i])
+  }
+  // 深度遍历
+  while(stack.length) {
+    const node = stack.pop()
+    if (!node) continue
+    flattenNodes.push(node)
+    if (expandedKeys.has(node.key)) {
+      // 如果有
+      const children = node.children 
+      if (children) {
+        for (let i = node.children.length - 1; i >= 0; --i) {
+          stack.push(node.children[i])
+        }
+      }
+    }
+  }
+  return flattenNodes
+})
+console.log(flattenTree.value)
 </script>
