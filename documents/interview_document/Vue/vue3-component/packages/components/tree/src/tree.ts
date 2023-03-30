@@ -40,6 +40,19 @@ export const treeProps = {
   }
 } as const // as const 把 props 转为readOnly
 
+export const treeNodeProps = {
+  node: {
+    type: Object as PropType<TreeNode>,
+    required: true
+  },
+  expanded: {
+    type: Boolean,
+    required: true
+  }
+} as const
+
+export type TreeNodeProps = ExtractPropTypes<typeof treeNodeProps>
+
 export type TreeProps = ExtractPropTypes<typeof treeProps>
 /**
  * 通过 ExtractPropTypes 获得以下类型

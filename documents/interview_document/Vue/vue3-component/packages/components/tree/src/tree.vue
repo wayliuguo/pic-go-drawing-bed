@@ -1,5 +1,12 @@
 <template>
   <div :class="bem.b()">
+    <z-tree-node 
+      v-for="node in flattenTree"
+      :key="node.key"
+      :node="node"
+      :expanded="isExpanded(node)"
+    >
+    </z-tree-node>
   </div>
 </template>
 
@@ -8,6 +15,7 @@ import { createNamespace } from '@zi-shui/utils/create';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
 import { TreeNode, TreeOption, treeProps } from './tree'
+import ZTreeNode from './treeNode.vue';
 
 const bem = createNamespace('tree')
 
@@ -111,5 +119,9 @@ const flattenTree = computed(() => {
   }
   return flattenNodes
 })
-console.log(flattenTree.value)
+
+const isExpanded = (node: TreeNode):boolean => {
+  return expandedKeysSet.value.has(node.key)
+}
+
 </script>
