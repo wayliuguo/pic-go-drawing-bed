@@ -51,6 +51,10 @@ export const treeNodeProps = {
   }
 } as const
 
+export const treeNodeEmitts = {
+  toggle: (node: TreeNode) => node
+}
+
 export type TreeNodeProps = ExtractPropTypes<typeof treeNodeProps>
 
 export type TreeProps = ExtractPropTypes<typeof treeProps>

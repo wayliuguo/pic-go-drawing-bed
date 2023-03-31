@@ -25,9 +25,9 @@ const data = ref(createData())
 </script>
 
 <template>
-    <z-icon :color="'yellow'" :size="20">
+    <!-- <z-icon :color="'yellow'" :size="20">
         <AddCircle></AddCircle>
-    </z-icon>
+    </z-icon> -->
     <!-- 在使用树组件的时候 会传递一个树型的结构 -->
     <z-tree 
       :data="data" 

@@ -5,6 +5,7 @@
       :key="node.key"
       :node="node"
       :expanded="isExpanded(node)"
+      @toggle="toggleExpand"
     >
     </z-tree-node>
   </div>
@@ -50,6 +51,7 @@ const treeOptions = createOptions(
   props.childrenField
 )
 
+// 数据格式化
 const createTree = (data: TreeOption[]): any => {
   const traversal = (data: TreeOption[], parent: TreeNode | null = null) => {
     return data.map(node => {
@@ -120,8 +122,29 @@ const flattenTree = computed(() => {
   return flattenNodes
 })
 
+// 是否是展开的
 const isExpanded = (node: TreeNode):boolean => {
   return expandedKeysSet.value.has(node.key)
+}
+
+// 折叠功能
+const collpase = (node: TreeNode) => {
+  expandedKeysSet.value.delete(node.key)
+}
+
+// 展开功能
+const expand = (node: TreeNode) => {
+  expandedKeysSet.value.add(node.key)
+}
+
+// 切换展开
+const toggleExpand = (node: TreeNode) => {
+  const expandedKeys = expandedKeysSet.value
+  if (expandedKeys.has(node.key)) {
+    collpase(node)
+  } else {
+    expand(node)
+  }
 }
 
 </script>
