@@ -5,6 +5,7 @@
       :key="node.key"
       :node="node"
       :expanded="isExpanded(node)"
+      :loadingKeys="loadingKeysRef"
       @toggle="toggleExpand"
     >
     </z-tree-node>
@@ -15,7 +16,7 @@
 import { createNamespace } from '@zi-shui/utils/create';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
-import { TreeNode, TreeOption, treeProps } from './tree'
+import { TreeNode, TreeOption, treeProps, Key } from './tree'
 import ZTreeNode from './treeNode.vue';
 
 const bem = createNamespace('tree')
@@ -52,7 +53,7 @@ const treeOptions = createOptions(
 )
 
 // 数据格式化
-const createTree = (data: TreeOption[]): any => {
+const createTree = (data: TreeOption[], parent: TreeNode | null = null): any => {
   const traversal = (data: TreeOption[], parent: TreeNode | null = null) => {
     return data.map(node => {
       const children = treeOptions.getChildren(node) || []
@@ -73,7 +74,7 @@ const createTree = (data: TreeOption[]): any => {
       return treeNode
     })
   }
-  const result: TreeNode[] = traversal(data)
+  const result: TreeNode[] = traversal(data, parent)
   return result
 }
 
@@ -132,15 +133,45 @@ const collpase = (node: TreeNode) => {
   expandedKeysSet.value.delete(node.key)
 }
 
+// loading 的keys
+const loadingKeysRef = ref(new Set<Key>())
+
+// 触发加载
+const triggerLoading = async (node: TreeNode) => {
+  // 需要异步加载的判断
+  if (!node.children.length && !node.isLeaf) {
+    const loadingKeys = loadingKeysRef.value
+    if (!loadingKeys.has(node.key)) {
+      loadingKeys.add(node.key)
+      const onLoad = props.onLoad
+      if (onLoad) {
+        try {
+          const children = await onLoad(node.rawNode)
+          // 修改原来的节点
+          node.rawNode.children = children
+          // 更新自定义的node，下次点击就不用重写加载了
+          node.children = createTree(children, node)
+          loadingKeys.delete(node.key)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+}
+
 // 展开功能
 const expand = (node: TreeNode) => {
   expandedKeysSet.value.add(node.key)
+  // 这里应该实现对应的加载逻辑
+  triggerLoading(node)
 }
 
 // 切换展开
 const toggleExpand = (node: TreeNode) => {
   const expandedKeys = expandedKeysSet.value
-  if (expandedKeys.has(node.key)) {
+  // 如果节点正在加载中，不能收起
+  if (expandedKeys.has(node.key) && !loadingKeysRef.value.has(node.key)) {
     collpase(node)
   } else {
     expand(node)

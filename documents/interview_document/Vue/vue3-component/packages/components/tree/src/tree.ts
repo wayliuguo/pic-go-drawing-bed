@@ -1,6 +1,6 @@
 import {ExtractPropTypes, PropType} from 'vue'
 
-type Key = string | number
+export type Key = string | number
 
 export interface TreeNode extends Required<TreeOption> {
   level: number,
@@ -37,7 +37,8 @@ export const treeProps = {
   childrenField: {
     type: String,
     default: 'children'
-  }
+  },
+  onLoad: Function as PropType<(node: TreeOption) => Promise<TreeOption[]>>
 } as const // as const 把 props 转为readOnly
 
 export const treeNodeProps = {
@@ -48,6 +49,10 @@ export const treeNodeProps = {
   expanded: {
     type: Boolean,
     required: true
+  },
+  loadingKeys: {
+    type: Object as PropType<Set<Key>>,
+    default: new Set([])
   }
 } as const
 
