@@ -1,5 +1,5 @@
 <template>
-  <div :class="bem.b()">
+  <div :class="[bem.b(), bem.is('selected', isSelected)]">
     <div 
       :class="bem.e('content')"
       :style="{paddingLeft: `${node.level * 16}px`}"
@@ -17,7 +17,7 @@
           <Loading v-else></Loading>
         </z-icon>
       </span>
-      <span>{{ node?.label }}</span>
+      <span @click="handleSelected" :class="bem.e('label')">{{ node?.label }}</span>
     </div>
   </div>
 </template>
@@ -47,4 +47,13 @@ const handleExpand = () => {
 const isLoading = computed(() => {
   return props.loadingKeys.has(props.node.key)
 })
+
+// 是否选中
+const isSelected = computed(() => {
+  return props.selectedKeys.includes(props.node.key)
+})
+
+const handleSelected = () => {
+  emit('select', props.node)
+}
 </script>

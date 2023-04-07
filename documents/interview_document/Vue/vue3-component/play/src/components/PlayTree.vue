@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { TreeOption } from '@zi-shui/components/tree/src/tree';
+import { TreeOption, Key } from '@zi-shui/components/tree/src/tree';
 import { ref } from 'vue'
 
 
-function createData () {
+/* function createData () {
   return [
     {
       label: nextLabel(),
@@ -16,7 +16,7 @@ function createData () {
       isLeaf: false
     }
   ]
-}
+} */
 
 function nextLabel (currentLabel?: string | number): string {
   if (!currentLabel) return 'Out of Tao, One is born'
@@ -31,7 +31,7 @@ function nextLabel (currentLabel?: string | number): string {
   return ''
 }
 
-/* function createData(level = 4, parentKey=''):any {
+function createData(level = 4, parentKey=''):any {
   if (!level) return []
   const arr = new Array(6-level).fill(0)
   return arr.map((_, idx: number) => {
@@ -42,7 +42,7 @@ function nextLabel (currentLabel?: string | number): string {
       children: createData(level - 1, key)
     }
   }) 
-} */
+}
 function createLabel(level: number): string {
   if (level === 4) return '道生一'
   if (level === 3) return '一生二'
@@ -66,10 +66,15 @@ const handleLoad = (node: TreeOption) => {
   })
 }
 
+const value = ref<Key[]>(['40', '41'])
+
 </script>
 
 <template>
     <z-tree 
+      v-model:selected-keys="value"
+      selectable
+      multiple
       :data="data" 
       label-field="label"
       key-field="key"

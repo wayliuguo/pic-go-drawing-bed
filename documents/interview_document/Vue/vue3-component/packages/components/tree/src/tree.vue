@@ -7,6 +7,8 @@
       :expanded="isExpanded(node)"
       :loadingKeys="loadingKeysRef"
       @toggle="toggleExpand"
+      @select="handleSelect"
+      :selectedKeys="selectKeysRef"
     >
     </z-tree-node>
   </div>
@@ -16,7 +18,7 @@
 import { createNamespace } from '@zi-shui/utils/create';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
-import { TreeNode, TreeOption, treeProps, Key } from './tree'
+import { TreeNode, TreeOption, treeProps, Key, treeEmitts } from './tree'
 import ZTreeNode from './treeNode.vue';
 
 const bem = createNamespace('tree')
@@ -25,6 +27,9 @@ const bem = createNamespace('tree')
 defineOptions({
   name: 'z-tree'
 })
+
+// 定义 emitts
+const emit = defineEmits(treeEmitts)
 
 const props = defineProps(treeProps)
 // 有了 props 要对用户的数据进行格式化，格式化一个固定的结果
@@ -176,6 +181,47 @@ const toggleExpand = (node: TreeNode) => {
   } else {
     expand(node)
   }
+}
+
+// 选中节点
+const selectKeysRef = ref<Key[]>([])
+watch(
+  () => props.selectedKeys,
+  value => {
+    if (value) {
+      selectKeysRef.value = value
+    }
+  },
+  {
+    immediate: true
+  }
+)
+
+const handleSelect = (node: TreeNode) => {
+  // selectKeysRef 是proxy的，可以使用Array.from 得到数组类型的
+  let keys = Array.from(selectKeysRef.value)
+
+  if (!props.selectable) return
+
+  if (props.multiple) {
+    let index = keys.findIndex(key => key === node.key)
+    if (index > -1) {
+      // 已选中移除
+      keys.splice(index, 1)
+    } else {
+      // 未选中
+      keys.push(node.key)
+    }
+  } else {
+    if (keys.includes(node.key)) {
+      // 已选中移除
+      keys  = []
+    } else {
+      // 未选中
+      keys = [node.key]
+    }
+  }
+  emit('update:selectedKeys', keys)
 }
 
 </script>
