@@ -18,8 +18,10 @@
 import { createNamespace } from '@zi-shui/utils/create';
 import { computed, watch } from 'vue';
 import { ref } from 'vue';
-import { TreeNode, TreeOption, treeProps, Key, treeEmitts } from './tree'
+import { TreeNode, TreeOption, treeProps, Key, treeEmitts, treeInjectKey } from './tree'
 import ZTreeNode from './treeNode.vue';
+import { provide } from 'vue';
+import { useSlots } from 'vue';
 
 const bem = createNamespace('tree')
 
@@ -68,6 +70,7 @@ const createTree = (data: TreeOption[], parent: TreeNode | null = null): any => 
         children: [], // 默认为空，有children再去递归
         rawNode: node,
         level: parent ? parent.level + 1 : 0,
+        disabled: !!node.disabled,
         // 判断节点是否自带了isLeaf, 如果自带了以自带的为准，如果没有自带的则根据有没有 children
         // children
         isLeaf: node.isLeaf ?? children.length === 0
@@ -223,5 +226,9 @@ const handleSelect = (node: TreeNode) => {
   }
   emit('update:selectedKeys', keys)
 }
+
+provide(treeInjectKey, {
+  slots: useSlots()
+})
 
 </script>
