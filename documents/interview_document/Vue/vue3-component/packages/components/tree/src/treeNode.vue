@@ -1,30 +1,21 @@
 <template>
   <div :class="[
-    bem.b(), 
+    bem.b(),
     bem.is('selected', isSelected),
     bem.is('disabled', node.disabled)
   ]">
-    <div 
-      :class="bem.e('content')"
-      :style="{paddingLeft: `${node.level * 16}px`}"
-    >
-      <span 
-        :class="[
-          bem.e('expand-icon'),
-          { expanded: expanded && !node.isLeaf },
-          bem.is('leaf', node.isLeaf)
-        ]"
-        @click="handleExpand"
-      >
+    <div :class="bem.e('content')" :style="{ paddingLeft: `${node.level * 16}px` }">
+      <span :class="[
+        bem.e('expand-icon'),
+        { expanded: expanded && !node.isLeaf },
+        bem.is('leaf', node.isLeaf)
+      ]" @click="handleExpand">
         <z-icon size="25">
           <Switcher v-if="!isLoading"></Switcher>
           <Loading v-else></Loading>
         </z-icon>
       </span>
-      <span 
-        @click="handleSelected"
-        :class="bem.e('label')"
-      >
+      <span @click="handleSelected" :class="bem.e('label')">
         <ZTreeNodeContent :node="node"></ZTreeNodeContent>
         <!-- {{ node?.label }}{{ treeContext?.slots.default!({ node }) }} -->
       </span>

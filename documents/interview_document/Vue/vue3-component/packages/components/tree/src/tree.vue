@@ -1,15 +1,7 @@
 <template>
   <div :class="bem.b()">
-    <z-tree-node 
-      v-for="node in flattenTree"
-      :key="node.key"
-      :node="node"
-      :expanded="isExpanded(node)"
-      :loadingKeys="loadingKeysRef"
-      @toggle="toggleExpand"
-      @select="handleSelect"
-      :selectedKeys="selectKeysRef"
-    >
+    <z-tree-node v-for="node in flattenTree" :key="node.key" :node="node" :expanded="isExpanded(node)"
+      :loadingKeys="loadingKeysRef" @toggle="toggleExpand" @select="handleSelect" :selectedKeys="selectKeysRef">
     </z-tree-node>
   </div>
 </template>
@@ -54,8 +46,8 @@ const createOptions = (key: string, label: string, children: string) => {
   }
 }
 const treeOptions = createOptions(
-  props.keyField, 
-  props.labelField, 
+  props.keyField,
+  props.labelField,
   props.childrenField
 )
 
@@ -88,7 +80,7 @@ const createTree = (data: TreeOption[], parent: TreeNode | null = null): any => 
 
 // 监控数据变化，调用格式化方法，一上来就调用
 watch(
-  () => props.data, 
+  () => props.data,
   (data: TreeOption[]) => {
     tree.value = createTree(data)
   },
@@ -110,17 +102,17 @@ const flattenTree = computed(() => {
   const nodes = tree.value || []
   // 用于遍历树的栈 [41, 40]
   const stack: TreeNode[] = []
-  for (let i=nodes.length -1; i>=0; --i) {
+  for (let i = nodes.length - 1; i >= 0; --i) {
     stack.push(nodes[i])
   }
   // 深度遍历
-  while(stack.length) {
+  while (stack.length) {
     const node = stack.pop()
     if (!node) continue
     flattenNodes.push(node)
     if (expandedKeys.has(node.key)) {
       // 如果有
-      const children = node.children 
+      const children = node.children
       if (children) {
         for (let i = node.children.length - 1; i >= 0; --i) {
           stack.push(node.children[i])
@@ -132,7 +124,7 @@ const flattenTree = computed(() => {
 })
 
 // 是否是展开的
-const isExpanded = (node: TreeNode):boolean => {
+const isExpanded = (node: TreeNode): boolean => {
   return expandedKeysSet.value.has(node.key)
 }
 
@@ -218,7 +210,7 @@ const handleSelect = (node: TreeNode) => {
   } else {
     if (keys.includes(node.key)) {
       // 已选中移除
-      keys  = []
+      keys = []
     } else {
       // 未选中
       keys = [node.key]
