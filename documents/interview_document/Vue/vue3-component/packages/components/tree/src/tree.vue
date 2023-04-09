@@ -1,19 +1,23 @@
 <template>
   <div :class="bem.b()">
-    <z-tree-node v-for="node in flattenTree" :key="node.key" :node="node" :expanded="isExpanded(node)"
-      :loadingKeys="loadingKeysRef" @toggle="toggleExpand" @select="handleSelect" :selectedKeys="selectKeysRef">
-    </z-tree-node>
+    <z-virtual-list :items="flattenTree" :remain="8" :size="35">
+      <template #default="{
+        node
+      }">
+        <z-tree-node :key="node.key" :node="node" :expanded="isExpanded(node)" :loadingKeys="loadingKeysRef"
+          @toggle="toggleExpand" @select="handleSelect" :selectedKeys="selectKeysRef">
+        </z-tree-node>
+      </template>
+    </z-virtual-list>
   </div>
 </template>
 
 <script setup lang="ts">
 import { createNamespace } from '@zi-shui/utils/create';
-import { computed, watch } from 'vue';
-import { ref } from 'vue';
+import { computed, watch, provide, useSlots, ref } from 'vue';
 import { TreeNode, TreeOption, treeProps, Key, treeEmitts, treeInjectKey } from './tree'
 import ZTreeNode from './treeNode.vue';
-import { provide } from 'vue';
-import { useSlots } from 'vue';
+import ZVirtualList from '@zi-shui/components/virtual-list'
 
 const bem = createNamespace('tree')
 

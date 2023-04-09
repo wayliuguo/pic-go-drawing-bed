@@ -33,7 +33,7 @@ function nextLabel(currentLabel?: string | number): string {
 
 function createData(level = 4, parentKey = ''): any {
   if (!level) return []
-  const arr = new Array(6 - level).fill(0)
+  const arr = new Array(20 - level).fill(0)
   return arr.map((_, idx: number) => {
     const key = parentKey + level + idx
     return {
@@ -124,15 +124,9 @@ const value = ref<Key[]>(['40', '41'])
 </script>
 
 <template>
-  <z-tree 
-    v-model:selected-keys="value" 
-    selectable multiple :data="data" 
-    label-field="label" key-field="key"
-    children-field="children"
-    :default-expanded-keys="['40', '41']"
-    :on-load="handleLoad"
-  >
-    <template #default="{node}">
+  <z-tree v-model:selected-keys="value" selectable multiple :data="data" label-field="label" key-field="key"
+    children-field="children" :default-expanded-keys="['40', '41']" :on-load="handleLoad">
+    <template #default="{ node }">
       {{ node.key }} - {{ node.label }}
     </template>
   </z-tree>
