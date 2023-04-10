@@ -1,16 +1,16 @@
-import { ExtractPropTypes } from "vue"
+import { ExtractPropTypes, PropType } from "vue"
 
 export const virtualProps = {
   size: {
-    type: Number,
+    type: Number as PropType<number>,
     default: 35
   },
   remain: {
     default: 8,
-    type: Number
+    type: Number as PropType<number>
   },
   items: {
-    type: Array,
+    type: Array as PropType<any[]>,
     default: () => []
   }
 } as const
