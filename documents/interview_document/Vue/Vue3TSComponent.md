@@ -1103,7 +1103,7 @@ export const virtualProps = {
 export type VirtualProps = ExtractPropTypes<typeof virtualProps>
 ```
 
-## 组件代码
+## virtual.tsx
 
 ```
 import { computed, defineComponent, onMounted, ref, watch } from 'vue'
@@ -1207,4 +1207,100 @@ export default defineComponent({
   }
 }
 ```
+
+# 八、checkbox 组件
+
+## props
+
+```
+import { ExtractPropTypes, PropType } from 'vue'
+
+export const checkboxProps = {
+  modelValue: {
+    type: [Boolean, String, Number] as PropType<boolean | string | number>
+  },
+  indeterminate: Boolean,
+  disabled: Boolean,
+  label: {
+    type: String as PropType<string>
+  }
+} as const
+
+export type CheckboxProps = Partial<ExtractPropTypes<typeof checkboxProps>>
+
+export const checkboxEmits = {
+  'update:modelValue': (value: boolean | string | number) =>
+    typeof value === 'boolean',
+  change: (value: boolean) => typeof value === 'boolean'
+}
+
+export type CheckboxEmits = typeof checkboxEmits
+
+```
+
+## checkbox.vue
+
+```
+<template>
+  <label :class="bem.b()">
+    <span :class="bem.e('input')">
+      <input
+        ref="inputRef"
+        v-model="model"
+        type="checkbox"
+        :disabled="disabled"
+        :value="label"
+        @change="handleChange"
+      />
+    </span>
+
+    <span v-if="$slots.default || label" :class="bem.e('label')">
+      <slot></slot>
+      <template v-if="!$slots.default">{{ label }}</template>
+    </span>
+  </label>
+</template>
+
+<script lang="ts" setup>
+import { computed } from '@vue/reactivity'
+import { createNamespace } from '@zi-shui/utils/create'
+import { onMounted, watch, ref } from 'vue'
+import { checkboxEmits, checkboxProps } from './checkbox'
+const bem = createNamespace('checkbox')
+const props = defineProps(checkboxProps)
+const emit = defineEmits(checkboxEmits)
+
+defineOptions({
+  name: 'z-checkbox'
+})
+const model = computed<any>({
+  get() {
+    return props.modelValue
+  },
+  set(val) {
+    return emit('update:modelValue', val)
+  }
+})
+const inputRef = ref<HTMLInputElement>()
+
+function indeterminate(val: boolean) {
+  inputRef.value!.indeterminate = val
+}
+function handleChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  const value = target.checked ? true : false
+  emit('change', value)
+}
+
+watch(() => props.indeterminate, indeterminate)
+
+onMounted(() => {
+  indeterminate(props.indeterminate)
+})
+</script>
+
+```
+
+- 通过computed 得到一个根据传入的v-model的值，由于单向数据流的缘故，所以set的时候直接emit的是改变v-model的方法
+- handleChange =》 emit('change', value)
 
