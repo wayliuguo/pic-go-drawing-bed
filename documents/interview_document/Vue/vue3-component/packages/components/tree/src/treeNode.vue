@@ -15,7 +15,14 @@
           <Loading v-else></Loading>
         </z-icon>
       </span>
-      <z-checkbox v-if="showCheckbox" :model-value="checked"></z-checkbox>
+      <z-checkbox 
+        v-if="showCheckbox"
+        :model-value="checked"
+        :disabled="disabled"
+        :indeterminate="indeterminate"
+        @change="handleCheckChange"
+      >
+      </z-checkbox>
       <span @click="handleSelected" :class="bem.e('label')">
         <ZTreeNodeContent :node="node"></ZTreeNodeContent>
         <!-- {{ node?.label }}{{ treeContext?.slots.default!({ node }) }} -->
@@ -62,6 +69,11 @@ const handleSelected = () => {
   // 如果是禁用的
   if (props.node.disabled) return
   emit('select', props.node)
+}
+
+// checkbox 点击
+const handleCheckChange = (val: boolean) => {
+  emit('check', props.node, val)
 }
 
 const treeContext = inject(treeInjectKey)

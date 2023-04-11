@@ -8,7 +8,8 @@ export interface TreeNode extends Required<TreeOption> {
   level: number,
   rawNode: TreeOption,
   children: TreeNode[],
-  isLeaf: boolean
+  isLeaf: boolean,
+  parentKey?: Key 
 }
 
 export interface TreeOption {
@@ -92,7 +93,8 @@ export const treeNodeProps = {
 
 export const treeNodeEmitts = {
   toggle: (node: TreeNode) => node,
-  select: (node: TreeNode) => node
+  select: (node: TreeNode) => node,
+  check: (node: TreeNode,val: boolean) => typeof val === 'boolean'
 }
 
 export const treeEmitts = {
