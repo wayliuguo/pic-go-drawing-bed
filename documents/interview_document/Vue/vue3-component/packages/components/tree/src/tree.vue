@@ -1,11 +1,24 @@
 <template>
   <div :class="bem.b()">
-    <z-virtual-list :items="flattenTree" :remain="8" :size="35">
-      <template #default="{
-        node
-      }">
-        <z-tree-node :key="node.key" :node="node" :expanded="isExpanded(node)" :loadingKeys="loadingKeysRef"
-          @toggle="toggleExpand" @select="handleSelect" :selectedKeys="selectKeysRef">
+    <z-virtual-list 
+      :items="flattenTree"
+      :remain="8"
+      :size="35"
+    >
+      <template #default="{ node }">
+        <z-tree-node
+          :key="node.key"
+          :node="node"
+          :expanded="isExpanded(node)"
+          :loadingKeys="loadingKeysRef"
+          @toggle="toggleExpand"
+          @select="handleSelect"
+          :selectedKeys="selectKeysRef"
+          :show-checkbox="showCheckbox"
+          :checked="isChecked(node)"
+          :disabled="true"
+          :indeterminate="true"
+        >
         </z-tree-node>
       </template>
     </z-virtual-list>
@@ -226,5 +239,11 @@ const handleSelect = (node: TreeNode) => {
 provide(treeInjectKey, {
   slots: useSlots()
 })
+
+// checkbox 选中的数据
+const checkedKeysRefs = ref(new Set(props.defaultCheckedKeys))
+const isChecked = (node: TreeNode) => {
+  return checkedKeysRefs.value.has(node.key)
+}
 
 </script>

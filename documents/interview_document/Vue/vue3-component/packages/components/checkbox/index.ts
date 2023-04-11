@@ -1,6 +1,6 @@
 // 用来整合组件的 最终实现导出组件
 
-import _Checkbox from './src/Checkbox.vue'
+import _Checkbox from './src/checkbox.vue'
 import { withInstall } from '@zi-shui/utils/with-install'
 
 const Checkbox = withInstall(_Checkbox)

@@ -15,6 +15,7 @@
           <Loading v-else></Loading>
         </z-icon>
       </span>
+      <z-checkbox v-if="showCheckbox" :model-value="checked"></z-checkbox>
       <span @click="handleSelected" :class="bem.e('label')">
         <ZTreeNodeContent :node="node"></ZTreeNodeContent>
         <!-- {{ node?.label }}{{ treeContext?.slots.default!({ node }) }} -->
@@ -27,6 +28,7 @@
 import ZIcon from '@zi-shui/components/icon'
 import Switcher from '@zi-shui/components/internal-icon/Switcher';
 import Loading from '@zi-shui/components/internal-icon/Loading'
+import ZCheckbox from '@zi-shui/components/checkbox';
 import ZTreeNodeContent from './tree-node-content'
 import { createNamespace } from '@zi-shui/utils/create';
 import { treeInjectKey, treeNodeEmitts, treeNodeProps } from './tree';

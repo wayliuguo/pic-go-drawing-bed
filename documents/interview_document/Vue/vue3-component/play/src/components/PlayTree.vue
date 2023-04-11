@@ -124,8 +124,18 @@ const value = ref<Key[]>(['40', '41'])
 </script>
 
 <template>
-  <z-tree v-model:selected-keys="value" selectable multiple :data="data" label-field="label" key-field="key"
-    children-field="children" :default-expanded-keys="['40', '41']" :on-load="handleLoad">
+  <z-tree 
+    v-model:selected-keys="value"
+    selectable multiple 
+    :data="data" 
+    label-field="label" 
+    key-field="key"
+    children-field="children"
+    :default-expanded-keys="['40', '41']"
+    :on-load="handleLoad"
+    show-checkbox
+    :default-checked-keys="['40', '41']"
+  >
     <template #default="{ node }">
       {{ node.key }} - {{ node.label }}
     </template>

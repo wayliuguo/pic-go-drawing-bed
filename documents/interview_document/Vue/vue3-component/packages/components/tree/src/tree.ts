@@ -53,6 +53,14 @@ export const treeProps = {
   multiple: {
     type: Boolean,
     default: false
+  },
+  defaultCheckedKeys: {
+    type: Array as PropType<Key[]>,
+    default: () => []
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: false
   }
 } as const // as const 把 props 转为readOnly
 
@@ -72,7 +80,14 @@ export const treeNodeProps = {
   selectedKeys: {
     type: Array as PropType<Key[]>,
     default: () => []
-  }
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: false
+  },
+  checked: Boolean,
+  disabled: Boolean,
+  indeterminate: Boolean
 } as const
 
 export const treeNodeEmitts = {
