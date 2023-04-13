@@ -1304,3 +1304,607 @@ onMounted(() => {
 - 通过computed 得到一个根据传入的v-model的值，由于单向数据流的缘故，所以set的时候直接emit的是改变v-model的方法
 - handleChange =》 emit('change', value)
 
+# 九、树组件
+
+## props
+
+```
+import { InjectionKey } from 'vue'
+import { SetupContext } from 'vue'
+import {ExtractPropTypes, PropType} from 'vue'
+
+export type Key = string | number
+```
+
+```
+export interface TreeNode extends Required<TreeOption> {
+  level: number,
+  rawNode: TreeOption,
+  children: TreeNode[],
+  isLeaf: boolean,
+  parentKey?: Key 
+}
+
+export interface TreeOption {
+  isLeaf?: boolean
+  label?: Key
+  key?: Key
+  children?: TreeOption[],
+  disabled?: boolean
+  [key: string]: unknown // 任意属性值
+}
+```
+
+```
+export const treeProps = {
+  data: {
+    type: Array as PropType<TreeOption[]>,
+    default: () => []
+  },
+  defaultExpandedKeys: {
+    type: Array as PropType<Key[]>,
+    default: () => []
+  },
+  labelField: {
+    type: String,
+    default: 'label'
+  },
+  keyField: {
+    type: String,
+    default: 'key'
+  },
+  childrenField: {
+    type: String,
+    default: 'children'
+  },
+  onLoad: Function as PropType<(node: TreeOption) => Promise<TreeOption[]>>,
+  // 选中节点
+  selectedKeys: {
+    type: Array as PropType<Key[]>
+  },
+  selectable: {
+    type: Boolean,
+    default: false
+  },
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  defaultCheckedKeys: {
+    type: Array as PropType<Key[]>,
+    default: () => []
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: false
+  }
+} as const // as const 把 props 转为readOnly
+```
+
+- onLoad: Function as PropType<(node: TreeOption) => Promise<TreeOption[]>>
+  - Promise里的泛型TreeOption[]是resolve返回的类型
+
+```
+export const treeNodeEmitts = {
+  toggle: (node: TreeNode) => node,
+  select: (node: TreeNode) => node,
+  check: (node: TreeNode,val: boolean) => typeof val === 'boolean'
+}
+
+export const treeEmitts = {
+  // 内部发射的事件，用来同步响应式数据
+  'update:selectedKeys': (keys: Key[]) =>  keys
+}
+```
+
+- 用于定义 emitts
+
+  `const emit = defineEmits(treeNodeEmitts)`
+
+  `const emit = defineEmits(treeEmitts)`
+
+```
+export interface TreeContext {
+  slots: SetupContext['slots'],
+  // emit: SetupContext<typeof treeEmitts>['emit']
+}
+
+// 此变量作为提供出去的属性
+export const treeInjectKey: InjectionKey<TreeContext> = Symbol()
+```
+
+- SetupContext
+
+  ```
+  export declare interface SetupContext<E = EmitsOptions> {
+      attrs: Data;
+      slots: Slots;
+      emit: EmitFn<E>;
+      expose: (exposed?: Record<string, any>) => void;
+  }
+  ```
+
+- 这里定义了一个context，其slots的类型是SetupContext[slots]
+
+- treeInjectKey 的类型是 InjectionKey，作为注入的key
+
+  ```
+  // tree.vue
+  provide(treeInjectKey, {
+    slots: useSlots()
+  })
+  // InjectionKey
+  export declare interface InjectionKey<T> extends Symbol {
+  }
+  ```
+
+- useSlots：获取一个插槽对象，对象的key是插槽名称
+
+- inject
+
+  ```
+  const treeContext = inject(treeInjectKey)
+  ```
+
+```
+export const treeNodeContentProps = {
+  node: {
+    type: Object as PropType<TreeNode>,
+    required: true
+  }
+}
+```
+
+## tree.vue
+
+```
+<template>
+  <div :class="bem.b()">
+    <z-virtual-list 
+      :items="flattenTree"
+      :remain="8"
+      :size="35"
+    >
+      <template #default="{ node }">
+        <z-tree-node
+          :key="node.key"
+          :node="node"
+          :expanded="isExpanded(node)"
+          :loadingKeys="loadingKeysRef"
+          @toggle="toggleExpand"
+          @select="handleSelect"
+          :selectedKeys="selectKeysRef"
+          :show-checkbox="showCheckbox"
+          :checked="isChecked(node)"
+          :disabled="isDisable(node)"
+          :indeterminate="isIndeterminate(node)"
+          @check="toggleCheck"
+        >
+        </z-tree-node>
+      </template>
+    </z-virtual-list>
+  </div>
+</template>
+```
+
+```
+<script setup lang="ts">
+	...
+</script>
+```
+
+```
+// component name
+defineOptions({
+  name: 'z-tree'
+})
+```
+
+```
+// 定义 emitts
+const emit = defineEmits(treeEmitts)
+```
+
+```
+const props = defineProps(treeProps)
+```
+
+```
+const createOptions = (key: string, label: string, children: string) => {
+  return {
+    getKey(node: TreeOption) {
+      return node[key] as string | number
+    },
+    getLabel(node: TreeOption) {
+      return node[label] as string
+    },
+    getChildren(node: TreeOption) {
+      return node[children] as TreeOption[]
+    }
+  }
+}
+const treeOptions = createOptions(
+  props.keyField,
+  props.labelField,
+  props.childrenField
+)
+```
+
+- 获取用户自定义的key、label、children字段
+
+```
+const tree = ref<TreeNode[]>([])
+
+// 数据格式化
+const createTree = (data: TreeOption[], parent: TreeNode | null = null): any => {
+  const traversal = (data: TreeOption[], parent: TreeNode | null = null) => {
+    return data.map(node => {
+      const children = treeOptions.getChildren(node) || []
+      const treeNode: TreeNode = {
+        key: treeOptions.getKey(node),
+        label: treeOptions.getLabel(node),
+        children: [], // 默认为空，有children再去递归
+        rawNode: node,
+        level: parent ? parent.level + 1 : 0,
+        disabled: !!node.disabled,
+        // 判断节点是否自带了isLeaf, 如果自带了以自带的为准，如果没有自带的则根据有没有 children
+        // children
+        isLeaf: node.isLeaf ?? children.length === 0,
+        parentKey: parent?.key
+      }
+      if (children.length > 0) {
+        // 有 children再去递归 将其格式化为treeNode 类型
+        treeNode.children = traversal(children, treeNode)
+      }
+      return treeNode
+    })
+  }
+  const result: TreeNode[] = traversal(data, parent)
+  return result
+}
+
+// 监控数据变化，调用格式化方法，一上来就调用
+watch(
+  () => props.data,
+  (data: TreeOption[]) => {
+    tree.value = createTree(data)
+  },
+  {
+    immediate: true
+  }
+)
+```
+
+- 上面代码对数据进行了格式化
+
+```
+// 希望将一颗树拍平， 点击还能实现展开操作
+// 需要展开的key有哪些 [40, 41]
+const expandedKeysSet = ref(new Set(props.defaultExpandedKeys))
+const flattenTree = computed(() => {
+  // 需要展开的keys
+  let expandedKeys = expandedKeysSet.value
+
+  // 扁平后的节点
+  let flattenNodes: TreeNode[] = []
+  // 被格式化后的节点
+  const nodes = tree.value || []
+  // 用于遍历树的栈 [41, 40]
+  const stack: TreeNode[] = []
+  for (let i = nodes.length - 1; i >= 0; --i) {
+    stack.push(nodes[i])
+  }
+  // 深度遍历
+  while (stack.length) {
+    const node = stack.pop()
+    if (!node) continue
+    flattenNodes.push(node)
+    if (expandedKeys.has(node.key)) {
+      // 如果有
+      const children = node.children
+      if (children) {
+        for (let i = node.children.length - 1; i >= 0; --i) {
+          stack.push(node.children[i])
+        }
+      }
+    }
+  }
+  return flattenNodes
+})
+```
+
+- 上面代码通过computed，根据expandedKeysSet里面的内容，返回匹配上的数据，这些数据展示出来就是展开的了
+
+```
+// 是否是展开的
+const isExpanded = (node: TreeNode): boolean => {
+  return expandedKeysSet.value.has(node.key)
+}
+// 折叠功能
+const collpase = (node: TreeNode) => {
+  expandedKeysSet.value.delete(node.key)
+}
+// loading 的keys
+const loadingKeysRef = ref(new Set<Key>())
+// 触发加载
+const triggerLoading = async (node: TreeNode) => {
+  // 需要异步加载的判断
+  if (!node.children.length && !node.isLeaf) {
+    const loadingKeys = loadingKeysRef.value
+    if (!loadingKeys.has(node.key)) {
+      loadingKeys.add(node.key)
+      const onLoad = props.onLoad
+      if (onLoad) {
+        try {
+          const children = await onLoad(node.rawNode)
+          // 修改原来的节点
+          node.rawNode.children = children
+          // 更新自定义的node，下次点击就不用重写加载了
+          node.children = createTree(children, node)
+          loadingKeys.delete(node.key)
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+}
+// 展开功能
+const expand = (node: TreeNode) => {
+  expandedKeysSet.value.add(node.key)
+  // 这里应该实现对应的加载逻辑
+  triggerLoading(node)
+}
+// 切换展开
+const toggleExpand = (node: TreeNode) => {
+  const expandedKeys = expandedKeysSet.value
+  // 如果节点正在加载中，不能收起
+  if (expandedKeys.has(node.key) && !loadingKeysRef.value.has(node.key)) {
+    collpase(node)
+  } else {
+    expand(node)
+  }
+}
+```
+
+- 这里实现了代码的折叠与展开功能
+
+```
+// 选中节点
+const selectKeysRef = ref<Key[]>([])
+watch(
+  () => props.selectedKeys,
+  value => {
+    if (value) {
+      selectKeysRef.value = value
+    }
+  },
+  {
+    immediate: true
+  }
+)
+
+const handleSelect = (node: TreeNode) => {
+  // selectKeysRef 是proxy的，可以使用Array.from 得到数组类型的
+  let keys = Array.from(selectKeysRef.value)
+
+  if (!props.selectable) return
+
+  if (props.multiple) {
+    let index = keys.findIndex(key => key === node.key)
+    if (index > -1) {
+      // 已选中移除
+      keys.splice(index, 1)
+    } else {
+      // 未选中
+      keys.push(node.key)
+    }
+  } else {
+    if (keys.includes(node.key)) {
+      // 已选中移除
+      keys = []
+    } else {
+      // 未选中
+      keys = [node.key]
+    }
+  }
+  emit('update:selectedKeys', keys)
+}
+
+provide(treeInjectKey, {
+  slots: useSlots()
+})
+
+// checkbox 选中的数据
+const checkedKeysRefs = ref(new Set(props.defaultCheckedKeys))
+// 是否选中
+const isChecked = (node: TreeNode) => {
+  return checkedKeysRefs.value.has(node.key)
+}
+// 是否禁用
+const isDisable =(node: TreeNode) => {
+  return !!node.disabled
+}
+const indeterminateRefs = ref<Set<Key>>(new Set())
+// 是否半选
+const isIndeterminate = (node: TreeNode) => {
+  return indeterminateRefs.value.has(node.key)
+}
+
+// 切换选中
+const toggleCheck = (node: TreeNode, checked: Boolean) => {
+  toggle(node, checked)
+  updateCheckedKeys(node)
+}
+// 自上而下的选中
+const toggle = (node: TreeNode, checked: Boolean) => {
+  if (!node) return
+  const checkedKeys = checkedKeysRefs.value
+  // 选中的时候 去掉半选
+  if (checked) {
+    indeterminateRefs.value.delete(node.key)
+  }
+  // 维护当前的 key 列表
+  checkedKeys[checked ? 'add' : 'delete'](node.key)
+  // 子节点选中
+  const children = node.children
+  if (children) {
+    children.forEach(childNode => {
+      if (!childNode.disabled) {
+        toggle(childNode, checked)
+      }
+    })
+  }
+}
+// 找对应的节点
+const findNode = (key: Key) => {
+  return flattenTree.value.find(node => node.key === key)
+}
+// 自下而上的更新
+const updateCheckedKeys = (node: TreeNode) => {
+  // 自下而上的更新
+  if (node.parentKey) {
+    const parentNode = findNode(node.parentKey)
+
+    if (parentNode) {
+      let allChecked = true //默认儿子应该全选
+      let hasChecked = false // 儿子有没有被选中
+
+      const nodes = parentNode.children
+      for (const node of nodes) {
+        if (checkedKeysRefs.value.has(node.key)) {
+          hasChecked = true // 子节点被选中了
+        } else if (indeterminateRefs.value.has(node.key)) {
+          allChecked = false
+          hasChecked = true
+        } else {
+          allChecked = false
+        }
+      }
+      if (allChecked) {
+        checkedKeysRefs.value.add(parentNode.key)
+        indeterminateRefs.value.delete(parentNode.key)
+      } else if (hasChecked) {
+        checkedKeysRefs.value.delete(parentNode.key)
+        indeterminateRefs.value.add(parentNode.key)
+      }
+      updateCheckedKeys(parentNode)
+    }
+  }
+}
+
+// 挂载的时候
+onMounted(() => {
+  checkedKeysRefs.value.forEach((key: Key) => {
+    toggle(findNode(key)!, true)
+  })
+})
+```
+
+- 这里的是节点选中功能
+
+## treeNode.vue
+
+```
+<template>
+  <div :class="[
+    bem.b(),
+    bem.is('selected', isSelected),
+    bem.is('disabled', node.disabled)
+  ]">
+    <div :class="bem.e('content')" :style="{ paddingLeft: `${node.level * 16}px` }">
+      <span :class="[
+        bem.e('expand-icon'),
+        { expanded: expanded && !node.isLeaf },
+        bem.is('leaf', node.isLeaf)
+      ]" @click="handleExpand">
+        <z-icon size="25">
+          <Switcher v-if="!isLoading"></Switcher>
+          <Loading v-else></Loading>
+        </z-icon>
+      </span>
+      <z-checkbox 
+        v-if="showCheckbox"
+        :model-value="checked"
+        :disabled="disabled"
+        :indeterminate="indeterminate"
+        @change="handleCheckChange"
+      >
+      </z-checkbox>
+      <span @click="handleSelected" :class="bem.e('label')">
+        <ZTreeNodeContent :node="node"></ZTreeNodeContent>
+        <!-- {{ node?.label }}{{ treeContext?.slots.default!({ node }) }} -->
+      </span>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import ZIcon from '@zi-shui/components/icon'
+import Switcher from '@zi-shui/components/internal-icon/Switcher';
+import Loading from '@zi-shui/components/internal-icon/Loading'
+import ZCheckbox from '@zi-shui/components/checkbox';
+import ZTreeNodeContent from './tree-node-content'
+import { createNamespace } from '@zi-shui/utils/create';
+import { treeInjectKey, treeNodeEmitts, treeNodeProps } from './tree';
+import { computed } from 'vue';
+import { inject } from 'vue';
+
+// 定义 props
+const props = defineProps(treeNodeProps)
+
+// 定义 emitts
+const emit = defineEmits(treeNodeEmitts)
+
+const bem = createNamespace('tree-node')
+
+// 触发切换
+const handleExpand = () => {
+  emit('toggle', props.node)
+}
+
+// 是否正在加载
+const isLoading = computed(() => {
+  return props.loadingKeys.has(props.node.key)
+})
+
+// 是否选中
+const isSelected = computed(() => {
+  return props.selectedKeys.includes(props.node.key)
+})
+
+const handleSelected = () => {
+  // 如果是禁用的
+  if (props.node.disabled) return
+  emit('select', props.node)
+}
+
+// checkbox 点击
+const handleCheckChange = (val: boolean) => {
+  emit('check', props.node, val)
+}
+
+const treeContext = inject(treeInjectKey)
+</script>
+```
+
+## tree-node-content.tsx
+
+```
+import { defineComponent } from "vue";
+import { treeInjectKey, treeNodeContentProps } from "./tree";
+import { inject } from "vue";
+
+export default defineComponent({
+  name: 'ZTreeNodeContent',
+  props: treeNodeContentProps,
+  setup(props) {
+    const treeContext = inject(treeInjectKey)
+    const node = props.node
+    return () => {
+      return treeContext?.slots.default ? treeContext?.slots.default({ node }) : node?.label
+    }
+  }
+})
+```
+

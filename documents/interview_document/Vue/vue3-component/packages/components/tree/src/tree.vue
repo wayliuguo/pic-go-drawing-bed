@@ -43,7 +43,7 @@ defineOptions({
 
 // 定义 emitts
 const emit = defineEmits(treeEmitts)
-
+// 定义 props
 const props = defineProps(treeProps)
 // 有了 props 要对用户的数据进行格式化，格式化一个固定的结果
 // label, key, children 
