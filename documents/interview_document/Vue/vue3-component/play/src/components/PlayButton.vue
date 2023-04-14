@@ -1,0 +1,10 @@
+<template>
+  <z-button
+    size="medium"
+    type="danger"
+    :round="true"
+    :loading="true"
+  >
+  按钮
+  </z-button>
+</template>
