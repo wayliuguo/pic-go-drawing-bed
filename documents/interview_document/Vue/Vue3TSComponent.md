@@ -1908,3 +1908,159 @@ export default defineComponent({
 })
 ```
 
+# 十、Button
+
+## button.ts
+
+```
+// 存储组件的属性和相关事件
+
+import { ExtractPropTypes, PropType } from 'vue'
+
+// size 组件的大小
+// type 颜色展现类型
+// round 是否为圆角
+// loading 是否按钮正在加载
+// disabled 是否禁用按钮
+// native-type 原始类型
+// icon-placement 图标的位置
+
+// 插槽 icon
+
+export type Size = 'small' | 'medium' | 'large'
+export type Type =
+  | 'primary'
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'default'
+  | ''
+export type NativeType = 'button' | 'submit' | 'reset'
+export type Placement = 'left' | 'right'
+
+export const buttonProps = {
+  size: String as PropType<Size>,
+  type: {
+    type: String as PropType<Type>,
+    validator: (val: string) => {
+      // 自定义校验器
+      return [
+        'primary',
+        'success',
+        'warning',
+        'danger',
+        'info',
+        'default',
+        ''
+      ].includes(val)
+    },
+    default: ''
+  },
+  round: Boolean,
+  loading: Boolean,
+  disabled: Boolean,
+  nativeType: {
+    type: String as PropType<NativeType>,
+    default: 'button'
+  },
+  iconPlacement: {
+    type: String as PropType<Placement>,
+    default: ''
+  }
+} as const
+export const buttonEmits = {
+  click: (e: MouseEvent) => e instanceof MouseEvent,
+  mousedown: (e: MouseEvent) => e instanceof MouseEvent
+  // ...
+}
+
+export type ButtonProps = ExtractPropTypes<typeof buttonProps>
+export type ButtonEmits = typeof buttonEmits
+
+```
+
+## button.vue
+
+```
+<template>
+  <button
+    :class="[
+      bem.b(),
+      bem.m(type),
+      bem.m(size),
+      bem.is('round', round),
+      bem.is('loading', loading),
+      bem.is('disabled', disabled)
+    ]"
+    :type="nativeType"
+    :disabled="disabled || loading"
+    @click="emitClick"
+    @mousedown="emitMousedown"
+  >
+    <template v-if="iconPlacement === 'left'">
+      <z-icon>
+        <LoadingComponent v-if="loading"></LoadingComponent>
+        <template v-else-if="slots.icon">
+          <Component :is="slots.icon"></Component>
+        </template>
+      </z-icon>
+    </template>
+    <slot> </slot>
+    <template v-if="iconPlacement === 'right'">
+      <z-icon>
+        <LoadingComponent v-if="loading"></LoadingComponent>
+        <template v-else-if="slots.icon">
+          <Component :is="slots.icon"></Component>
+        </template>
+      </z-icon>
+    </template>
+  </button>
+</template>
+
+<script lang="ts" setup>
+import LoadingComponent from '@zi-shui/components/internal-icon/Loading'
+import { createNamespace } from '@zi-shui/utils/create'
+import { buttonEmits, buttonProps } from './button'
+import ZIcon from '@zi-shui/components/icon'
+import { useSlots } from 'vue'
+
+const bem = createNamespace('button') // z-button
+defineOptions({
+  name: 'z-button',
+  inheritAttrs: false
+})
+const props = defineProps(buttonProps)
+const emit = defineEmits(buttonEmits)
+const slots = useSlots()
+
+const emitClick = (e: MouseEvent) => {
+  emit('click', e)
+}
+const emitMousedown = (e: MouseEvent) => {
+  emit('mousedown', e)
+}
+</script>
+
+```
+
+## index.ts
+
+```
+import { withInstall } from '@zi-shui/utils/with-install';
+import _Button from './src/button.vue';
+
+const Button = withInstall(_Button);
+
+export default Button;
+
+export type {ButtonProps} from './src/button';
+
+declare module 'vue'{
+  export interface GlobalComponents{
+    ZButton: typeof Button
+  }
+}
+
+```
+
