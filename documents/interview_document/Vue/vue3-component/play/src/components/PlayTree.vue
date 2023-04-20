@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { TreeOption, Key } from '@zi-shui/components/tree/src/tree';
+import { TreeOption, Key } from '@zi-shui/components/tree/src/tree'
 import { ref } from 'vue'
-
 
 /* function createData () {
   return [
@@ -120,15 +119,15 @@ const handleLoad = (node: TreeOption) => {
 }
 
 const value = ref<Key[]>(['40', '41'])
-
 </script>
 
 <template>
-  <z-tree 
+  <z-tree
     v-model:selected-keys="value"
-    selectable multiple 
-    :data="data" 
-    label-field="label" 
+    selectable
+    multiple
+    :data="data"
+    label-field="label"
     key-field="key"
     children-field="children"
     :default-expanded-keys="['40', '41']"
@@ -136,8 +135,6 @@ const value = ref<Key[]>(['40', '41'])
     show-checkbox
     :default-checked-keys="['40', '41']"
   >
-    <template #default="{ node }">
-      {{ node.key }} - {{ node.label }}
-    </template>
+    <template #default="{ node }"> {{ node.key }} - {{ node.label }} </template>
   </z-tree>
-</template> 
+</template>

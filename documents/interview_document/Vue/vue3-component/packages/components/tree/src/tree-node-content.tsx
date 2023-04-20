@@ -1,6 +1,6 @@
-import { defineComponent } from "vue";
-import { treeInjectKey, treeNodeContentProps } from "./tree";
-import { inject } from "vue";
+import { defineComponent } from 'vue'
+import { treeInjectKey, treeNodeContentProps } from './tree'
+import { inject } from 'vue'
 
 export default defineComponent({
   name: 'ZTreeNodeContent',
@@ -9,7 +9,9 @@ export default defineComponent({
     const treeContext = inject(treeInjectKey)
     const node = props.node
     return () => {
-      return treeContext?.slots.default ? treeContext?.slots.default({ node }) : node?.label
+      return treeContext?.slots.default
+        ? treeContext?.slots.default({ node })
+        : node?.label
     }
   }
 })

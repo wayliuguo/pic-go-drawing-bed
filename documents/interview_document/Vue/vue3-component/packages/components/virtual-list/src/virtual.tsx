@@ -1,12 +1,12 @@
 import { computed, defineComponent, onMounted, ref, watch } from 'vue'
-import {virtualProps} from './virtualProps'
+import { virtualProps } from './virtualProps'
 import { createNamespace } from '@zi-shui/utils/create'
 import { reactive } from 'vue'
 
 export default defineComponent({
   name: 'ZVirtualList',
   props: virtualProps,
-  setup(props, { slots}) {
+  setup(props, { slots }) {
     const bem = createNamespace('vl')
 
     const wrapperRef = ref<HTMLElement>()
@@ -40,7 +40,7 @@ export default defineComponent({
       state.start = Math.floor(scrollTop / props.size)
       // 滚动后的结束位置
       state.end = state.start + props.remain
-      // 滚动过去了多少个（- props.size * prev.value）：减去前面补的 
+      // 滚动过去了多少个（- props.size * prev.value）：减去前面补的
       offset.value = state.start * props.size - props.size * prev.value
     }
 
@@ -49,10 +49,12 @@ export default defineComponent({
       barRef.value!.style.height = `${props.items.length * props.size}px`
     }
 
-    watch(() => props.items,
-    () => {
-      initWrapper  
-    })
+    watch(
+      () => props.items,
+      () => {
+        initWrapper
+      }
+    )
 
     onMounted(() => {
       initWrapper()
@@ -60,16 +62,17 @@ export default defineComponent({
 
     return () => {
       return (
-      <div class={bem.b()} ref={wrapperRef} onScroll={handleScroll}>
-        {/* 模拟总长度，感觉有很多数据 */}
-        <div class={bem.e('scroll-bar')} ref={barRef}></div>
-        <div 
-          class={bem.e('scroll-list')} 
-          style={ { transform: `translate3d(0, ${offset.value}px, 0)`} 
-        }>
-          {visibleData.value.map((node, idx) => slots.default!({ node }))}
+        <div class={bem.b()} ref={wrapperRef} onScroll={handleScroll}>
+          {/* 模拟总长度，感觉有很多数据 */}
+          <div class={bem.e('scroll-bar')} ref={barRef}></div>
+          <div
+            class={bem.e('scroll-list')}
+            style={{ transform: `translate3d(0, ${offset.value}px, 0)` }}
+          >
+            {visibleData.value.map((node, idx) => slots.default!({ node }))}
+          </div>
         </div>
-      </div>)
+      )
     }
   }
 })
