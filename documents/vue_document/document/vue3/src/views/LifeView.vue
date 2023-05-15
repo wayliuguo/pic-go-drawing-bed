@@ -7,6 +7,9 @@
     :item="item"
     @remove="remove"
     />
+    <van-button plain hairline type="primary">细边框按钮</van-button>
+    <van-button plain hairline type="success">细边框按钮</van-button>
+
   </div>
 </template>
 
