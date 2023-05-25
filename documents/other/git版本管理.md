@@ -520,4 +520,10 @@ git push origin --delete feature-liuguowei-supportDeleteOnlineCustomer
   git push origin HEAD:远程分支名
   ```
 
+- 提交合并
+
+  ```
+  git merge master --no-ff
+  ```
+
   
