@@ -4,9 +4,12 @@ import router from './router'
 import * as utils from './libs/utils'
 import MyUI from './libs/MyUI'
 // 1. 引入你需要的组件
-import { Loading, Button } from 'vant'
+// import { Loading, Button } from 'vant'
 // 2. 引入组件样式
-import 'vant/lib/index.css'
+// import 'vant/lib/index.css'
+
+import { Button, Loading } from 'w-view'
+import 'w-view/dist/index.css'
 
 const app = createApp(App)
 

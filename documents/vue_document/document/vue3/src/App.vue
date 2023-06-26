@@ -6,6 +6,7 @@
     <router-link to="/usePlugin">usePlugin</router-link> |
     <router-link to="/ApiLearn">ApiLearn</router-link> |
   </nav>
+  <w-button type="success">123456</w-button>
   <router-view/>
 </template>
 
