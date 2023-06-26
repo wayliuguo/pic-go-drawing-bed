@@ -21,3 +21,9 @@ yarn add typescript rollup rollup-plugin-typescript2 @rollup/plugin-node-resolve
 |          minimist           |      命令行参数解析       |
 |           execa@4           |        开启子进程         |
 
+### monorepo
+
+```
+yarn workspace @vue/reactivity add @vue/shared@1.0.0
+```
+
