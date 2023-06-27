@@ -1,1 +1,3 @@
-export const shared = 123;
+export const isObject = (value: unknown):boolean => typeof value === "object" && value !== null;
+
+export const extend = Object.assign
