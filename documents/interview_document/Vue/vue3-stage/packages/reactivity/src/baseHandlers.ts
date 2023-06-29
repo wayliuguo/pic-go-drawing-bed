@@ -1,5 +1,7 @@
 import { extend, isObject } from "@vue/shared";
 import { reactive, readonly } from "./reactive";
+import { track } from "./effect";
+import { TrackOpTypes } from "./operators";
 
 // Relect 的优点
 // 1.后续Object的方法属性会往Reflect迁移
@@ -18,6 +20,9 @@ function createGetter(isReadonly: boolean = false, shallow: boolean = false) {
 
     // 如果是非仅读的，进行依赖收集，等会数据变化后更新对应视图
     if (!isReadonly) {
+      console.log("执行 effect 时会取值，收集 effect");
+      // 调用 track 收集依赖
+      track(target, TrackOpTypes.GET, key);
     }
 
     // 如果是浅层的
@@ -36,6 +41,9 @@ function createSetter(isShallow: boolean = false) {
   return function set(target, key, value, receiver) {
     // target: 需要取值的目标对象 key: 需要获取的值的键值 value: 设置的值 receiver: 如果target对象中指定了getter，receiver则为getter调用时的this值
     const result = Reflect.set(target, key, value, receiver);
+
+    // 当数据更新时，通知对应属性的effect 重新执行
+
     return result;
   };
 }
@@ -65,9 +73,15 @@ export const shallowReactiveHandlers = {
   get: shallowGet,
   set: shallowSet,
 };
-export const readonlyHandlers = extend({
-  get: readonlyGet
-}, readonlyObj);
-export const shallowReadonlyHandlers = extend({
-  get: shallowReadonlyGet,
-}, readonlyObj);
+export const readonlyHandlers = extend(
+  {
+    get: readonlyGet,
+  },
+  readonlyObj
+);
+export const shallowReadonlyHandlers = extend(
+  {
+    get: shallowReadonlyGet,
+  },
+  readonlyObj
+);

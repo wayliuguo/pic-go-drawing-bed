@@ -277,3 +277,208 @@ export const shallowReadonlyHandlers = extend({
 </script>
 ```
 
+## effect：副作用函数（收集依赖）
+
+- 第一次默认就会执行
+
+- 默认执行时会进行取值操作，只要取值就会调用`getter`，这时候将对应的`effect`函数存放起来，在重写赋值的时候执行对应的`effect`函数就可以实现页面的更新
+
+  ```
+  <div id="app"></div>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+  	const { effect, reactive } = Vue
+      let state = reactive({
+          name: 'well',
+          age: 18
+      })
+      effect(() => {
+          app.innerHTML = `${state.name}${state.age}`
+      })
+      setTimeout(() => {
+          state.age = 80
+      }, 1000);
+  </script>
+  ```
+
+
+#### reactive/index.ts
+
+```
+...
+export {
+    effect
+} from './effect'
+```
+
+#### operators.ts
+
+```
+export const enum TrackOpTypes {
+    GET
+}
+```
+
+#### effect.ts
+
+- function `effect`
+
+  - 调用`createReactiveEffect`生成一个`effect`,这个`effect`是一个函数，默认执行一次。
+
+- function `createReactiveEffect`
+
+  - 定义`effect`等于一个函数`reactiveEffect`。
+  - 这个函数利用`activeEffect`这个变量存储当前的`effect`，供 `track`函数获取。
+  - 由于在使用的时候可能会有`effect`中嵌套`effect`的情况，为了保证属性收集的`effect`是正确的，需要用`effectStack`入栈出栈保证`activeEffect`的正确。
+  - 执行传入的函数`fn`，这个函数的执行会触发对应的getter函数，这个时候进行依赖的关联（baseHanlers.ts => createGetter(if (!isReadonly)) 分支）
+
+- function `track`
+
+  - `const targetMap = new WeakMap()`全局收集依赖的存储变量。
+
+  - 如果不是`effect`中触发的`getter`进而触发的`track`属性不需要收集依赖
+  - 判断此target是否已经存在`targetMap`,如果没存在则创建，其值是一个map，并赋值给depsMap。
+  - 从 depsMap 获取 key 对应的值，如果没有则创建并赋值给 dep，其值是一个set数组，用于存放effect数组
+
+```
+import { TrackOpTypes } from "./operators";
+
+export function effect(fn: Function, options: any = {}) {
+  // 需要让这个 effect 变成响应式的 effect，实现数据变化重新执行
+  const effect = createReactiveEffect(fn, options);
+
+  // 响应式的effect默认会先执行一次，如果是lazy不执行
+  if (!options.lazy) {
+    effect();
+  }
+
+  return effect;
+}
+
+// 全局 effect，用于存储当前的 effect，供 track 获取
+let activeEffect;
+/**
+ * effect 栈，用于effect 嵌套中获得正确的effect上下文
+ * 保证每个属性收集的effect是正确的
+ * effect(() => {
+ *  state.name // effect1
+ *  effect(() => {state.age}) //effect2
+ *  state.sex // effect1
+ * })
+ */
+const effectStack = [];
+// effect 唯一标识,用于区分 effect
+let uid = 0;
+function createReactiveEffect(fn, options) {
+  const effect = function reactiveEffect() {
+    // 保证此effect没有加入到effectStack 中，防止死循环
+    // 如 effect(() => state.age++) 如果没有这个判断，状态改变后重新执行会死循环
+    if (!effectStack.includes(effect)) {
+      try {
+        effectStack.push(effect);
+        activeEffect = effect;
+        // 函数执行时会执行对应的 getter 方法，这个时候进行关联
+        // baseHanlers.ts => createGetter(if (!isReadonly)) 分支
+        return fn();
+      } finally {
+        effectStack.pop();
+        activeEffect = effectStack[effectStack.length - 1];
+      }
+    }
+  };
+  // 唯一标识
+  effect.id = uid++;
+  // 用于标识这个是响应式effect
+  effect._isEffect = true;
+  // 记录effect对应的函数
+  effect.raw = fn;
+  // 记录选项
+  effect.options = options;
+  return effect;
+}
+
+// 收集effect依赖
+const targetMap = new WeakMap();
+
+/**
+ * 让某个对象中的属性收集对应的effect函数
+ * @param target 目标对象
+ * @param type 类型
+ * @param key 属性
+ */
+export function track(target: object, type: TrackOpTypes, key: string) {
+  // 构建对应的weakMap(key: target value: map(key: key(依赖属性名), value: set[effect1,...]))
+  // 没在effect中使用的属性不用收集
+  if (activeEffect === undefined) return;
+  // 从 targetMap 获取 target 对应的值，如果没有则创建并赋值给 depsMap，其值是一个map，用于存放key => set[effect]
+  let depsMap = targetMap.get(target);
+  if (!depsMap) {
+    targetMap.set(target, (depsMap = new Map()));
+  }
+  // 从 depsMap 获取 key 对应的值，如果没有则创建并赋值给 dep，其值是一个set数组，用于存放effect数组
+  let dep = depsMap.get(key);
+  if (!dep) {
+    depsMap.set(key, (dep = new Set()));
+  }
+  // 避免添加重复的
+  if (!dep.has(activeEffect)) {
+    dep.add(activeEffect)
+  }
+  console.log(targetMap)
+}
+```
+
+#### baseHandlers.ts
+
+- 在 `effect`的执行时，会触发这里的`getter`函数，在这里调用`track`函数进行依赖的收集。
+
+```
+function createGetter(isReadonly: boolean = false, shallow: boolean = false) {
+  // target: 目标对象 key: 属性名 receiver: Proxy
+  return function get(target, key, receiver) {
+    // 使用 reflect获取结果
+    // target: 需要取值的目标对象 key: 需要获取的值的键值 receiver: 如果target对象中指定了getter，receiver则为getter调用时的this值
+    // 相当于 target[key]
+    const res = Reflect.get(target, key, receiver);
+
+    // 如果是非仅读的，进行依赖收集，等会数据变化后更新对应视图
+    if (!isReadonly) {
+      + console.log("执行 effect 时会取值，收集 effect");
+      + // 调用 track 收集依赖
+      + track(target, TrackOpTypes.GET, key);
+    }
+
+    // 如果是浅层的
+    if (shallow) return res;
+    // vue2是初始化就直接递归代理，vue3是取值时会进行代理（懒代理）
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res);
+    }
+
+    return res;
+  };
+}
+```
+
+```
+<script src="../node_modules/@vue/reactivity/dist/reactivity.global.js"></script>
+    <script>
+        const { effect, reactive } = VueReactivity
+        let state = reactive({
+            name: 'well',
+            age: 18
+        })
+        effect(() => {
+            app.innerHTML = `${state.name}${state.age}`
+        })
+        effect(() => {
+            app.innerHTML = `${state.name}${state.age}`
+        })
+        setTimeout(() => {
+            state.age = 80
+        }, 1000);
+    </script>
+```
+
+![image-20230629200302816](手写vue3核心原理.assets/image-20230629200302816.png)
+
