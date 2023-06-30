@@ -1,7 +1,14 @@
-import { extend, isObject } from "@vue/shared";
+import {
+  extend,
+  hasChanged,
+  hasOwn,
+  isArray,
+  isIntegerKey,
+  isObject,
+} from "@vue/shared";
 import { reactive, readonly } from "./reactive";
-import { track } from "./effect";
-import { TrackOpTypes } from "./operators";
+import { track, trigger } from "./effect";
+import { TrackOpTypes, TriggerOrTypes } from "./operators";
 
 // Relect 的优点
 // 1.后续Object的方法属性会往Reflect迁移
@@ -39,10 +46,27 @@ function createGetter(isReadonly: boolean = false, shallow: boolean = false) {
 function createSetter(isShallow: boolean = false) {
   // target: 目标对象 key: 属性名 value: 新属性值 receiver: Proxy
   return function set(target, key, value, receiver) {
+    // 当数据更新时，通知对应属性的 effect 重新执行
+    // 我们要区分是新增的还是修改的
+    // vue2里无法监控更改索引，无法监控数组的长度
+    // 获取未变更的值
+    const oldValue = target[key];
+    // 判断是否存在这个属性
+    let hadKey =
+      isArray(target) && isIntegerKey(key)
+        ? Number(key) < target.length
+        : hasOwn(target, key);
+
     // target: 需要取值的目标对象 key: 需要获取的值的键值 value: 设置的值 receiver: 如果target对象中指定了getter，receiver则为getter调用时的this值
     const result = Reflect.set(target, key, value, receiver);
 
-    // 当数据更新时，通知对应属性的effect 重新执行
+    if (!hadKey) {
+      // 新增
+      trigger(target, TriggerOrTypes.ADD, key, value);
+    } else if (hasChanged(oldValue, value)) {
+      // 修改
+      trigger(target, TriggerOrTypes.SET, key, value, oldValue);
+    }
 
     return result;
   };

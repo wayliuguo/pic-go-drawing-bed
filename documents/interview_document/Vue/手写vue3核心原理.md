@@ -302,7 +302,7 @@ export const shallowReadonlyHandlers = extend({
   ```
 
 
-#### reactive/index.ts
+### reactive/index.ts
 
 ```
 ...
@@ -311,7 +311,7 @@ export {
 } from './effect'
 ```
 
-#### operators.ts
+### operators.ts
 
 ```
 export const enum TrackOpTypes {
@@ -319,7 +319,7 @@ export const enum TrackOpTypes {
 }
 ```
 
-#### effect.ts
+### effect.ts
 
 - function `effect`
 
@@ -428,7 +428,7 @@ export function track(target: object, type: TrackOpTypes, key: string) {
 }
 ```
 
-#### baseHandlers.ts
+### baseHandlers.ts
 
 - 在 `effect`的执行时，会触发这里的`getter`函数，在这里调用`track`函数进行依赖的收集。
 
@@ -481,4 +481,112 @@ function createGetter(isReadonly: boolean = false, shallow: boolean = false) {
 ```
 
 ![image-20230629200302816](手写vue3核心原理.assets/image-20230629200302816.png)
+
+
+
+## 触发更新
+
+### operators.ts
+
+```
+...
+export const enum TriggerOrTypes {
+    ADD,
+    SET
+}
+```
+
+### baseHandlers.ts
+
+- 当数据更新时，通知对应属性的收集的`effect`重新执行
+- 这里需要区分属性是新增的还是修改的
+- 获取旧数据（watch需要旧数据）
+- 调用 trigger 收集所有待重新执行的`effect`,统一执行。
+
+```
+function createSetter(isShallow: boolean = false) {
+  // target: 目标对象 key: 属性名 value: 新属性值 receiver: Proxy
+  return function set(target, key, value, receiver) {
+    +// 当数据更新时，通知对应属性的 effect 重新执行
+    +// 我们要区分是新增的还是修改的
+    +// vue2里无法监控更改索引，无法监控数组的长度
+    +// 获取未变更的值
+    +const oldValue = target[key];
+    +// 判断是否存在这个属性
+    +let hadKey =
+    +  isArray(target) && isIntegerKey(key)
+    +   ? Number(key) < target.length
+    +    : hasOwn(target, key);
+
+    // target: 需要取值的目标对象 key: 需要获取的值的键值 value: 设置的值 receiver: 如果target对象中指定了getter，receiver则为getter调用时的this值
+    const result = Reflect.set(target, key, value, receiver);
+
+    +if (!hadKey) {
+    +  // 新增
+    +  trigger(target, TriggerOrTypes.ADD, key, value);
+    +} else if (hasChanged(oldValue, value)) {
+    + // 修改
+    +  trigger(target, TriggerOrTypes.SET, key, value, oldValue);
+    +}
+
+    return result;
+  };
+}
+```
+
+### effect.ts
+
+- 如果这个属性没有收集过`effect`依赖则不需要继续
+- 判断修改的对象是数组且修改的是`length`属性
+  - 直接修改数组`length`导致长度变更
+  - 通过`push`等操作长度变更
+- 收集 `effect`统一执行
+
+```
+export function trigger(target, type?, key?, newValue?, oldValue?) {
+  console.log(target, type, key, newValue, oldValue);
+  // 如果这个属性没有收集过 effect 不需要做任何操作
+  const depsMap = targetMap.get(target);
+  if (!depsMap) return;
+
+  // 将所有的effect全部暂存到一个新的集合中，最终一起执行
+  const effects: Set<Function> = new Set()
+  // 添加 effect
+  const add = effectsToAdd => {
+    if (effectsToAdd) {
+      effectsToAdd.forEach(effect => effects.add(effect))
+    }
+  }
+
+  // 1.判断是否修改数组的长度，修改数组的长度影响较大
+  if (key === 'length' && isArray(target)) {
+    // 如果对应的长度有依赖收集，则需要更新
+    depsMap.forEach((dep, key) => {
+      console.log(depsMap, dep, key)
+      // 如果更改的长度小于收集的索引，那么这个索引也需要触发effect重新更新（state.arr.length = 1）
+      // 如果不是直接更改length，如push的这种，key已经是新增的下标了
+      if (key === 'length' || key > newValue) {
+        add(dep)
+      }
+    })
+  } else {
+    // 2.如果不是修改数组的长度
+    if (key !== undefined) {
+      add(depsMap.get(key))
+    }
+    // 如果是修改数组中某一个索引
+    switch (type) {
+      case TriggerOrTypes.ADD:
+        if (isArray(target) && isIntegerKey(key)) {
+          add(depsMap.get('length'))
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  // 执行所有effect
+  effects.forEach(effect => effect())
+}
+```
 

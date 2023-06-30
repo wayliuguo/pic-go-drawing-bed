@@ -1,4 +1,5 @@
-import { TrackOpTypes } from "./operators";
+import { isArray, isIntegerKey } from "@vue/shared";
+import { TrackOpTypes, TriggerOrTypes } from "./operators";
 
 export function effect(fn: Function, options: any = {}) {
   // 需要让这个 effect 变成响应式的 effect，实现数据变化重新执行
@@ -79,7 +80,53 @@ export function track(target: object, type: TrackOpTypes, key: string) {
   }
   // 避免添加重复的
   if (!dep.has(activeEffect)) {
-    dep.add(activeEffect)
+    dep.add(activeEffect);
   }
-  console.log(targetMap)
+  console.log(targetMap);
+}
+
+export function trigger(target, type?, key?, newValue?, oldValue?) {
+  console.log(target, type, key, newValue, oldValue);
+  // 如果这个属性没有收集过 effect 不需要做任何操作
+  const depsMap = targetMap.get(target);
+  if (!depsMap) return;
+
+  // 将所有的effect全部暂存到一个新的集合中，最终一起执行
+  const effects: Set<Function> = new Set()
+  // 添加 effect
+  const add = effectsToAdd => {
+    if (effectsToAdd) {
+      effectsToAdd.forEach(effect => effects.add(effect))
+    }
+  }
+
+  // 1.判断是否修改数组的长度，修改数组的长度影响较大
+  if (key === 'length' && isArray(target)) {
+    // 如果对应的长度有依赖收集，则需要更新
+    depsMap.forEach((dep, key) => {
+      console.log(depsMap, dep, key)
+      // 如果更改的长度小于收集的索引，那么这个索引也需要触发effect重新更新（state.arr.length = 1）
+      // 如果不是直接更改length，如push的这种，key已经是新增的下标了
+      if (key === 'length' || key > newValue) {
+        add(dep)
+      }
+    })
+  } else {
+    // 2.如果不是修改数组的长度
+    if (key !== undefined) {
+      add(depsMap.get(key))
+    }
+    // 如果是修改数组中某一个索引
+    switch (type) {
+      case TriggerOrTypes.ADD:
+        if (isArray(target) && isIntegerKey(key)) {
+          add(depsMap.get('length'))
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  // 执行所有effect
+  effects.forEach(effect => effect())
 }
