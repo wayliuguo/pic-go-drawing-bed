@@ -1,3 +1,5 @@
+![TypeScript](TypeScript.assets/TypeScript.png)
+
 # 一、基础篇
 
 ## 1.快速入门
