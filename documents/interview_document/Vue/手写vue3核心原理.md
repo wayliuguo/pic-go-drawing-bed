@@ -599,6 +599,20 @@ export function trigger(target, type?, key?, newValue?, oldValue?) {
 
 ### ref.ts
 
+- RefImpl
+  - __v_isRef 标识是一个ref属性
+  - _value getter 和setter 的中间变量
+  - rawValue：旧值
+  - shallow：是否是浅的
+  - constructor: 如果是深度的，需要调用`convert`把对象变成响应式
+  - getter：调用`track`收集依赖
+  - setter：调用`trigger`触发更新，如果是深度的需要需要调用`convert`把对象变成响应式
+  - getter、setter 在编译后会转换成`Object.defineProperty`
+- convert
+  - 如果是对象，调用`reactive`把对象进行代理
+- ObjectRefImpl
+  - 通过 getter setter 做一个简单的代理
+
 ```
 import { hasChanged, isArray, isObject } from "@vue/shared";
 import { track, trigger } from "./effect";
@@ -672,5 +686,74 @@ export function toRefs(object) {
   return ret;
 }
 
+```
+
+### 用例
+
+```
+<script>
+	const { effect, reactive, ref } = VueReactivity
+    // 将普通过的类型转化成一个对象，这个对象中value 属性指向原来的值
+    // 如果是对象类型，value会是一个proxy对象
+    let name = ref('well')
+    let info = ref({ age: 18 })
+    let state = {
+    	sex: 'femal'
+    }
+    console.log('name', name)
+    console.log('info', info)
+    effect(() => {
+    	app.innerHTML = name.value + info.value.age
+    })
+    setTimeout(() => {
+    	name.value = 'liuguowei'
+    	info.value.age = 80
+    }, 1000)
+</script>
+```
+
+```
+<script>
+    const { effect, reactive, ref, toRef, toRefs } = VueReactivity
+
+    let state = reactive({
+        name: 'well',
+        age: 18
+    })
+    let info = {
+    	sex: '男'
+    }
+
+    let nameRef = toRef(state, 'name')
+    // let stateRef = toRefs(state)
+    // 可以配合 toRefs 解构，如果不用toRefs解构则失去响应式
+    let { age } = toRefs(state)
+
+    effect(() => {
+    	app.innerHTML = nameRef.value + age.value
+    })
+    setTimeout(() => {
+        nameRef.value = 'liuguowei'
+        age.value = 80
+    }, 1000)
+</script>
+```
+
+```
+<script>
+    const { createApp, reactive, toRefs } = Vue
+    const App = {
+    	setup() {
+    		let state = reactive({
+    			name: 'well',
+    			age: 18
+    		})
+            return {
+                ...toRefs(state)
+            }
+    	}
+    }
+    createApp(App).mount('#app')
+</script>
 ```
 
