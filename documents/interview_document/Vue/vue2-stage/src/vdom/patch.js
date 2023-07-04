@@ -55,8 +55,8 @@ export function patch(oldVnode, vnode) {
             // 直接删除老节点
             el.innerHTML = ``
         }
+        return el
     }
-    return el
 }
 
 function patchChildren(el, oldChildren, newChildren) {

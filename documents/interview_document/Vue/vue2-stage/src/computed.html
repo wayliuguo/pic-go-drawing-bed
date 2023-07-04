@@ -24,10 +24,10 @@
                 lastName: 'good'
             },
             computed: {
-                fullName () {
-                    return this.firstName + this.lastName
-                }
-                /* fullName: {
+                // fullName () {
+                //     return this.firstName + this.lastName
+                // }
+                fullName: {
                     get () {
                         console.log('computed>>>')
                         return this.firstName + this.lastName
@@ -35,7 +35,7 @@
                     set (newValue) {
                         console.log(newValue)
                     }
-                } */
+                }
             }
         })
         setTimeout(() => {

@@ -18,7 +18,7 @@ stateMixin(Vue)
 // 在类上扩展的Vue.mixin
 initGlobalApi(Vue)
 
-/* // diff 核心
+// diff 核心
 // compileToFunctions: 传入template 获得render函数
 import { compileToFunctions } from "./compiler/index"
 // createElm：传入vnode得到真实dom
@@ -30,7 +30,7 @@ import { createElm, patch } from "./vdom/patch"
 // let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
 // 3.一方有儿子 一方没儿子
 // 3.1 老的没儿子， 新的有儿子
-// let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1></div>`
+let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1></div>`
 // 3.2 老的有儿子,新的没儿子
 // let oldTemplate = `<div style="color: red;background: blue;font-size: 20px;" a=1>{{message}}</div>`
 // 3.3 双方都有儿子
@@ -43,12 +43,12 @@ import { createElm, patch } from "./vdom/patch"
 // 3.3.5 ABCD BCDA (头尾比较)
 // 3.3.6 ABCD DABC (尾头比较)
 // 3.3.7 CABD BCDA (乱序比较)
-let oldTemplate = `<div>
-    <li key="C">C</li>
-    <li key="A">A</li>
-    <li key="B">B</li>
-    <li key="D">D</li>
-</div>`
+// let oldTemplate = `<div>
+//     <li key="C">C</li>
+//     <li key="A">A</li>
+//     <li key="B">B</li>
+//     <li key="D">D</li>
+// </div>`
 let vm1 = new Vue({data: {message: 'hello'}})
 const render1 = compileToFunctions(oldTemplate)
 const oldVnode = render1.call(vm1)
@@ -61,7 +61,7 @@ document.body.appendChild(createElm(oldVnode))
 // let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
 // 3.一方有儿子 一方没儿子
 // 3.1 老的没儿子， 新的有儿子
-// let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
+let newTemplate = `<div style="color: blue;background: red;" b=2>{{message}}</div>`
 // 3.2 老的有儿子,新的没儿子
 // let newTemplate = `<div style="color: blue;background: red;" b=2></div>`
 // 3.3 双方都有儿子
@@ -74,12 +74,12 @@ document.body.appendChild(createElm(oldVnode))
 // 3.3.5 ABCD BCDA (头尾比较)
 // 3.3.6 ABCD DABC (尾头比较)
 // 3.3.7 CABD BCDA (乱序比较)
-let newTemplate = `<div>
-    <li key="B">B</li>
-    <li key="C">C</li>
-    <li key="D">D</li>
-    <li key="A">A</li>
-</div>`
+// let newTemplate = `<div>
+//     <li key="B">B</li>
+//     <li key="C">C</li>
+//     <li key="D">D</li>
+//     <li key="A">A</li>
+// </div>`
 let vm2 = new Vue({data: {message: 'world'}})
 const render2 = compileToFunctions(newTemplate)
 const newVnode = render2.call(vm2)
@@ -87,7 +87,7 @@ const newVnode = render2.call(vm2)
 // 根据新的虚拟节点更新老的节点，老的节点能复用尽量复用
 setTimeout(() => {
     patch(oldVnode, newVnode)
-}, 2000) */
+}, 2000)
 
 
 export default Vue
