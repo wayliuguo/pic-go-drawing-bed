@@ -264,5 +264,171 @@ export function nextTick (cb) {
 - 视图没有更新，因为属性没有被转换为响应式数据（没有收集依赖）
 - this.$set(target, key, value)
 
+### 15.Vue template 到 render 过程
+
+**template => ast(抽象语法树) => render 函数**
+
+### 16.vue中封装的数组方法有哪些？如何实现页面更新
+
+- 数组
+  - push
+  - pop
+  - shift
+  - unshift
+  - splice
+  - sort
+  - reverse
+- 调用后返回结果之前，通过dep.notify()触发依赖更新。
+
+### 17.自定义指令
+
+- 对普通DOM元素进行底层操作
+- 钩子函数（vue2）
+  - bind
+  - inserted
+  - update
+  - ComponentUpdate
+  - unbind
+- 钩子函数（vue3)
+  - created
+  - beforeMount
+  - mounted
+  - beforeUpdate
+  - beforeUnmount
+  - unmounted
+
+### 18.子组件可以直接改变父组件数据吗？
+
+- 只可以父级 props 更新留向子组件，每次更新时子组件中所有props都会刷新
+- 防止意外改变父组件状态，增加degger成本
+- 只能通过`$emit`派发自定义事件由父组件修改
+
+### 19.v-if 和 v-for 优先级
+
+- v-fo 优先级更高
+- 在循环中根据v-if 来确定是否渲染该元素，如果v-if 是假，则跳过
+
+```
+<div v-for="item in items" v-if="item.isActive">
+  {{ item.name }}
+</div>
+// 在上述示例中，v-for会遍历items数组中的每个元素，并且只有当item.isActive为真时，才会渲染对应的<div>元素。
+```
+
+### 20.vue初始化页面闪动问题
+
+代码还没解析好看到模板的问题
+
+```
+[v-cloak] {
+  display: none;
+}
+```
+
+### 21. SPA 优缺点
+
+- SPA
+
+  页面初始化时加载相应资源，加载完成后不会因为用户操作进行页面的重新加载和跳转，利用路由机制实现内容变化与交互。
+
+- 优点
+
+  - 体验好，内容变化不需要重新加载，避免不必要的跳转和重复渲染
+  - 服务器压力小
+  - 前后端职责分离
+
+- 缺点
+
+  - 白屏时间长
+  -  前端需要自行建立路由管理
+  - SEO难度大：所有内容在一个页面中动态替换显示
+
+## 生命周期
+
+### 1.vue生命周期
+
+开始创建=》初始化数据=》模板编译=》挂载DOM=>渲染更新=》渲染、卸载一系列流程
+
+1. beforeCreate
+   - 数据观察和初始化事件还没开始，无法访问到data、computed等数据和方法
+2. created
+   - 实例创建完成，已经可以访问data等数据和方法，但是没有挂载到DOM
+3. beforeMount
+   - 挂载之前被调用，已经对模板解析得到了render函数
+4. mounted
+   - 完成了调用render函数生成vnode，把vnode转换成html替换内容
+5. beforeUpdate
+   - 响应式数据更新时调用，UI还没更新
+6. updated
+   - UI已经更新
+7. beforeDestory
+   - 实例销毁前调用,服务端渲染不被调用
+8. destoryed
+   - 实例销毁后调用，服务端渲染不被调用
+
+### 2.父子组件执行顺序
+
+- 加载渲染过程
+  1. 父组件 beforeCreate
+  2. 父组件 created
+  3. 父组件 beforeMount
+  4. 子组件 beforeCreate
+  5. 子组件 created
+  6. 子组件 beforeMount
+  7. 子组件 mounted
+  8. 父组件 mounted
+
+- 更新过程
+  1. 父组件 beforeUpdate
+  2. 子组件 beforeCreate
+  3. 子组件 updated
+  4. 父组件 updated
+- 销毁
+  1. 父组件 beforeDestory
+  2. 子组件 beforeDestory
+  3. 子组件 destoryed
+  4. 父组件 destoryed
+
+### 3.组件通信
+
+- 父子组件传值（props/$emit）
+
+- eventBus事件总线（$emit/$on）
+
+  1. 创建事件中心
+
+     ```
+     import Vue from 'vue'
+     export const EventBus = new Vue()
+     ```
+
+  2. 发送事件
+
+     ```
+     import {EventBus} from './event-bus.js'
+     EventBus.$emit('×××', {...})
+     ```
+
+  3. 接收事件
+
+     ```
+     import {EventBus} from './event-bus.js'
+     EventBus.$on('×××', {...})
+     ```
+
+- 依赖注入（provide/inject）
+
+- ref / $refs
+
+- $parent / $children
+
+- $attrs/$listeners (A=>B=>C 跨代传递)
+
+  - `inheritAttrs`默认只继承除`pros`外的所有属性，如果为`false`则只继承`class`属性
+  - `$attrs`继承所有的父组件属性（除props、class、style）(v-bind="$attrs")
+  - `$listeners`继承所有父组件的自定义监听器（v-on="$listeners"）
+
+
+
 
 
