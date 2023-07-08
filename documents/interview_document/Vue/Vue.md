@@ -343,9 +343,43 @@ export function nextTick (cb) {
   -  前端需要自行建立路由管理
   - SEO难度大：所有内容在一个页面中动态替换显示
 
-## 生命周期
+### 22. 虚拟DOM
 
-### 1.vue生命周期
+- 通过js对象的方式描述DOM结构
+- 优点
+  - 跨平台
+  - 性能优化，收集变更再对比刷新
+  - 简化开发，无需操作真是DOM
+
+### 23. diff 算法
+
+1. 标签名不一样，直接替换
+2. 如果标签一样比较属性
+3. 比较双方儿子
+   - 老的没儿子新的有儿子循环创建
+   - 老的有儿子新的没儿子删除老节点
+   - 双方都有儿子节点，双指针比较
+     - oldStartIndex：旧头下标，oldStartVnode
+     - oldEndIndex: 旧尾下标，oldEndVnode
+     - newStartIndex：新头下标，newStartVnode
+     - newEndIndex:：新尾下标，newEndVnode
+     - 头头比较，如果相同头开始指针后移，更新对应的vnode
+     - 尾尾比较，如果相同结束指针前移，更新对应的vnode
+     - 旧头新尾比较，如果相同，旧头后移新尾前移
+     - 旧尾新后比较，如果相同，旧尾前移新头后移
+     - 乱序比较
+       - 通过旧列表创建key=》index映射，通过新头指针对应节点的key找到对应的index
+       - 如果找不到，直接创建新的节点插入老节点的头指针处
+       - 如果找到，移动该节点到旧头指针处
+4. 如果一方有一方没有
+   - 新的还有旧的没有
+   - 旧的还有新的没有
+
+### 24. key 的作用
+
+作为vnode的唯一标记，可以使diff操作更准确与高效，确保数据更新时进行最小化的DOM操作与正确的节点重用。
+
+### 25.vue生命周期
 
 开始创建=》初始化数据=》模板编译=》挂载DOM=>渲染更新=》渲染、卸载一系列流程
 
@@ -366,7 +400,7 @@ export function nextTick (cb) {
 8. destoryed
    - 实例销毁后调用，服务端渲染不被调用
 
-### 2.父子组件执行顺序
+### 26.父子组件执行顺序
 
 - 加载渲染过程
   1. 父组件 beforeCreate
@@ -389,7 +423,7 @@ export function nextTick (cb) {
   3. 子组件 destoryed
   4. 父组件 destoryed
 
-### 3.组件通信
+### 27.组件通信
 
 - 父子组件传值（props/$emit）
 
@@ -428,7 +462,181 @@ export function nextTick (cb) {
   - `$attrs`继承所有的父组件属性（除props、class、style）(v-bind="$attrs")
   - `$listeners`继承所有父组件的自定义监听器（v-on="$listeners"）
 
+## Vue3
 
+### vue3新特性
+
+1. 性能提升
+   - 响应式性能提升
+   - diff算法优化（增加静态标志）
+   - 模板编译优化，不参与更新元素只创建一次
+   - 更高效组件初始化
+2. 更好的ts支持，提供了更好的类型检查
+3. Composition API
+   - 更好的代码组织形式，避免来回切换
+   - 更好的组件件代码复用，避免vue2 mixin的变量冲突、来源不清晰的缺点
+4. 新增组件
+   - Fragment：不再限制`template`只有一个根节点
+   - Teleport：传送门，允许我们将控制的内容传送到任意的 `DOM` 中
+   - Suspense：等待异步组件时渲染一些额外的内容，让应用有更好的用户体验
+
+### 响应式原理
+
+- 初始化阶段：初始化阶段通过组件初始化方法形成对应的`proxy对象`，然后形成一个负责渲染的`effect`
+- get依赖收集阶段：通过`解析template`，替换`真实data`属性，来触发`get`,然后通过`track方法`，通过`proxy对象`和`key`形成对应的`deps`，将负责渲染的`effect`存入`deps`
+- set 派发更新阶段：触发`setter`的时候通过`effect`通知`effect`更新
+
+### v-if、v-for 优先级
+
+`v-if`的优先级更高。
+
+### setup
+
+- 属性和方法无需返回，可以直接使用
+- 引入组件自动注册
+- 使用`defineProps`接收父组件传递值,defineEmits 获取自定义事件。
+- useAttrs 获取属性，useSlots 获取插槽。
+- 默认`不会对外暴露`任何属性，如果有需要可使用 `defineExpose` 
+
+### 通信方式
+
+- props/$emit
+- expose/ref
+- $attrs
+- provide/inject
+- mitt
+
+### ref 与 reactive d的区别？
+
+- ref 在js中需要通过.value 使用
+- ref 可以接收原始数据类型和引用数据类型，其判断是非原始数据类型使用reactive封装
+- reactive 只能接收引用数据类型
+
+
+
+## vueRouter
+
+### 路由懒加载
+
+使用箭头函数+import
+
+### 1.hash和history模式
+
+1. 原理
+
+   - hash: hashchange
+   - history: pushState、replaceState
+2. 特点：
+
+   - hash值出现在url里面，改变hash值不会重新加载页面，兼容性好
+   - 比hash值好看，需要后端服务器配置正确的入口文件避免出现404
+
+### 2.$route 和 $router 区别
+
+- $route：路由信息对象，包括 path、params、hash、name、query等信息
+- $router：路由实例，包括路由的跳转方法
+
+### 3.动态路由
+
+1. param
+
+   - 配置：/router/:id
+
+   - 跳转
+
+     ```
+     <router-link :to="{name: 'users', params: {...}}">replace 用户</router-link>
+     this.$router.push({name: 'users', params:{}})
+     ```
+
+   - 参数获取：this.$route.params.userid
+   
+2. query
+
+   - 配置：/router
+
+   - 跳转
+
+     ```
+     <router-link :to="{name: 'users', query: {...}}">replace 用户</router-link>
+     this.$router.push({name: 'users', query:{}})
+     ```
+
+   - 参数获取：this.$route.query
+
+3. 区别：params在浏览器地址中不显示参数，刷新会丢失路由数据
+
+### 4.生命周期
+
+-    全局路由钩子
+
+  - router.beforeEach: 路由切换时触发，用于是否允许路由切换
+  - router.beforeResolve：路由解析完成前，用于额外逻辑处理如加载数据、修改参数
+  - router.afterEach: 进入路由之后
+- 路由独享钩子
+
+  - beforeEnter: 进入某个具体路由前执行
+-    组件内守卫
+     - beforeRouteEnter：进入组件前触发，不能获取this
+     - beforeRouteUpdate：当前地址改变并且组件被服用触发，如foo/:id
+     - beforeRouteLeave：离开组件被调用
+-    完整的导航解析流程
+     1. 导航被触发
+     2. 在失活的组件里调用 beforeRouteLeave
+     3. 调用全局 beforeEach
+     4. 重用的组件调用 beforeRouteUpdate
+     5. 路由配置调用 beforeEnter
+     6. 解析异步路由组件
+     7. 被激活的组件调用 beforeRouterEnter
+     8. 调用全局 beforeResolve
+     9. 导航被确认
+     10. 调用全局的 afterEach
+     11. 触发 DOM 更新
+     12. 调用 beforeRouteEnter
+
+## 存储
+
+### vuex
+
+- 属性
+
+  - state
+  - getters
+  - mutations
+  - actions
+  - modules
+
+- 操作方法
+
+  - commit 提交 mutation
+  - dispatch 提交 action
+
+- 思想
+
+  - 单一数据源
+  - 变化可以预测
+
+- 辅助函数
+
+  - mapState
+  - mapGetters
+  - mapMutations
+  - mapActions
+
+  ```
+  computed: {
+  	...mapState(['name']),
+      ...mapGetters(['myAge'])
+  }
+  methods: {
+  	...mapMutations(['changeAge'])
+      ...mapActions(['changeAge'])
+  }
+  ```
+
+### pina
+
+## 
 
 
 
