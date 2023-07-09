@@ -315,6 +315,9 @@ export function nextTick (cb) {
 // 在上述示例中，v-for会遍历items数组中的每个元素，并且只有当item.isActive为真时，才会渲染对应的<div>元素。
 ```
 
+- vue2 中 v-for > v-if
+- vue3 中 v-if > v-for
+
 ### 20.vue初始化页面闪动问题
 
 代码还没解析好看到模板的问题
@@ -636,7 +639,43 @@ export function nextTick (cb) {
 
 ### pina
 
-## 
+- 属性
+
+  - state：setup: `ref()` 就是 `state` 属性
+  - getters：setup:`computed()` 就是 `getters`
+  - actions：setup:`function()` 就是 `actions`
+
+- 定义 defineStore
+
+  ```
+  export const useAlertsStore = defineStore('alerts', {
+    state: () => {},
+    getters: {},
+    actions: {}
+  })
+  
+  export const useCounterStore = defineStore('counter', () => {
+    const count = ref(0)
+    function increment() {
+    }
+    return { count, increment }
+  })
+  ```
+
+- 使用
+
+  ```
+  // 使用
+  const store = useCounterStore()
+  // 解构 state 需要使用 storeToRefs
+  const { name, doubleCount } = storeToRefs(store)
+  // 解构 action 可以直接解构
+  const { increment } = store
+  ```
+
+
+
+  
 
 
 
