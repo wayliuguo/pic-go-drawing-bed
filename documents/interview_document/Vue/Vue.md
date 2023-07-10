@@ -1,3 +1,5 @@
+![Vue](Vue.assets/Vue.png)
+
 ## vue
 
 ### 1.vue2运行机制
@@ -509,7 +511,7 @@ export function nextTick (cb) {
 - provide/inject
 - mitt
 
-### ref 与 reactive d的区别？
+### ref 与 reactived的区别？
 
 - ref 在js中需要通过.value 使用
 - ref 可以接收原始数据类型和引用数据类型，其判断是非原始数据类型使用reactive封装
