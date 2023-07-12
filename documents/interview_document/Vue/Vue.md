@@ -597,7 +597,7 @@ export function nextTick (cb) {
      9. 导航被确认
      10. 调用全局的 afterEach
      11. 触发 DOM 更新
-     12. 调用 beforeRouteEnter
+     12. 调用 beforeRouteEnter中next
 
 ## 存储
 
