@@ -1,11 +1,14 @@
 Object.prototype.MyCreate = function (obj) {
-    function F () {}
-    F.prototype = obj
-    console.log(F.prototype) // [Function: Person]
-    return new F()
-}
-function Person (name) {
-    this.name = name
-}
-const obj = Object.MyCreate(Person)
-console.log(obj) // Function {}
+  function F() {}
+  F.prototype = obj;
+  return new F();
+};
+
+const personPrototype = {
+  greeting() {
+    console.log(`Hello, my name is ${this.name}.`);
+  },
+};
+const john = Object.MyCreate(personPrototype);
+john.name = "John Doe";
+john.greeting();
