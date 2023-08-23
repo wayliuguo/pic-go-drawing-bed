@@ -2,6 +2,7 @@ import { computed, defineComponent, onMounted, ref, watch } from 'vue'
 import { virtualProps } from './virtualProps'
 import { createNamespace } from '@zi-shui/utils/create'
 import { reactive } from 'vue'
+import { throttle } from 'lodash'
 
 export default defineComponent({
   name: 'ZVirtualList',
@@ -33,7 +34,7 @@ export default defineComponent({
     })
 
     // 监听滚动
-    const handleScroll = () => {
+    const handleScroll = throttle(() => {
       // 根据当前滚动的距离来算过去了几个数据
       const scrollTop = wrapperRef.value!.scrollTop
       // 滚动后的开始位置
@@ -42,7 +43,7 @@ export default defineComponent({
       state.end = state.start + props.remain
       // 滚动过去了多少个（- props.size * prev.value）：减去前面补的
       offset.value = state.start * props.size - props.size * prev.value
-    }
+    }, 300)
 
     const initWrapper = () => {
       wrapperRef.value!.style.height = `${props.remain * props.size}px`

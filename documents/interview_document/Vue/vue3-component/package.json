@@ -21,9 +21,12 @@
     "unplugin-vue-define-options": "^0.12.2"
   },
   "dependencies": {
+    "@types/mockjs": "^1.0.7",
     "@zi-shui/components": "workspace:^1.0.0",
     "@zi-shui/theme-chalk": "workspace:^1.0.0",
     "@zi-shui/utils": "workspace:^1.0.0",
+    "lodash": "^4.17.21",
+    "mockjs": "^1.1.0",
     "typescript": "^4.8.4",
     "vue": "^3.2.41"
   }

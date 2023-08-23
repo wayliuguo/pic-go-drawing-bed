@@ -4,6 +4,7 @@ import PlayIcon from './components/PlayIcon.vue'
 import PlayCheckbox from './components/PlayCheckbox.vue'
 import PlayButton from './components/PlayButton.vue'
 import PlayInput from './components/PlayInput.vue'
+import playVirtualScrollList from './components/playVirtualScrollList.vue'
 </script>
 
 <template>
@@ -12,6 +13,7 @@ import PlayInput from './components/PlayInput.vue'
   <PlayCheckbox />
   <PlayButton />
   <PlayInput />
+  <playVirtualScrollList />
 </template>
 
 <style scoped></style>
