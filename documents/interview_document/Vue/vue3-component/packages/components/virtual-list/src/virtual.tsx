@@ -53,7 +53,7 @@ export default defineComponent({
     watch(
       () => props.items,
       () => {
-        initWrapper
+        initWrapper()
       }
     )
 
