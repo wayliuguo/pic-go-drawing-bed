@@ -3,7 +3,7 @@ import { Random } from 'mockjs'
 import { ref } from 'vue'
 import playItem from './playItem.vue'
 import { DefineComponent } from 'vue'
-const totalCount = 10000
+const totalCount = 100
 interface DataType {
   id: number,
   name: string,

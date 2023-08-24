@@ -43,7 +43,7 @@ export default defineComponent({
       state.end = state.start + props.remain
       // 滚动过去了多少个（- props.size * prev.value）：减去前面补的
       offset.value = state.start * props.size - props.size * prev.value
-    }, 300)
+    }, 17)
 
     const initWrapper = () => {
       wrapperRef.value!.style.height = `${props.remain * props.size}px`

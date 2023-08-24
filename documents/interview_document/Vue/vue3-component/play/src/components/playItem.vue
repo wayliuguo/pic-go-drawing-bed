@@ -1,5 +1,5 @@
 <template>
-  <div class="item">
+  <div class="item" :style="{ fontSize: '25px' }" :data-index="source.index">
     <div class="head">
       <span>
         {{ source.index }}
