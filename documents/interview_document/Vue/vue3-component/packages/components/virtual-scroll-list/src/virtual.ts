@@ -12,6 +12,7 @@ export const initVirtual = (param: VirtualOptions, update: updateType) => {
   const sizes = new Map<string | number, number>()
   let calcType = CALC_TYPE.INIT
   let fixedSizeVal = 0
+  let firstRangeAvg: number
   const range: RangeOptions = {
     start: 0,
     end: 0,
@@ -24,11 +25,27 @@ export const initVirtual = (param: VirtualOptions, update: updateType) => {
   }
 
   const getEstimateSize = () => {
-    return isFixed() ? fixedSizeVal : param.estimateSize
+    return isFixed() ? fixedSizeVal : firstRangeAvg || param.estimateSize
+  }
+
+  const getIndexOffset = (idx: number) => {
+    if (!idx) return 0
+    let offset = 0
+    for (let i = 0; i < idx; i++) {
+      let indexSize = sizes.get(param.uniqueIds[i])
+      offset += typeof indexSize === 'number' ? indexSize : getEstimateSize()
+    }
+    return offset
   }
 
   const getPadFront = () => {
-    return getEstimateSize() * range.start
+    if (isFixed()) {
+      return fixedSizeVal * range.start
+    } else {
+      // 将滚动后的元素累加一遍 计算上高度
+
+      return getIndexOffset(range.start)
+    }
   }
   const getPadBehind = () => {
     const lastIndex = param.uniqueIds.length - 1
@@ -55,7 +72,26 @@ export const initVirtual = (param: VirtualOptions, update: updateType) => {
 
   const getScrollOvers = () => {
     // 划过偏移量 / 每项的高度 = 划过的个数
-    return Math.floor(offsetValue / getEstimateSize())
+    if (isFixed()) {
+      return Math.floor(offsetValue / getEstimateSize())
+    } else {
+      let low = 0
+      let high = param.uniqueIds.length
+      let middle = 0
+      let middleOffset = 0
+      while (low <= high) {
+        middle = low + Math.floor((high - low) / 2)
+        middleOffset = getIndexOffset(middle)
+        if (middleOffset === offsetValue) {
+          return middle
+        } else if (middleOffset < offsetValue) {
+          low = middle + 1
+        } else if (middleOffset > offsetValue) {
+          high = middle - 1
+        }
+      }
+      return low > 0 ? --low : 0
+    }
   }
 
   const getEndByStart = (start: number) => {
@@ -101,6 +137,13 @@ export const initVirtual = (param: VirtualOptions, update: updateType) => {
     } else if (calcType === CALC_TYPE.FIXED && fixedSizeVal !== size) {
       calcType = CALC_TYPE.DYNAMIC
       fixedSizeVal = 0
+    }
+    if (calcType === CALC_TYPE.DYNAMIC) {
+      if (sizes.size < Math.min(param.keeps, param.uniqueIds.length)) {
+        firstRangeAvg = Math.round(
+          [...sizes.values()].reduce((acc, val) => acc + val, 0) / sizes.size
+        )
+      }
     }
   }
 
