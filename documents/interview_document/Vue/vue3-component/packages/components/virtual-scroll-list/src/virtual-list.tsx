@@ -7,6 +7,7 @@ export default defineComponent({
   name: 'z-virtual-scroll-list',
   props: virtualPorps,
   setup(props) {
+    // 范围变量
     const range = ref<RangeOptions | null>(null)
     // 更新range
     const update: updateType = newRange => {
@@ -15,11 +16,11 @@ export default defineComponent({
     // 获取数据源指定唯一key组成的数组
     const getUniqueueIdFromDataSources = (): string[] => {
       const { dataSources, dataKey } = props
-      return dataSources.map(
-        dataSource => (dataSource as any)[dataKey as any]
-      ) as string[]
+      return dataSources.map(dataSource => dataSource[dataKey])
     }
+    // 虚拟列表处理对象
     let virtual: ReturnType<typeof initVirtual>
+    // 初始化虚拟列表
     const installVirtual = () => {
       virtual = initVirtual(
         {
@@ -33,7 +34,7 @@ export default defineComponent({
     }
 
     const onItemResize = (id: string | number, size: number) => {
-      virtual.saveSize(id, size)
+      // virtual.saveSize(id, size)
     }
 
     const genRenderComponent = () => {
@@ -42,7 +43,7 @@ export default defineComponent({
       const { dataSources, dataComponent, dataKey } = props
       for (let index = start; index <= end; index++) {
         const dataSource = dataSources[index]
-        const uniqueKey = (dataSource as any)[dataKey]
+        const uniqueKey = dataSource[dataKey]
         if (dataSource) {
           slots.push(
             <VirtualItem
@@ -58,19 +59,24 @@ export default defineComponent({
     }
 
     const root = ref<HTMLElement | null>()
+    // 监听虚拟列表滚动事件
     const onScroll = () => {
       if (root.value) {
-        // 滚动的距离
+        // 获取滚动的距离
         const offset = root.value.scrollTop
+        console.log(offset)
+        // 根据滚动的距离更新虚拟列表
         virtual.handleScroll(offset)
       }
     }
 
     onBeforeMount(() => {
+      // 初始化虚拟列表
       installVirtual()
     })
 
     return () => {
+      // 获取虚拟列表上下padding
       const { padFront, padBehind } = range.value!
       const paddingStyle = {
         padding: `${padFront}px 0 ${padBehind}px`

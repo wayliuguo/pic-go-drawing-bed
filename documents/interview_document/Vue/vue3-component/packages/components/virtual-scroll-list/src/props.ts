@@ -1,9 +1,14 @@
 import { DefineComponent, ExtractPropTypes, PropType } from 'vue'
 
+interface dataSourceType {
+  id: number
+  [prop: string]: any
+}
+
 export const virtualPorps = {
   // 要渲染的总数居
   dataSources: {
-    type: Array,
+    type: Array as PropType<Array<dataSourceType>>,
     require: true,
     default: () => []
   },
@@ -32,9 +37,13 @@ export const virtualPorps = {
 export type VirtualPorps = ExtractPropTypes<typeof virtualPorps>
 
 export type RangeOptions = {
+  // 开始
   start: number
+  // 结束
   end: number
+  // 上 padding
   padFront: number
+  // 下 padding
   padBehind: number
 }
 

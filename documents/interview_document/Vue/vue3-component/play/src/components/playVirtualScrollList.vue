@@ -35,6 +35,6 @@ console.log(items)
   width: 100%;
   height: 500px;
   overflow-y: scroll;
-  border: 3px solid red;
+  border: 1px solid red;
 }
 </style>
