@@ -2,6 +2,7 @@ import { defineComponent, onBeforeMount, onUpdated, ref } from 'vue'
 import { RangeOptions, updateType, virtualPorps } from './props'
 import { initVirtual } from './virtual'
 import { throttle } from 'lodash'
+import VirtualItem from './virtual-item'
 
 export default defineComponent({
   name: 'z-virtual-scroll-list',
@@ -48,11 +49,19 @@ export default defineComponent({
         const uniqueKey = dataSource[dataKey]
         if (dataComponent) {
           slots.push(
-            <dataComponent key={uniqueKey} source={dataSource}></dataComponent>
+            <VirtualItem
+              uniqueKey={uniqueKey}
+              source={dataSource}
+              component={dataComponent}
+              onItemResize={onItemResize}
+            ></VirtualItem>
           )
         }
       }
       return slots
+    }
+    function onItemResize(id: string | number, size: number) {
+      virtual.saveSize(id, size)
     }
     // 滚动事件
     const onScroll = throttle(() => {

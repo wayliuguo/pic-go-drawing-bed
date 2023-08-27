@@ -6,7 +6,6 @@ export default defineComponent({
   props: virtualItemProps,
   emits: ['itemResize'],
   setup(props, { emit }) {
-    const { component: Com, source, uniqueKey } = props
     const root = ref<HTMLElement | null>(null)
 
     const dispatchEvent = () => {
@@ -16,6 +15,7 @@ export default defineComponent({
     onMounted(dispatchEvent)
     onUpdated(dispatchEvent)
     return () => {
+      const { component: Com, source, uniqueKey } = props
       return (
         Com && (
           <div key={uniqueKey} ref={root}>

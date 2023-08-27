@@ -1,6 +1,6 @@
 <template>
-  <div class="item" :data-index="source.index" :style="{ height: '80px' }">
-    <div class="head">
+  <div class="item" :data-index="source.index">
+    <div class="head" :style="{ color: 'red', fontWeight: 'bold', fontSize: '35px' }">
       <span>
         {{ source.index }}
       </span>
@@ -8,7 +8,7 @@
         {{ source.name }}
       </span>
     </div>
-    <div class="body">
+    <div class="body" :style="{ fontSize: '18px' }">
       <span>{{ source.desc }}</span>
     </div>
   </div>
