@@ -57,8 +57,7 @@ export function initVirtual(param: VirtualOptions, update: updateType) {
     if (overs > range.start) {
       return
     }
-    // 如果划出了缓存区，则产生小于0，最小只能是0
-    // 如果没有划出缓冲区，则重新计算开始下标
+    // 如果超出了开始下标，则减去缓冲区数量得到开始下标，不能小于0
     const start = Math.max(overs - param.buffer, 0)
     checkRange(start, getEndByStart(start))
   }

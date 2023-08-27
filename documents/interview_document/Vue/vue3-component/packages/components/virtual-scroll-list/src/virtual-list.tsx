@@ -23,7 +23,6 @@ export default defineComponent({
     // 更新范围
     const update: updateType = newRange => {
       range.value = newRange
-      console.log(range.value.start, range.value.end)
     }
 
     // 初始化范围
